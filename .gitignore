@@ -9,8 +9,19 @@
 
 # Node modules and dependency files
 /node_modules/
-/package-lock.json
 /yarn.lock
+
+/.local-tools/
+/playwright-report/
+/test-results/
+/.env.*
+!/.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.dump
+*.bak
 
 # Environment files
 /.env

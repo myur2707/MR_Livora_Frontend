@@ -1,0 +1,139 @@
+<div class="page-heading">
+  <div>
+    <p class="eyebrow">THE FOUNDATION</p>
+    <h1 tabindex="-1">Good design, in the details</h1>
+    <p>A small library of familiar controls, ready to work together.</p>
+  </div>
+  <se-badge>UI preview</se-badge>
+</div>
+<div class="preview-grid">
+  <se-card title="Everyday actions" description="Clear choices and reassuring feedback."
+    ><div class="button-row">
+      <button seButton type="button" (click)="toast.show('A sample action completed.', 'success')">
+        Primary action</button
+      ><button
+        seButton
+        variant="secondary"
+        type="button"
+        (click)="toast.show('Here is a sample notification.')"
+      >
+        Secondary</button
+      ><button seButton variant="ghost" type="button" disabled>Unavailable</button>
+    </div>
+    <div class="button-row">
+      <se-badge>Neutral</se-badge><se-badge tone="success">Ready</se-badge
+      ><se-badge tone="warning">Needs attention</se-badge>
+    </div>
+    <div class="button-row">
+      <button seButton variant="secondary" type="button" (click)="dialogOpen.set(true)">
+        Open dialog</button
+      ><button seButton variant="secondary" type="button" (click)="drawerOpen.set(true)">
+        Open drawer
+      </button>
+    </div></se-card
+  >
+  <se-card title="A little guidance" description="Labels, hints and errors belong together.">
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <se-field
+        controlId="example-name"
+        label="Name"
+        [required]="true"
+        [error]="errors(form.controls.name, 'Name')"
+        ><input seInput formControlName="name" autocomplete="off" required
+      /></se-field>
+      <se-field
+        controlId="example-email"
+        label="Email address"
+        hint="Use a made-up address for this UI example."
+        [required]="true"
+        [error]="errors(form.controls.email, 'Email address')"
+        ><input seInput type="email" formControlName="email" autocomplete="off" required
+      /></se-field>
+      <se-field controlId="example-preference" label="Example preference"
+        ><select seSelect formControlName="preference">
+          <option value="weekly">Weekly</option>
+          <option value="monthly">Monthly</option>
+        </select></se-field
+      >
+      <se-form-notice [message]="notice()" />
+      <div class="button-row">
+        <button seButton type="submit">Validate example</button
+        ><button
+          seButton
+          variant="ghost"
+          type="button"
+          (click)="notice.set('This is a sample server error. Please try again.')"
+        >
+          Show server error
+        </button>
+      </div>
+      <p class="field-hint">A UI example only. No information is sent or stored.</p>
+    </form>
+  </se-card>
+</div>
+<se-card title="A clear view" description="A semantic table with simple, bounded pagination.">
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Scrollable component inventory">
+    <table seTable>
+      <caption>
+        Shared component inventory
+      </caption>
+      <thead>
+        <tr>
+          <th scope="col">Component</th>
+          <th scope="col">Category</th>
+          <th scope="col">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row) {
+          <tr>
+            <th scope="row">{{ row }}</th>
+            <td>Foundation</td>
+            <td><se-badge tone="success">Available</se-badge></td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <se-pagination [total]="inventory.length" [page]="page()" (pageSelected)="page.set($event)" />
+</se-card>
+<div class="preview-grid state-preview">
+  <se-card
+    ><se-state kind="loading" title="Getting things ready" message="A sample loading state."
+  /></se-card>
+  <se-card
+    ><se-state title="A clean slate" message="A sample empty state with room to grow."
+  /></se-card>
+  <se-card
+    ><se-state kind="error" title="Let’s try that again" message="Something could not be loaded."
+      ><button
+        seButton
+        variant="secondary"
+        type="button"
+        (click)="toast.show('Sample retry requested.')"
+      >
+        Try again
+      </button></se-state
+    ></se-card
+  >
+</div>
+<se-dialog title="A moment of clarity" [open]="dialogOpen()" (closed)="dialogOpen.set(false)"
+  ><p>
+    This reusable dialog keeps keyboard focus inside while it is open. Press Escape or use the close
+    button to return.
+  </p>
+  <div class="button-row">
+    <button seButton type="button" (click)="dialogOpen.set(false)">Got it</button>
+  </div></se-dialog
+>
+<se-drawer title="A little more room" [open]="drawerOpen()" (closed)="drawerOpen.set(false)"
+  ><p>
+    A reusable side panel for supporting information. It shares the dialog's keyboard and focus
+    behavior.
+  </p>
+  <div class="button-row">
+    <button seButton variant="secondary" type="button" (click)="drawerOpen.set(false)">
+      Close panel
+    </button>
+  </div></se-drawer
+>

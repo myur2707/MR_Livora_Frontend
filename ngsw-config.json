@@ -1,0 +1,41 @@
+{
+  "$schema": "./node_modules/@angular/service-worker/config/schema.json",
+  "index": "/index.html",
+  "appData": { "cachePolicy": "static-shell-only" },
+  "assetGroups": [
+    {
+      "name": "application-shell",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/index.html",
+          "/*.js",
+          "/*.css",
+          "/manifest.webmanifest",
+          "/favicon.svg",
+          "/assets/brand/*.svg",
+          "/icons/*.png"
+        ]
+      }
+    }
+  ],
+  "dataGroups": [],
+  "navigationUrls": [
+    "/$",
+    "/login$",
+    "/forgot-password$",
+    "/platform/dashboard$",
+    "/platform/societies$",
+    "/society/dashboard$",
+    "/ui$",
+    "!/api$",
+    "!/api/**",
+    "!/bills/**",
+    "!/payments/**",
+    "!/receipts/**",
+    "!/residents/**",
+    "!/uploads/**"
+  ],
+  "navigationRequestStrategy": "performance"
+}

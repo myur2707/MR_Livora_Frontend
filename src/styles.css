@@ -1,0 +1,7 @@
+@import 'tailwindcss';
+@import '@angular/cdk/a11y-prebuilt.css';
+@import './styles/design-tokens.css';
+@import './styles/components.css';
+@import './styles/app-shell.css';
+@import './styles/pages.css';
+@import './styles/responsive.css';

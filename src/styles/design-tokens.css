@@ -1,0 +1,120 @@
+:root {
+  color-scheme: light;
+  --canvas: #f6f6f0;
+  --surface: #ffffff;
+  --surface-soft: #f0f3ea;
+  --text: #263c32;
+  --muted: #617066;
+  --brand: #214d3d;
+  --on-brand: #ffffff;
+  --border: #e0e6dc;
+  --control-border: #829084;
+  --focus: #3d6d4e;
+  --danger: #a13234;
+  --danger-soft: #fff0ee;
+  --warning: #78531c;
+  --warning-soft: #faf0d9;
+  --hero: #e9efdd;
+  --hero-text: #284a37;
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-display: Georgia, 'Times New Roman', serif;
+  --shadow: 0 8px 30px rgb(22 48 32 / 5%);
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --canvas: #101c18;
+  --surface: #172720;
+  --surface-soft: #22372c;
+  --text: #edf2e9;
+  --muted: #b5c3b7;
+  --brand: #bad3aa;
+  --on-brand: #172720;
+  --border: #344d41;
+  --control-border: #7b9583;
+  --focus: #cce4b7;
+  --danger: #ffb4b2;
+  --danger-soft: #452d2d;
+  --warning: #f1d49a;
+  --warning-soft: #3b3323;
+  --hero: #243e2d;
+  --hero-text: #e2edd6;
+  --shadow: 0 8px 30px rgb(0 0 0 / 10%);
+}
+@theme inline {
+  --color-brand: var(--brand);
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --font-sans: var(--font-body);
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--canvas);
+  color: var(--text);
+  font: 14px/1.6 var(--font-body);
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+h1 {
+  font-size: clamp(25px, 2.4vw, 32px);
+  font-weight: 600;
+  letter-spacing: -1px;
+  line-height: 1.25;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+}
+h3 {
+  font-size: 17px;
+  font-weight: 600;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 4px;
+}
+button {
+  cursor: pointer;
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+img {
+  max-width: 100%;
+}

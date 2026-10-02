@@ -1,0 +1,168 @@
+@media (max-width: 1190px) {
+  .guide-grid {
+    gap: 12px;
+  }
+  .guide-card {
+    padding: 20px;
+  }
+  .foundation-note .badge {
+    display: none;
+  }
+  .welcome-copy {
+    padding: 30px;
+  }
+}
+@media (max-width: 959px) {
+  .app-frame,
+  .nav-collapsed {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .desktop-sidebar,
+  .desktop-only {
+    display: none;
+  }
+  .mobile-only {
+    display: inline-flex;
+  }
+  .app-header {
+    padding-inline: 20px;
+  }
+  .workspace main {
+    padding: 28px 24px;
+  }
+  .app-footer {
+    margin-inline: 24px;
+  }
+  .auth-main {
+    gap: 32px;
+  }
+  .auth-card {
+    padding: 28px;
+  }
+}
+@media (max-width: 680px) {
+  .app-header {
+    min-height: 68px;
+    padding-inline: 12px;
+    gap: 8px;
+  }
+  .header-start {
+    gap: 6px;
+  }
+  .header-actions {
+    gap: 0;
+  }
+  .header-divider {
+    display: none;
+  }
+  .header-actions > .button:last-child {
+    padding-inline: 10px;
+  }
+  .header-actions > .button:last-child .icon {
+    display: none;
+  }
+  .breadcrumbs {
+    font-size: 11px;
+    gap: 4px;
+  }
+  .breadcrumbs li {
+    gap: 4px;
+  }
+  .workspace main {
+    padding: 24px 18px;
+  }
+  .page-heading {
+    align-items: start;
+    margin-bottom: 24px;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .welcome-panel {
+    grid-template-columns: 1fr;
+    margin-bottom: 28px;
+  }
+  .welcome-copy {
+    padding: 28px;
+  }
+  .welcome-copy h2 {
+    font-size: 44px;
+  }
+  .welcome-art {
+    padding: 0 20px 22px;
+  }
+  .welcome-art img {
+    max-width: 360px;
+  }
+  .section-heading {
+    align-items: start;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .guide-grid,
+  .preview-grid,
+  .state-preview {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .guide-card {
+    margin-bottom: 14px;
+  }
+  .guide-icon {
+    margin-bottom: 14px;
+  }
+  .guide-link {
+    margin-top: 18px;
+  }
+  .card {
+    padding: 20px;
+  }
+  .foundation-note {
+    align-items: start;
+    gap: 12px;
+  }
+  .app-footer {
+    flex-direction: column;
+    align-items: start;
+    margin-inline: 18px;
+    gap: 6px;
+  }
+  .auth-header {
+    padding: 20px;
+  }
+  .auth-main {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    padding: 24px 18px;
+    width: 100%;
+  }
+  .auth-story {
+    width: 100%;
+  }
+  .auth-story h2 {
+    font-size: 36px;
+  }
+  .auth-story > img {
+    display: none;
+  }
+  .auth-story > p:last-child {
+    margin-top: 16px;
+  }
+  .auth-card {
+    width: 100%;
+    padding: 28px;
+  }
+  .toast-region {
+    bottom: 16px;
+    right: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none;
+    transition: none;
+    scroll-behavior: auto;
+  }
+}

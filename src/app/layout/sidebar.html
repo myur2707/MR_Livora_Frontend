@@ -1,0 +1,41 @@
+<a
+  class="brand"
+  routerLink="/platform/dashboard"
+  aria-label="SocietyEase home"
+  (click)="navigated.emit()"
+>
+  <img src="/favicon.svg" width="38" height="38" alt="" />
+  <span class="sidebar-label"
+    >SocietyEase<span class="brand-subtitle">LIVE BETTER, TOGETHER</span></span
+  >
+</a>
+<nav class="sidebar-nav" aria-label="Primary navigation">
+  @for (group of ['Workspace', 'Foundation']; track group) {
+    <p class="nav-group sidebar-label">{{ group }}</p>
+    @for (item of navigation; track item.path) {
+      @if (item.group === group) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+          [attr.aria-label]="collapsed() ? item.label : null"
+          [title]="collapsed() ? item.label : ''"
+          (click)="navigated.emit()"
+        >
+          <se-icon [name]="item.icon" /><span class="sidebar-label">{{ item.label }}</span>
+        </a>
+      }
+    }
+  }
+</nav>
+<div class="sidebar-note sidebar-label">
+  <span class="tiny-mark"><se-icon name="sparkle" /></span>
+  <p>Good communities<br />begin with connection.</p>
+  <span>A little more ease, every day.</span>
+</div>
+<div class="sidebar-footer">
+  <span class="brand-monogram" aria-hidden="true">S</span>
+  <div class="sidebar-label">
+    <strong>Your community workspace</strong><span>Foundation preview</span>
+  </div>
+</div>

@@ -1,0 +1,57 @@
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="app-frame" [class.nav-collapsed]="collapsed()">
+  <aside class="desktop-sidebar"><se-sidebar [collapsed]="collapsed()" /></aside>
+  <div class="workspace">
+    <header class="app-header">
+      <div class="header-start">
+        <button
+          seButton
+          variant="ghost"
+          class="desktop-only icon-button"
+          type="button"
+          [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+          [attr.aria-expanded]="!collapsed()"
+          (click)="collapsed.set(!collapsed())"
+        >
+          <se-icon name="collapse" />
+        </button>
+        <button
+          seButton
+          variant="ghost"
+          class="mobile-only icon-button"
+          type="button"
+          aria-label="Open navigation"
+          [attr.aria-expanded]="mobileOpen()"
+          (click)="mobileOpen.set(true)"
+        >
+          <se-icon name="menu" />
+        </button>
+        <se-breadcrumbs />
+      </div>
+      <div class="header-actions">
+        <button
+          seButton
+          variant="ghost"
+          class="icon-button"
+          type="button"
+          [attr.aria-label]="
+            theme.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'
+          "
+          (click)="theme.toggle()"
+        >
+          <se-icon [name]="theme.theme() === 'light' ? 'moon' : 'sun'" />
+        </button>
+        <span class="header-divider" aria-hidden="true"></span
+        ><a seButton variant="ghost" routerLink="/login">Sign in <se-icon name="arrow" /></a>
+      </div>
+    </header>
+    <main id="main-content" tabindex="-1"><router-outlet (activate)="focusPage()" /></main>
+    <footer class="app-footer">
+      <span>Thoughtful living, together.</span
+      ><span>SocietyEase <span aria-hidden="true">·</span> Foundation preview</span>
+    </footer>
+  </div>
+</div>
+<se-drawer title="Navigation" side="start" [open]="mobileOpen()" (closed)="mobileOpen.set(false)"
+  ><se-sidebar (navigated)="mobileOpen.set(false)"
+/></se-drawer>
