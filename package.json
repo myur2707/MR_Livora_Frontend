@@ -11,9 +11,10 @@
     "check-format": "prettier --check .",
     "test": "ng test --watch=false",
     "test:e2e": "playwright test",
+    "test:proxy": "node --test scripts/local-proxy.test.mjs",
     "pwa:check": "node scripts/check-pwa.mjs",
     "preview": "node scripts/serve-preview.mjs",
-    "check": "npm run check-format && npm run lint && npm run typecheck && npm test && npm run build && npm run pwa:check"
+    "check": "npm run check-format && npm run lint && npm run typecheck && npm test && npm run test:proxy && npm run build && npm run pwa:check"
   },
   "private": true,
   "engines": {

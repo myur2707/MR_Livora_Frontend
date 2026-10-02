@@ -4,6 +4,8 @@ A thoughtful Angular PWA for community living. Steps 2–3 contain the shared sh
 
 ## Run locally
 
+For the configured backend, database, test accounts and reset-email inbox, follow [local manual testing](docs/LOCAL_TESTING.md). The backend's Windows runner starts the production PWA at `http://127.0.0.1:4200`, including its service worker and same-origin API proxy.
+
 Use **Node 24.21.0** (`.node-version`; minimum 24.15), with its bundled npm. The repository previously contained no Angular application or styles; this establishes Angular **22.2.1**, TypeScript **6.0.3**, Tailwind **4.3.3** and the CLI's Vitest runner. Direct packages are pinned and `package-lock.json` is committed.
 
 ```sh
@@ -25,7 +27,7 @@ Open `http://127.0.0.1:4200`. Run the backend on port 3000; the Angular dev prox
 | `/ui`                 | Interactive shared component preview |
 | Any unknown route     | Clear not-found page                 |
 
-Authentication, tenant selection, real society screens and business APIs are later steps. These public previews grant no permissions or access to tenant data. No credentials are accepted and no backend calls are made. Example form values exist only in memory and are neither submitted nor persisted.
+Authentication and tenant selection use the backend's live sessions and permissions. Business screens and APIs remain later steps; platform and society routes currently show placeholders.
 
 ## Verify
 

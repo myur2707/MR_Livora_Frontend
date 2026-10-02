@@ -1,10 +1,24 @@
-import { createServer } from 'node:http';
+import { createServer, request as httpRequest } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 
 const root = resolve('dist/society-ease/browser');
 const port = Number(process.env.PORT ?? 4173);
 const fixtures = process.env.PWA_TEST_FIXTURES === '1';
+const apiOrigin = process.env.PREVIEW_API_ORIGIN;
+let api;
+if (apiOrigin) {
+  api = new URL(apiOrigin);
+  if (
+    fixtures ||
+    api.origin !== apiOrigin ||
+    api.protocol !== 'http:' ||
+    api.hostname !== '127.0.0.1' ||
+    api.username ||
+    api.password
+  )
+    throw new Error('Preview API requires an exact loopback HTTP origin without test fixtures.');
+}
 const mime = {
   '.html': 'text/html',
   '.js': 'text/javascript',
@@ -21,6 +35,10 @@ const server = createServer((request, response) => {
 async function serve(request, response) {
   try {
     const pathname = decodeURIComponent(new URL(request.url ?? '/', 'http://localhost').pathname);
+    if (api && /^\/api(\/|$)/.test(pathname)) {
+      proxyApi(request, response);
+      return;
+    }
     if (!['GET', 'HEAD'].includes(request.method ?? '')) {
       response.writeHead(405).end();
       return;
@@ -62,5 +80,54 @@ async function serve(request, response) {
     });
     response.end(missing ? 'Not found' : 'Preview request failed');
   }
+}
+function proxyApi(request, response) {
+  const headers = { ...request.headers };
+  for (const name of [
+    'connection',
+    'keep-alive',
+    'proxy-authorization',
+    'proxy-authenticate',
+    'te',
+    'trailer',
+    'transfer-encoding',
+    'upgrade',
+    'forwarded',
+    'x-forwarded-for',
+    'x-forwarded-host',
+    'x-forwarded-proto',
+    ...(request.headers.connection ?? '').split(',').map((name) => name.trim().toLowerCase()),
+  ])
+    delete headers[name];
+  headers.host = api.host;
+  const upstream = httpRequest(
+    {
+      hostname: api.hostname,
+      port: api.port,
+      path: request.url,
+      method: request.method,
+      headers,
+    },
+    (incoming) => {
+      const outgoing = { ...incoming.headers, 'cache-control': 'no-store' };
+      delete outgoing.connection;
+      delete outgoing['transfer-encoding'];
+      response.writeHead(incoming.statusCode ?? 502, outgoing);
+      incoming.on('error', () => response.destroy());
+      incoming.pipe(response);
+    },
+  );
+  upstream.setTimeout(15000, () => upstream.destroy());
+  upstream.on('error', () => {
+    if (response.headersSent) response.destroy();
+    else
+      response
+        .writeHead(502, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' })
+        .end(
+          JSON.stringify({ error: { code: 'API_UNAVAILABLE', message: 'Local API unavailable.' } }),
+        );
+  });
+  request.on('aborted', () => upstream.destroy());
+  request.pipe(upstream);
 }
 server.listen(port, '127.0.0.1', () => console.info('Static preview: http://127.0.0.1:' + port));

@@ -23,6 +23,7 @@ export default tseslint.config(
         Buffer: 'readonly',
         URL: 'readonly',
         console: 'readonly',
+        fetch: 'readonly',
         document: 'readonly',
         window: 'readonly',
         DOMException: 'readonly',
