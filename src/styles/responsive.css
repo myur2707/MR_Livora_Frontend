@@ -160,9 +160,9 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  :root *,
+  :root *::before,
+  :root *::after {
     animation: none;
     transition: none;
     scroll-behavior: auto;

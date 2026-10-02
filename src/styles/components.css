@@ -20,7 +20,7 @@
   font-weight: 600;
   font-size: 13px;
   line-height: 1.3;
-  transition: background 0.15s ease;
+  transition: filter 0.15s ease;
 }
 .button[data-variant='primary'] {
   background: var(--brand);
