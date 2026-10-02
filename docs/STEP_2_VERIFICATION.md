@@ -1,5 +1,7 @@
 # Step 2 verification
 
+This is the original Step 2 implementation snapshot. The [later manual verification](STEP_2_3_MANUAL_VERIFICATION.md) records the current application and an actual Chrome PWA installation/standalone launch.
+
 Executed on **2026-10-02 (Asia/Calcutta)** using Windows, Node **24.21.0**, Angular **22.2.1**, TypeScript **6.0.3** and Playwright Chromium **153**. This completes the Angular foundation only. The backend repository and Step 1 migrations were unchanged; no database connection, migration or business API was introduced.
 
 ## Automated checks

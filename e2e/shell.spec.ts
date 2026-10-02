@@ -134,6 +134,50 @@ test('mobile navigation works by keyboard and does not overflow at 320px', async
   await expect(dialog).toBeHidden();
 });
 
+test('populated tables scroll within their container on narrow screens', async ({
+  page,
+  context,
+}) => {
+  await context.route('**/api/v1/platform/societies?**', (route) =>
+    route.fulfill({
+      json: {
+        items: [
+          {
+            id: '1',
+            code: 'SYNTHETIC_COMMUNITY_WITH_A_LONG_CODE',
+            name: 'Synthetic community with a long name',
+            status: 'SETUP_IN_PROGRESS',
+            revision: 1,
+          },
+        ],
+        total: 1,
+        page: 1,
+        pageSize: 20,
+      },
+    }),
+  );
+  await page.setViewportSize({ width: 320, height: 780 });
+  await page.goto('/platform/societies');
+  const table = page.getByRole('table', { name: 'Society directory' });
+  await expect(table).toBeVisible();
+  const scroll = page.getByRole('region', { name: 'Society directory' });
+  expect(await scroll.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await scroll.focus();
+  await expect(scroll).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(() => scroll.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
+  await page.keyboard.press('Tab');
+  await table.getByRole('link', { name: /View setup/ }).focus();
+  await expect(table.getByRole('link', { name: /View setup/ })).toBeFocused();
+  expect(await scroll.evaluate((element) => element.scrollLeft > 0)).toBe(true);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(
+    (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze())
+      .violations,
+  ).toEqual([]);
+});
+
 test('static shell works offline while authenticated/private responses never enter caches', async ({
   page,
   context,

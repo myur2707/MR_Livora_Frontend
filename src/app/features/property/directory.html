@@ -53,7 +53,12 @@
 } @else if (result(); as data) {
   @if (data.items.length) {
     <se-card
-      ><div class="table-scroll">
+      ><div
+        class="table-scroll"
+        tabindex="0"
+        role="region"
+        [attr.aria-label]="title() + ' directory'"
+      >
         <table seTable>
           <caption class="sr-only">
             {{

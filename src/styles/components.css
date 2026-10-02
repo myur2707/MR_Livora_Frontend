@@ -158,6 +158,8 @@
   margin-block: var(--space-4);
 }
 .table-scroll {
+  /* Keep positioned accessible labels inside the table's scrolling boundary. */
+  position: relative;
   overflow-x: auto;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);

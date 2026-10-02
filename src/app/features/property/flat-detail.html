@@ -42,7 +42,12 @@
     >
       @if (section === 'current' ? current() : section === 'history' ? history() : all(); as data) {
         @if (data.items.length) {
-          <div class="table-scroll">
+          <div
+            class="table-scroll"
+            tabindex="0"
+            role="region"
+            [attr.aria-label]="section + ' occupancies'"
+          >
             <table seTable>
               <caption class="sr-only">
                 {{

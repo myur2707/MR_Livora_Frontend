@@ -94,7 +94,7 @@
         </button>
       </div>
       @if (rows(); as data) {
-        <div class="table-scroll">
+        <div class="table-scroll" tabindex="0" role="region" aria-label="Import row validation">
           <table seTable>
             <caption class="sr-only">
               Import row validation
@@ -174,7 +174,7 @@
 }
 @if (batches(); as data) {
   <se-card title="Your import history"
-    ><div class="table-scroll">
+    ><div class="table-scroll" tabindex="0" role="region" aria-label="Your society import batches">
       <table seTable>
         <caption class="sr-only">
           Your society import batches

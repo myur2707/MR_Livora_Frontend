@@ -209,7 +209,7 @@
           </form>
         }
         @if (flats().length) {
-          <div class="table-scroll">
+          <div class="table-scroll" tabindex="0" role="region" aria-label="Setup flats">
             <table seTable>
               <caption class="sr-only">
                 Setup flats
@@ -308,7 +308,7 @@
           }
           @if (residents(); as data) {
             @if (data.items.length) {
-              <div class="table-scroll">
+              <div class="table-scroll" tabindex="0" role="region" aria-label="Initial residents">
                 <table seTable>
                   <caption class="sr-only">
                     Initial residents
@@ -412,7 +412,12 @@
             </form>
           }
           @if (configurations().length) {
-            <div class="table-scroll">
+            <div
+              class="table-scroll"
+              tabindex="0"
+              role="region"
+              aria-label="Initial maintenance charges"
+            >
               <table seTable>
                 <caption class="sr-only">
                   Initial maintenance charges
