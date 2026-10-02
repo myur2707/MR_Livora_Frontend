@@ -39,3 +39,18 @@ export const societyGuard = async (): Promise<boolean | UrlTree> => {
     return router.createUrlTree(['/login']);
   }
 };
+export const managementGuard = async (): Promise<boolean | UrlTree> => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  try {
+    const identity = await auth.refresh();
+    return (
+      !!(
+        identity?.activeSociety?.roles.includes('COMMITTEE_ADMIN') &&
+        identity.activeSociety.permissions.includes('society.members.manage')
+      ) || router.createUrlTree(['/workspace'])
+    );
+  } catch {
+    return router.createUrlTree(['/login']);
+  }
+};

@@ -1,0 +1,175 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">FLAT RECORD</p>
+    <h1 tabindex="-1">
+      @if (flat(); as row) {
+        {{ row.buildingCode }} / {{ row.flatNumber }}
+      } @else {
+        Flat details
+      }
+    </h1>
+    <p>Current residents and a lasting occupancy history.</p>
+  </div>
+  <a seButton variant="secondary" routerLink="/society/flats">Back to flats</a>
+</header>
+<se-form-notice [message]="error()" />
+@if (loading()) {
+  <se-state kind="loading" title="Loading flat" />
+}
+@if (flat(); as row) {
+  <se-card title="Flat details"
+    ><p>
+      {{ row.buildingName }} · {{ row.areaSqFt ? row.areaSqFt + ' sq ft' : 'Area not set' }} ·
+      {{ row.archivedAt ? 'Archived' : 'Active' }}
+    </p>
+    @if (!row.archivedAt) {
+      <button seButton type="button" (click)="open()">Add occupancy</button>
+    }
+    <p class="field-hint">
+      An owner and tenant may coexist. Multiple owners are allowed. Overlapping entries for the same
+      person, flat and type are rejected. Dates include both start and end days.
+    </p></se-card
+  >
+  @for (section of ['current', 'history', 'all']; track section) {
+    <se-card
+      [title]="
+        section === 'current'
+          ? 'Current occupants'
+          : section === 'history'
+            ? 'Occupancy history'
+            : 'All occupancies, including scheduled'
+      "
+    >
+      @if (section === 'current' ? current() : section === 'history' ? history() : all(); as data) {
+        @if (data.items.length) {
+          <div class="table-scroll">
+            <table seTable>
+              <caption class="sr-only">
+                {{
+                  section
+                }}
+                occupancies
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Resident</th>
+                  <th scope="col">Type</th>
+                  <th scope="col">Start</th>
+                  <th scope="col">End</th>
+                  <th scope="col">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (occupancy of data.items; track occupancy.id) {
+                  <tr>
+                    <th scope="row">{{ occupancy.displayName }}</th>
+                    <td>{{ occupancy.occupancyType.replaceAll('_', ' ') }}</td>
+                    <td>{{ occupancy.startsOn }}</td>
+                    <td>{{ occupancy.endsOn ?? 'Ongoing' }}</td>
+                    <td>
+                      @if (!occupancy.endsOn) {
+                        <button
+                          seButton
+                          variant="ghost"
+                          type="button"
+                          (click)="askClose(occupancy)"
+                          [attr.aria-label]="
+                            'End ' +
+                            occupancy.occupancyType +
+                            ' occupancy for ' +
+                            occupancy.displayName
+                          "
+                        >
+                          End occupancy
+                        </button>
+                      } @else {
+                        Historical record
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <se-pagination
+            [total]="data.total"
+            [page]="data.page"
+            [pageSize]="data.pageSize"
+            (pageSelected)="
+              loadRecords(
+                section === 'current' ? 'current' : section === 'history' ? 'history' : 'all',
+                $event
+              )
+            "
+          />
+        } @else {
+          <p>No {{ section }} occupancies.</p>
+        }
+      }
+    </se-card>
+  }
+}
+<se-dialog [open]="showForm()" title="Add occupancy" (closed)="!busy() && showForm.set(false)">
+  @if (showForm()) {
+    <se-form-notice [message]="formError()" />
+    <form #occupancyForm="ngForm" class="onboarding-form" (ngSubmit)="save(occupancyForm.valid)">
+      <se-resource-picker
+        kind="persons"
+        label="Resident"
+        [value]="personId"
+        (selected)="personId = $event"
+      />
+      <p class="field-hint">Create a resident in the Residents directory first if needed.</p>
+      <se-field controlId="occupancy-type" label="Occupancy type" [required]="true"
+        ><select seSelect name="type" [(ngModel)]="occupancyType" required>
+          @for (type of types; track type) {
+            <option [value]="type">{{ type.replaceAll('_', ' ') }}</option>
+          }
+        </select></se-field
+      >
+      <se-field controlId="occupancy-start" label="Start date" [required]="true"
+        ><input
+          seInput
+          type="date"
+          name="start"
+          [(ngModel)]="startsOn"
+          min="1000-01-01"
+          max="9999-12-31"
+          required
+      /></se-field>
+      <se-field
+        controlId="occupancy-end"
+        label="End date"
+        hint="Leave blank for an ongoing occupancy."
+        ><input
+          seInput
+          type="date"
+          name="end"
+          [(ngModel)]="endsOn"
+          [min]="startsOn"
+          max="9999-12-31"
+      /></se-field>
+      <button seButton type="submit" [disabled]="busy() || !occupancyForm.valid">
+        Save occupancy
+      </button>
+    </form>
+  }
+</se-dialog>
+<se-dialog [open]="!!closing()" title="End occupancy" (closed)="!busy() && closing.set(null)">
+  <se-form-notice [message]="formError()" />
+  <p>The original start date and resident are preserved. Closed history cannot be rewritten.</p>
+  <form #closeForm="ngForm" (ngSubmit)="close()" class="onboarding-form">
+    <se-field controlId="close-date" label="Last occupancy date" [required]="true"
+      ><input
+        seInput
+        type="date"
+        name="closeDate"
+        [(ngModel)]="closeDate"
+        [min]="closing()?.startsOn ?? '1000-01-01'"
+        max="9999-12-31"
+        required /></se-field
+    ><button seButton type="submit" [disabled]="busy() || !closeForm.valid">
+      Confirm end date
+    </button>
+  </form>
+</se-dialog>

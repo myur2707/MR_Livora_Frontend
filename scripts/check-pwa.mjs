@@ -37,6 +37,11 @@ for (const path of [
   '/onboarding/societies/1',
   '/accept-invitation',
   '/society/dashboard',
+  '/society/buildings',
+  '/society/flats',
+  '/society/flats/1',
+  '/society/persons',
+  '/society/imports',
   '/ui',
 ])
   assert.ok(navigation(path), path);
@@ -44,6 +49,8 @@ for (const path of [
   '/api',
   '/api/v1/bills',
   '/api/v1/data.js',
+  '/api/v1/society/persons',
+  '/api/v1/society/imports/1/rows',
   '/api/v1/receipts/1',
   '/payments/1',
   '/bills/1',

@@ -10,7 +10,7 @@
   >
 </a>
 <nav class="sidebar-nav" aria-label="Primary navigation">
-  @for (group of ['Workspace', 'Foundation']; track group) {
+  @for (group of ['Workspace', 'Community', 'Foundation']; track group) {
     <p class="nav-group sidebar-label">{{ group }}</p>
     @for (item of navigation(); track item.path) {
       @if (item.group === group) {

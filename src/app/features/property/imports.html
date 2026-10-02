@@ -1,0 +1,231 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">REVIEW BEFORE IMPORT</p>
+    <h1 tabindex="-1">CSV imports</h1>
+    <p>
+      Upload → validate → preview → correct → confirm. Every import belongs to your selected
+      society.
+    </p>
+  </div>
+</header>
+<se-form-notice [message]="error()" />
+<se-card
+  title="Upload or correct CSV"
+  description="UTF-8 CSV only, up to 256 KiB and 500 data rows. Download a template for the exact headers. No login accounts are created."
+>
+  <div class="onboarding-form">
+    <se-field controlId="import-type" label="Import type"
+      ><select
+        seSelect
+        [(ngModel)]="importType"
+        [disabled]="busy() || batch()?.status === 'REVIEW'"
+      >
+        <option value="FLATS">Buildings and flats</option>
+        <option value="RESIDENTS">Residents and occupancies</option>
+      </select></se-field
+    >
+    <button seButton variant="secondary" type="button" (click)="downloadTemplate()">
+      Download CSV template
+    </button>
+    <se-field controlId="import-file" label="CSV file"
+      ><input
+        seInput
+        type="file"
+        accept=".csv,text/csv"
+        [disabled]="busy()"
+        (change)="chooseFile($event)"
+    /></se-field>
+    <se-field
+      controlId="import-editor"
+      label="CSV content"
+      hint="Correct row errors here or upload a corrected file, then preview again. Content stays in this tab until confirmation or cancellation."
+    >
+      <textarea
+        seInput
+        [(ngModel)]="csv"
+        rows="7"
+        maxlength="262144"
+        spellcheck="false"
+        [disabled]="busy()"
+      ></textarea>
+    </se-field>
+    <div class="property-actions">
+      <button
+        seButton
+        type="button"
+        [disabled]="busy() || readingFile() || !csv"
+        (click)="preview()"
+      >
+        {{ busy() ? 'Working…' : 'Validate & preview' }}</button
+      ><button seButton variant="ghost" type="button" [disabled]="busy()" (click)="clear()">
+        Start another import
+      </button>
+    </div>
+  </div>
+</se-card>
+@if (batch(); as current) {
+  <se-card title="Import review"
+    ><p aria-live="polite">
+      {{ current.status }} · {{ current.totalRows }} rows · {{ current.errorRows }} rows with errors
+      · {{ current.warningRows }} rows with warnings
+    </p>
+    @if (current.status === 'REVIEW') {
+      @if (needsPreview()) {
+        <p class="field-error">
+          CSV content changed. Validate and preview again before confirmation.
+        </p>
+      }
+      <p class="field-hint">
+        Review expires at {{ current.expiresAt }} (UTC). Rows shown below include CSV row and
+        physical line numbers. Assigned resident references identify people; names and phone numbers
+        never merge them.
+      </p>
+      <div class="property-actions">
+        <button
+          seButton
+          variant="secondary"
+          type="button"
+          [disabled]="busy()"
+          (click)="revalidate()"
+        >
+          Revalidate society data</button
+        ><button seButton variant="secondary" type="button" [disabled]="busy()" (click)="cancel()">
+          Cancel import
+        </button>
+      </div>
+      @if (rows(); as data) {
+        <div class="table-scroll">
+          <table seTable>
+            <caption class="sr-only">
+              Import row validation
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">CSV row / line</th>
+                <th scope="col">Values</th>
+                <th scope="col">Errors and warnings</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of data.items; track row.rowNumber) {
+                <tr>
+                  <th scope="row">{{ row.rowNumber }} / {{ row.lineNumber }}</th>
+                  <td>
+                    <dl class="import-values">
+                      @for (key of rowKeys(row.values); track key) {
+                        <dt>{{ key }}</dt>
+                        <dd>{{ row.values[key] || '—' }}</dd>
+                      }
+                    </dl>
+                  </td>
+                  <td>
+                    @for (issue of row.errors; track $index) {
+                      <p class="field-error">
+                        {{ issue.field }}: {{ issue.message }} ({{ issue.code }})
+                      </p>
+                    }
+                    @for (issue of row.warnings; track $index) {
+                      <p>{{ issue.field }}: {{ issue.message }}</p>
+                    }
+                    @if (!row.errors.length && !row.warnings.length) {
+                      Ready
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <se-pagination
+          [total]="data.total"
+          [page]="data.page"
+          [pageSize]="data.pageSize"
+          (pageSelected)="loadRows($event)"
+        />
+      }
+      @if (current.warningRows) {
+        <label class="property-check"
+          ><input type="checkbox" [(ngModel)]="acknowledged" />I reviewed duplicate warnings and
+          intend to create distinct people for distinct references.</label
+        >
+      }
+      <button
+        seButton
+        type="button"
+        [disabled]="
+          busy() ||
+          current.errorRows > 0 ||
+          needsPreview() ||
+          (current.warningRows > 0 && !acknowledged) ||
+          !rows()
+        "
+        (click)="confirmOpen.set(true)"
+      >
+        Confirm import
+      </button>
+    } @else if (current.result; as result) {
+      <p role="status">
+        Created {{ result.buildings }} buildings, {{ result.flats }} flats,
+        {{ result.persons }} residents and {{ result.occupancies }} occupancies. Completed import
+        evidence is retained; preview personal data is cleared.
+      </p>
+    }
+  </se-card>
+}
+@if (batches(); as data) {
+  <se-card title="Your import history"
+    ><div class="table-scroll">
+      <table seTable>
+        <caption class="sr-only">
+          Your society import batches
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Import</th>
+            <th scope="col">Status</th>
+            <th scope="col">Rows</th>
+            <th scope="col">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of data.items; track item.id) {
+            <tr>
+              <th scope="row">{{ item.importType }} #{{ item.id }}</th>
+              <td>{{ item.status }}</td>
+              <td>{{ item.totalRows }}</td>
+              <td>
+                <button
+                  seButton
+                  variant="ghost"
+                  type="button"
+                  [disabled]="busy()"
+                  (click)="open(item)"
+                  [attr.aria-label]="'Review import ' + item.id"
+                >
+                  Review
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <se-pagination
+      [total]="data.total"
+      [page]="data.page"
+      [pageSize]="data.pageSize"
+      (pageSelected)="load($event)"
+  /></se-card>
+}
+<se-dialog
+  [open]="confirmOpen()"
+  title="Confirm CSV import"
+  (closed)="!busy() && confirmOpen.set(false)"
+  ><p>
+    Import all {{ batch()?.totalRows }} reviewed rows into this society? The server revalidates
+    current data and writes the batch in one transaction.
+  </p>
+  <button seButton type="button" [disabled]="busy()" (click)="confirm()">
+    Import reviewed rows
+  </button></se-dialog
+>

@@ -19,7 +19,12 @@ export class SidebarComponent {
       item.path.startsWith('/platform')
         ? this.auth.identity()?.platformAdmin
         : item.path.startsWith('/society')
-          ? !!this.auth.identity()?.activeSociety
+          ? !!this.auth.identity()?.activeSociety &&
+            (item.path === '/society/dashboard' ||
+              !!(
+                this.auth.identity()?.activeSociety?.roles.includes('COMMITTEE_ADMIN') &&
+                this.auth.identity()?.activeSociety?.permissions.includes('society.members.manage')
+              ))
           : true,
     ),
   );

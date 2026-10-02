@@ -133,3 +133,47 @@ se-onboarding-wizard .card + .card {
   color: var(--text);
   font-weight: 600;
 }
+.property-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.property-filters .field {
+  flex: 1 1 10rem;
+  min-width: 0;
+}
+.property-actions {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  align-items: center;
+}
+.resource-picker {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+.import-values {
+  display: grid;
+  grid-template-columns: minmax(7rem, 1fr) minmax(8rem, 2fr);
+  gap: var(--space-2);
+  max-width: 28rem;
+}
+.import-values dt {
+  font-weight: 600;
+}
+.import-values dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.property-check {
+  display: flex;
+  align-items: start;
+  gap: var(--space-3);
+  margin-block: var(--space-4);
+}

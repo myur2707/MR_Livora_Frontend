@@ -1,0 +1,206 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">SOCIETY DIRECTORY</p>
+    <h1 tabindex="-1">{{ title() }}</h1>
+    <p>Keep your community records accurate and preserve their history.</p>
+  </div>
+  <button seButton type="button" (click)="open()">
+    Add {{ kind() === 'persons' ? 'resident' : kind() === 'flats' ? 'flat' : 'building' }}
+  </button>
+</header>
+<se-form-notice [message]="error()" />
+<form class="property-filters" (ngSubmit)="load()">
+  <se-field controlId="directory-search" label="Search"
+    ><input seInput name="q" [(ngModel)]="q" maxlength="100"
+  /></se-field>
+  <se-field controlId="directory-state" label="Status"
+    ><select seSelect name="state" [(ngModel)]="state">
+      <option value="active">Active</option>
+      <option value="archived">Archived</option>
+      <option value="all">All records</option>
+    </select></se-field
+  >
+  <se-field controlId="directory-sort" label="Sort by"
+    ><select seSelect name="sort" [(ngModel)]="sort">
+      @for (value of sorts(); track value) {
+        <option [value]="value">{{ sortLabel(value) }}</option>
+      }
+    </select></se-field
+  >
+  <se-field controlId="directory-direction" label="Order"
+    ><select seSelect name="direction" [(ngModel)]="direction">
+      <option value="asc">Ascending</option>
+      <option value="desc">Descending</option>
+    </select></se-field
+  >
+  <button seButton variant="secondary" type="submit" [disabled]="loading()">Apply filters</button>
+</form>
+@if (kind() === 'flats') {
+  <details>
+    <summary>Filter by building</summary>
+    <se-resource-picker
+      kind="buildings"
+      label="Building filter"
+      [value]="buildingFilter"
+      (selected)="buildingFilter = $event; load()"
+    /><button seButton variant="ghost" type="button" (click)="buildingFilter = ''; load()">
+      Clear building filter
+    </button>
+  </details>
+}
+@if (loading()) {
+  <se-state kind="loading" title="Loading records" />
+} @else if (result(); as data) {
+  @if (data.items.length) {
+    <se-card
+      ><div class="table-scroll">
+        <table seTable>
+          <caption class="sr-only">
+            {{
+              title()
+            }}
+            directory
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Record</th>
+              <th scope="col">Details</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of data.items; track row.id) {
+              <tr>
+                <th scope="row">{{ label(row) }}</th>
+                <td>{{ detail(row) }}</td>
+                <td>{{ row.archivedAt ? 'Archived' : 'Active' }}</td>
+                <td>
+                  <div class="property-actions">
+                    @if (kind() === 'flats') {
+                      <a class="text-link" [routerLink]="['/society/flats', row.id]"
+                        >Occupants<span class="sr-only"> for {{ label(row) }}</span></a
+                      >
+                    }
+                    @if (!row.archivedAt) {
+                      <button
+                        seButton
+                        variant="ghost"
+                        type="button"
+                        (click)="open(row)"
+                        [attr.aria-label]="'Edit ' + label(row)"
+                      >
+                        Edit</button
+                      ><button
+                        seButton
+                        variant="ghost"
+                        type="button"
+                        (click)="askArchive(row)"
+                        [attr.aria-label]="'Archive ' + label(row)"
+                      >
+                        Archive
+                      </button>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <se-pagination
+        [total]="data.total"
+        [page]="data.page"
+        [pageSize]="data.pageSize"
+        (pageSelected)="load($event)"
+    /></se-card>
+  } @else {
+    <se-state
+      kind="empty"
+      title="No records found"
+      message="Change the filters or add your first record."
+    />
+  }
+}
+<se-dialog
+  [open]="showForm()"
+  [title]="
+    (editing ? 'Edit ' : 'Add ') +
+    (kind() === 'persons' ? 'resident' : kind() === 'flats' ? 'flat' : 'building')
+  "
+  (closed)="!busy() && showForm.set(false)"
+>
+  @if (showForm()) {
+    <se-form-notice [message]="formError()" />
+    <form #recordForm="ngForm" class="onboarding-form" (ngSubmit)="save(recordForm.valid)">
+      @if (kind() === 'buildings') {
+        <se-field controlId="building-code" label="Building code" [required]="true"
+          ><input seInput name="code" [(ngModel)]="code" required maxlength="64"
+        /></se-field>
+        <se-field controlId="building-name" label="Building name" [required]="true"
+          ><input seInput name="name" [(ngModel)]="name" required maxlength="100"
+        /></se-field>
+      } @else if (kind() === 'flats') {
+        <se-resource-picker
+          kind="buildings"
+          label="Building"
+          [value]="buildingId"
+          (selected)="buildingId = $event"
+        />
+        <se-field controlId="flat-number" label="Flat number" [required]="true"
+          ><input seInput name="flatNumber" [(ngModel)]="flatNumber" required maxlength="32"
+        /></se-field>
+        <se-field
+          controlId="flat-area"
+          label="Area in square feet"
+          hint="Optional, positive value with two decimal places."
+          ><input
+            seInput
+            name="area"
+            [(ngModel)]="area"
+            pattern="(0|[1-9][0-9]{0,7})\.[0-9]{2}"
+            placeholder="900.00"
+        /></se-field>
+      } @else {
+        <p class="field-hint">
+          A resident record does not create a login account. Matching names or phone numbers are
+          never merged.
+        </p>
+        <se-field controlId="resident-name" label="Resident name" [required]="true"
+          ><input seInput name="name" [(ngModel)]="name" required maxlength="160"
+        /></se-field>
+        <se-field
+          controlId="resident-reference"
+          label="Resident reference"
+          hint="Optional unique reference; generated when blank. Assigned references are permanent."
+          ><input
+            seInput
+            name="reference"
+            [(ngModel)]="reference"
+            [readonly]="referenceLocked()"
+            pattern="[A-Za-z0-9][A-Za-z0-9_-]{2,63}"
+            maxlength="64"
+        /></se-field>
+        <se-field controlId="resident-email" label="Contact email"
+          ><input seInput type="email" name="email" [(ngModel)]="email" email maxlength="254"
+        /></se-field>
+        <se-field controlId="resident-phone" label="Contact phone"
+          ><input seInput type="tel" name="phone" [(ngModel)]="phone" maxlength="31"
+        /></se-field>
+      }
+      <button seButton type="submit" [disabled]="busy() || !recordForm.valid">
+        {{ busy() ? 'Saving…' : 'Save record' }}
+      </button>
+    </form>
+  }
+</se-dialog>
+<se-dialog [open]="!!archived()" title="Archive record" (closed)="!busy() && archived.set(null)">
+  <se-form-notice [message]="formError()" />
+  @if (archived(); as row) {
+    <p>
+      Archive {{ label(row) }}? The record and its history remain available. Assigned identifiers
+      remain reserved.
+    </p>
+  }
+  <button seButton type="button" [disabled]="busy()" (click)="archive()">Confirm archive</button>
+</se-dialog>
