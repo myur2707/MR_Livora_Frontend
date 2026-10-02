@@ -1,6 +1,6 @@
 # SocietyEase frontend
 
-A thoughtful Angular PWA for community living. Steps 2–4 contain the shared shell, cookie authentication, workspace selection and the initial society onboarding wizard with committee review and explicit activation. Ongoing resident management and financial screens remain later steps. The independent `MR_Livora_Backend` contains the preserved database baseline and server-enforced authentication/authorization.
+A thoughtful Angular PWA for community living. Steps 2–6 contain the shared shell, cookie authentication, workspace selection, society onboarding/activation, property/resident management, and resident invitations/registration approval. Financial screens remain later steps. The independent `MR_Livora_Backend` enforces authorization and preserves database history.
 
 ## Run locally
 
@@ -30,6 +30,8 @@ Open `http://127.0.0.1:4200`. Run the backend on port 3000; the Angular dev prox
 Use /platform/societies/:id for platform setup progress and /onboarding/societies/:id for the authorized Committee Admin wizard. Email links open /accept-invitation with a single-use fragment token. Read [Step 4 onboarding](docs/STEP_4_ONBOARDING.md) for the manual flow. Backend sessions and permissions enforce every operation. The society dashboard remains a foundation placeholder.
 
 ## Verify
+
+See [Step 6 resident access](docs/STEP_6_RESIDENT_ACCESS.md) for `/register`, `/verify-resident-email`, `/join-society`, `/resident-invitation` and the committee `/society/resident-access` screen. New membership requests stay pending until committee verification; existing global accounts are reused.
 
 ```sh
 npm run check

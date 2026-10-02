@@ -22,6 +22,11 @@ import { StateComponent } from '../../shared/state';
         <p>Access is based on your current membership.</p>
       </div>
     </header>
+    <p>
+      <a seButton variant="secondary" routerLink="/join-society"
+        >Request another society membership</a
+      >
+    </p>
     <se-form-notice [message]="error()" />
     @if (auth.state.identity(); as identity) {
       @if (identity.platformAdmin) {

@@ -1,0 +1,170 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">COMMITTEE APPROVAL REQUIRED</p>
+    <h1 tabindex="-1">Join a society</h1>
+    <p>
+      Use your existing account to join another community. A flat number is a request, not proof of
+      residency.
+    </p>
+  </div>
+</header>
+<se-form-notice [message]="error()" />
+@if (message()) {
+  <p role="status">{{ message() }}</p>
+}
+<se-card
+  title="Request membership"
+  description="Your committee will verify your identity and occupancy against its records."
+>
+  <form #form="ngForm" class="onboarding-form" (ngSubmit)="submit(form.valid)">
+    <se-field
+      controlId="join-name"
+      label="Your name"
+      [required]="true"
+      [error]="name.touched && name.invalid ? 'Enter your name.' : null"
+      ><input
+        seInput
+        name="displayName"
+        #name="ngModel"
+        [(ngModel)]="displayName"
+        required
+        maxlength="160"
+        autocomplete="name"
+    /></se-field>
+    <se-field
+      controlId="join-society"
+      label="Society code"
+      [required]="true"
+      [error]="
+        society.touched && society.invalid ? 'Enter the society code from your committee.' : null
+      "
+      ><input
+        seInput
+        name="societyCode"
+        #society="ngModel"
+        [(ngModel)]="societyCode"
+        required
+        maxlength="64"
+    /></se-field>
+    <se-field
+      controlId="join-building"
+      label="Building code"
+      [required]="true"
+      [error]="building.touched && building.invalid ? 'Enter the building code.' : null"
+      ><input
+        seInput
+        name="buildingCode"
+        #building="ngModel"
+        [(ngModel)]="buildingCode"
+        required
+        maxlength="64"
+    /></se-field>
+    <se-field
+      controlId="join-flat"
+      label="Flat number"
+      [required]="true"
+      [error]="flat.touched && flat.invalid ? 'Enter a flat number.' : null"
+      ><input
+        seInput
+        name="flatNumber"
+        #flat="ngModel"
+        [(ngModel)]="flatNumber"
+        required
+        maxlength="32"
+    /></se-field>
+    <se-field controlId="join-type" label="Requested occupancy"
+      ><select seSelect name="occupancyType" [(ngModel)]="occupancyType">
+        @for (type of types; track type) {
+          <option [value]="type">{{ type }}</option>
+        }
+      </select></se-field
+    >
+    <se-field
+      controlId="join-phone"
+      label="Contact phone"
+      hint="Contact information only; not proof of identity."
+      ><input seInput name="phone" [(ngModel)]="contactPhone" maxlength="32" autocomplete="tel"
+    /></se-field>
+    <se-field controlId="join-note" label="Message to the committee">
+      <textarea seInput name="note" [(ngModel)]="note" maxlength="500"></textarea>
+    </se-field>
+    <button seButton type="submit" [disabled]="busy()">
+      {{ busy() ? 'Please wait…' : 'Submit join request' }}
+    </button>
+  </form>
+</se-card>
+<h2 id="own-requests">Your requests</h2>
+<se-field controlId="own-status" label="Request status"
+  ><select seSelect [(ngModel)]="status" (ngModelChange)="load()">
+    <option value="all">All statuses</option>
+    <option value="PENDING">Pending</option>
+    <option value="APPROVED">Approved</option>
+    <option value="REJECTED">Rejected</option>
+    <option value="CANCELLED">Cancelled</option>
+  </select></se-field
+>
+@if (loading()) {
+  <se-state kind="loading" title="Loading requests" />
+} @else if (result(); as data) {
+  @if (data.items.length) {
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="own-requests">
+      <table seTable>
+        <caption class="sr-only">
+          Your society membership requests
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Society / flat</th>
+            <th scope="col">Status</th>
+            <th scope="col">Decision</th>
+            <th scope="col">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of data.items; track row.id) {
+            <tr>
+              <th scope="row">
+                {{ row.societyName }} · {{ row.buildingCode }} / {{ row.flatNumber }}
+              </th>
+              <td>
+                <se-badge>{{ row.status }}</se-badge>
+              </td>
+              <td>{{ row.decisionNote || 'Awaiting review' }}</td>
+              <td>
+                @if (row.status === 'PENDING') {
+                  <button seButton variant="secondary" type="button" (click)="cancelling.set(row)">
+                    Cancel request
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <se-pagination
+      [total]="data.total"
+      [page]="data.page"
+      [pageSize]="data.pageSize"
+      (pageSelected)="load($event)"
+    />
+  } @else {
+    <se-state
+      kind="empty"
+      title="No requests yet"
+      message="Submit a request above or accept an invitation from your committee."
+    />
+  }
+}
+<se-dialog
+  title="Cancel membership request"
+  [open]="!!cancelling()"
+  (closed)="cancelling.set(null)"
+>
+  @if (cancelling(); as row) {
+    <p>Cancel your request for {{ row.societyName }}?</p>
+    <button seButton type="button" (click)="cancel()" [disabled]="busy()">
+      Confirm cancellation
+    </button>
+  }
+</se-dialog>

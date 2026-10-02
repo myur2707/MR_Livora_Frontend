@@ -1,0 +1,363 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">VERIFY BEFORE GRANTING ACCESS</p>
+    <h1 tabindex="-1">Resident access</h1>
+    <p>
+      Review membership requests and invite residents whose identity and occupancy the committee has
+      verified.
+    </p>
+  </div>
+  <button seButton type="button" (click)="openInvite()">Invite existing resident</button>
+</header>
+<se-form-notice [message]="error()" />
+@if (message()) {
+  <p role="status">{{ message() }}</p>
+}
+<div class="property-actions" role="group" aria-label="Resident access lists">
+  <button
+    seButton
+    [variant]="tab === 'requests' ? 'primary' : 'secondary'"
+    type="button"
+    [attr.aria-pressed]="tab === 'requests'"
+    (click)="chooseTab('requests')"
+  >
+    Registration requests</button
+  ><button
+    seButton
+    [variant]="tab === 'invitations' ? 'primary' : 'secondary'"
+    type="button"
+    [attr.aria-pressed]="tab === 'invitations'"
+    (click)="chooseTab('invitations')"
+  >
+    Invitations
+  </button>
+</div>
+<se-field controlId="access-status" label="Status filter"
+  ><select seSelect [(ngModel)]="status" (ngModelChange)="load()">
+    <option value="PENDING">Pending</option>
+    <option value="all">All statuses</option>
+    @if (tab === 'requests') {
+      <option value="APPROVED">Approved</option>
+      <option value="REJECTED">Rejected</option>
+      <option value="CANCELLED">Cancelled</option>
+    } @else {
+      <option value="ACCEPTED">Accepted</option>
+      <option value="EXPIRED">Expired</option>
+      <option value="REVOKED">Revoked</option>
+    }
+  </select></se-field
+>
+@if (loading()) {
+  <se-state kind="loading" title="Loading resident access" />
+} @else if (tab === 'requests') {
+  @if (requests(); as data) {
+    @if (data.items.length) {
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Registration requests">
+        <table seTable>
+          <caption class="sr-only">
+            Society registration requests
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Applicant</th>
+              <th scope="col">Claimed flat</th>
+              <th scope="col">Status</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of data.items; track row.id) {
+              <tr>
+                <th scope="row">
+                  {{ row.displayName }}
+                  <p>{{ row.email }}</p>
+                </th>
+                <td>{{ row.buildingCode }} / {{ row.flatNumber }} · {{ row.occupancyType }}</td>
+                <td>
+                  <se-badge>{{ row.status }}</se-badge>
+                  @if (row.reviewedAt) {
+                    <p>{{ row.reviewedAt | date: 'medium' }}</p>
+                  }
+                  @if (row.decisionNote) {
+                    <p>{{ row.decisionNote }}</p>
+                  }
+                </td>
+                <td>
+                  @if (row.status === 'PENDING') {
+                    <div class="property-actions">
+                      <button seButton variant="secondary" type="button" (click)="review(row)">
+                        Review request<span class="sr-only">
+                          for {{ row.displayName }}</span
+                        ></button
+                      ><button
+                        seButton
+                        variant="ghost"
+                        type="button"
+                        (click)="confirm({ action: 'reject', request: row })"
+                      >
+                        Reject<span class="sr-only"> {{ row.displayName }}</span>
+                      </button>
+                    </div>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <se-pagination
+        [total]="data.total"
+        [page]="data.page"
+        [pageSize]="data.pageSize"
+        (pageSelected)="load($event)"
+      />
+    } @else {
+      <se-state
+        kind="empty"
+        title="No registration requests"
+        message="Requests stay pending until a committee administrator reviews them."
+      />
+    }
+  }
+} @else {
+  @if (invitations(); as data) {
+    @if (data.items.length) {
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Resident invitations">
+        <table seTable>
+          <caption class="sr-only">
+            Society resident invitations
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Resident</th>
+              <th scope="col">Status / delivery</th>
+              <th scope="col">Expiry</th>
+              <th scope="col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of data.items; track row.id) {
+              <tr>
+                <th scope="row">
+                  {{ row.displayName }}
+                  <p>{{ row.email }}</p>
+                </th>
+                <td>
+                  <se-badge>{{ row.status }}</se-badge>
+                  <p>{{ row.deliveryStatus }}</p>
+                </td>
+                <td>{{ row.expiresAt | date: 'medium' }}</td>
+                <td>
+                  @if (row.status !== 'ACCEPTED') {
+                    <button
+                      seButton
+                      variant="secondary"
+                      type="button"
+                      (click)="confirm({ action: 'resend', invitation: row })"
+                    >
+                      Resend<span class="sr-only"> to {{ row.displayName }}</span>
+                    </button>
+                  }
+                  @if (row.status === 'PENDING') {
+                    <button
+                      seButton
+                      variant="ghost"
+                      type="button"
+                      (click)="confirm({ action: 'revoke', invitation: row })"
+                    >
+                      Revoke<span class="sr-only"> invitation for {{ row.displayName }}</span>
+                    </button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <se-pagination
+        [total]="data.total"
+        [page]="data.page"
+        [pageSize]="data.pageSize"
+        (pageSelected)="load($event)"
+      />
+    } @else {
+      <se-state
+        kind="empty"
+        title="No resident invitations"
+        message="Invite an existing person with a current occupancy and contact email."
+      />
+    }
+  }
+}
+<se-dialog title="Invite an existing resident" [open]="inviting()" (closed)="inviting.set(false)">
+  @if (inviting()) {
+    <se-form-notice [message]="formError()" />
+    <p>
+      Choose a person with a contact email and a current occupancy in the selected flat. The
+      invitation grants the Resident role only.
+    </p>
+    <se-resource-picker
+      kind="persons"
+      label="Resident"
+      [value]="invitePerson"
+      (selected)="invitePerson = $event"
+    /><se-resource-picker
+      kind="flats"
+      label="Verified flat"
+      [value]="inviteFlat"
+      (selected)="inviteFlat = $event"
+    /><label class="check-label"
+      ><input type="checkbox" [(ngModel)]="inviteVerified" /> I verified this person's identity,
+      contact email and current residency.</label
+    ><button seButton type="button" (click)="invite()" [disabled]="busy()">
+      Send resident invitation
+    </button>
+  }
+</se-dialog>
+<se-dialog title="Review membership request" [open]="!!reviewing()" (closed)="reviewing.set(null)">
+  @if (reviewing(); as row) {
+    <se-form-notice [message]="formError()" />
+    <p>
+      <strong>{{ row.displayName }}</strong> · {{ row.email }} ·
+      {{ row.contactPhone || 'No phone supplied' }}
+    </p>
+    <p>Claim: {{ row.buildingCode }} / {{ row.flatNumber }} · {{ row.occupancyType }}</p>
+    <p>{{ row.note || 'No applicant note' }}</p>
+    <p>
+      Check identity and residency against committee records. Matching names or phone numbers must
+      not be used to merge people.
+    </p>
+    <form #approval="ngForm" class="onboarding-form" (ngSubmit)="approve(approval.valid)">
+      <label class="check-label"
+        ><input type="checkbox" name="existingPerson" [(ngModel)]="existingPerson" /> Link a
+        verified existing person</label
+      >
+      @if (existingPerson) {
+        <se-resource-picker
+          kind="persons"
+          label="Verified person"
+          [value]="personId"
+          (selected)="selectPerson($event)"
+        />
+      } @else {
+        <p>
+          A profile for the applicant's existing global identity will be created. Their login
+          account is reused.
+        </p>
+      }
+      <se-resource-picker
+        kind="flats"
+        label="Approved flat"
+        [value]="flatId"
+        (selected)="selectFlat($event)"
+      />
+      <se-field controlId="approve-type" label="Approved occupancy"
+        ><select seSelect name="type" [(ngModel)]="occupancyType">
+          @for (type of types; track type) {
+            <option [value]="type">{{ type }}</option>
+          }
+        </select></se-field
+      >
+      @if (existingPerson) {
+        <label class="check-label"
+          ><input type="checkbox" name="reuse" [(ngModel)]="reuseOccupancy" /> Link an existing
+          current occupancy</label
+        >
+      }
+      @if (existingPerson && reuseOccupancy) {
+        <button seButton variant="secondary" type="button" (click)="loadOccupancies()">
+          Find current occupancies
+        </button>
+        @if (occupancies(); as data) {
+          <se-field
+            controlId="approve-existing-occupancy"
+            label="Verified occupancy"
+            [required]="true"
+            ><select seSelect name="occupancy" [(ngModel)]="existingOccupancyId" required>
+              <option value="">Select a matching occupancy</option>
+              @for (o of matchingOccupancies(); track o.id) {
+                <option [value]="o.id">
+                  {{ o.displayName }} · {{ o.occupancyType }} · {{ o.startsOn }}
+                </option>
+              }
+            </select></se-field
+          ><se-pagination
+            [total]="data.total"
+            [page]="data.page"
+            [pageSize]="data.pageSize"
+            (pageSelected)="loadOccupancies($event)"
+          />
+        }
+      } @else {
+        <se-field controlId="approve-start" label="Verified start date" [required]="true"
+          ><input
+            seInput
+            name="startsOn"
+            [(ngModel)]="startsOn"
+            type="date"
+            required
+            [max]="requests()?.today" /></se-field
+        ><se-field controlId="approve-end" label="Verified end date"
+          ><input seInput name="endsOn" [(ngModel)]="endsOn" type="date" [min]="requests()?.today"
+        /></se-field>
+      }
+      <se-field
+        controlId="approve-note"
+        label="Verification note"
+        [required]="true"
+        [error]="
+          note.touched && note.invalid ? 'Record how identity and residency were verified.' : null
+        "
+      >
+        <textarea
+          seInput
+          name="note"
+          #note="ngModel"
+          [(ngModel)]="verificationNote"
+          required
+          maxlength="500"
+        ></textarea>
+      </se-field>
+      <label class="check-label"
+        ><input type="checkbox" name="verified" [(ngModel)]="verified" required /> I verified the
+        identity, person link, flat and current occupancy.</label
+      >
+      <button seButton type="submit" [disabled]="busy()">Verify & approve membership</button>
+    </form>
+  }
+</se-dialog>
+<se-dialog
+  title="Confirm resident access decision"
+  [open]="!!confirmation()"
+  (closed)="confirmation.set(null)"
+>
+  @if (confirmation(); as value) {
+    <se-form-notice [message]="formError()" />
+    <p>
+      {{
+        value.action === 'resend'
+          ? 'Resend replaces the previous invitation with a new single-use link.'
+          : value.action === 'revoke'
+            ? 'Revoke this invitation immediately. It cannot be accepted afterwards.'
+            : 'Reject this request. No membership or occupancy will be created.'
+      }}
+    </p>
+    <form #decision="ngForm" class="onboarding-form" (ngSubmit)="decide(decision.valid)">
+      <se-field
+        controlId="decision-note"
+        label="Decision note"
+        [required]="true"
+        [error]="note.touched && note.invalid ? 'Enter a decision note.' : null"
+      >
+        <textarea
+          seInput
+          name="note"
+          #note="ngModel"
+          [(ngModel)]="decisionNote"
+          required
+          maxlength="500"
+        ></textarea></se-field
+      ><button seButton type="submit" [disabled]="busy()">Confirm {{ value.action }}</button>
+    </form>
+  }
+</se-dialog>

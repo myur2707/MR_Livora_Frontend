@@ -26,6 +26,32 @@ export const routes: Routes = [
     loadComponent: () => import('./layout/app-shell').then((m) => m.AppShellComponent),
     children: [
       {
+        path: 'register',
+        title: 'Create account · SocietyEase',
+        data: { breadcrumb: 'Create account' },
+        loadComponent: () =>
+          import('./features/resident-access/register').then((m) => m.ResidentRegister),
+      },
+      {
+        path: 'verify-resident-email',
+        title: 'Verify email · SocietyEase',
+        data: { breadcrumb: 'Verify email', mode: 'verify' },
+        loadComponent: () => import('./features/resident-access/link').then((m) => m.ResidentLink),
+      },
+      {
+        path: 'resident-invitation',
+        title: 'Resident invitation · SocietyEase',
+        data: { breadcrumb: 'Resident invitation' },
+        loadComponent: () => import('./features/resident-access/link').then((m) => m.ResidentLink),
+      },
+      {
+        path: 'join-society',
+        title: 'Join a society · SocietyEase',
+        canActivate: [authGuard],
+        data: { breadcrumb: 'Join a society' },
+        loadComponent: () => import('./features/resident-access/join').then((m) => m.ResidentJoin),
+      },
+      {
         path: 'accept-invitation',
         title: 'Committee invitation · SocietyEase',
         data: { breadcrumb: 'Invitation' },

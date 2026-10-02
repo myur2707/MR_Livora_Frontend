@@ -32,6 +32,7 @@ export function safeReturnUrl(value: string | null): string {
   return value &&
     [
       '/workspace',
+      '/join-society',
       '/platform/dashboard',
       '/platform/societies',
       '/society/dashboard',

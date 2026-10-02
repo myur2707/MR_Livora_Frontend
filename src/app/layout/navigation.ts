@@ -9,5 +9,12 @@ export const NAVIGATION: readonly { label: string; path: string; icon: IconName;
     { label: 'Flats', path: '/society/flats', icon: 'building', group: 'Community' },
     { label: 'Residents', path: '/society/persons', icon: 'people', group: 'Community' },
     { label: 'CSV imports', path: '/society/imports', icon: 'grid', group: 'Community' },
+    {
+      label: 'Resident access',
+      path: '/society/resident-access',
+      icon: 'people',
+      group: 'Community',
+    },
+    { label: 'Join a society', path: '/join-society', icon: 'people', group: 'Workspace' },
     { label: 'UI library', path: '/ui', icon: 'grid', group: 'Foundation' },
   ];

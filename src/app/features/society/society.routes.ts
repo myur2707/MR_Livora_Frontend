@@ -3,6 +3,14 @@ import type { Routes } from '@angular/router';
 
 export const SOCIETY_ROUTES: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+  {
+    path: 'resident-access',
+    canActivate: [managementGuard],
+    title: 'Resident access · SocietyEase',
+    data: { breadcrumb: 'Resident access' },
+    loadComponent: () =>
+      import('../resident-access/committee').then((m) => m.ResidentAccessCommittee),
+  },
 
   ...(['buildings', 'flats', 'persons'] as const).map((kind) => ({
     path: kind,
