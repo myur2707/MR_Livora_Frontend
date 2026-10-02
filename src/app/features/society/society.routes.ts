@@ -1,8 +1,32 @@
-import { managementGuard } from '../../core/auth-guards';
+import { managementGuard, financeGuard } from '../../core/auth-guards';
 import type { Routes } from '@angular/router';
 
 export const SOCIETY_ROUTES: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+  ...(['configuration', 'periods'] as const).map((mode) => ({
+    path: 'billing/' + mode,
+    canActivate: [financeGuard],
+    data: { mode, breadcrumb: mode === 'periods' ? 'Billing periods' : 'Charge configuration' },
+    loadComponent: () => import('../billing/configuration').then((m) => m.BillingConfigurationPage),
+  })),
+  {
+    path: 'billing/generate',
+    canActivate: [financeGuard],
+    data: { breadcrumb: 'Generate bills' },
+    loadComponent: () => import('../billing/generate').then((m) => m.BillingGeneratePage),
+  },
+  ...(['bills', 'outstanding'] as const).map((mode) => ({
+    path: 'billing/' + mode,
+    canActivate: [financeGuard],
+    data: { mode, breadcrumb: mode === 'bills' ? 'Bills' : 'Outstanding' },
+    loadComponent: () => import('../billing/bills').then((m) => m.BillingBillsPage),
+  })),
+  {
+    path: 'billing/bills/:id',
+    canActivate: [financeGuard],
+    data: { breadcrumb: 'Bill details' },
+    loadComponent: () => import('../billing/bills').then((m) => m.BillingBillsPage),
+  },
   {
     path: 'resident-access',
     canActivate: [managementGuard],

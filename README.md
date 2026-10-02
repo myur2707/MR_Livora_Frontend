@@ -1,6 +1,8 @@
 # SocietyEase frontend
 
-A thoughtful Angular PWA for community living. Steps 2–6 contain the shared shell, cookie authentication, workspace selection, society onboarding/activation, property/resident management, and resident invitations/registration approval. Financial screens remain later steps. The independent `MR_Livora_Backend` enforces authorization and preserves database history.
+A thoughtful Angular PWA for community living. Steps 2–7 contain the shared shell, cookie authentication, workspace selection, society onboarding/activation, property/resident management, verified resident access and maintenance/bill generation screens. The independent `MR_Livora_Backend` enforces authorization and preserves database history.
+
+See [Step 7 billing](docs/STEP_7_BILLING.md) for charge versions, billing periods, reviewed generation, discounts, immutable bill details and outstanding reports. Monthly maintenance uses the full amount at period start with no proration. Open the Maintenance navigation after selecting an ACTIVE society with finance permissions. Payment recording remains a later step.
 
 ## Run locally
 

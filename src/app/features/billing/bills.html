@@ -1,0 +1,130 @@
+<div class="page-heading billing-heading">
+  <p class="eyebrow">MAINTENANCE</p>
+  <h1>{{ id ? 'Bill details' : report ? 'Outstanding report' : 'Bills' }}</h1>
+  <p>Amounts follow issued charge snapshots and recorded ledger adjustments.</p>
+</div>
+<se-form-notice [message]="error()" />
+@if (loading()) {
+  <p role="status">Loading bills…</p>
+}
+@if (bill(); as detail) {
+  <section class="billing-preview">
+    <h2>{{ detail.billNumber }} · {{ detail.buildingCode }} / {{ detail.flatNumber }}</h2>
+    <p>
+      {{ detail.periodCode }} · {{ detail.startsOn }} – {{ detail.endsOn }} · Due {{ detail.dueOn }}
+    </p>
+    <p>{{ detail.status }} / {{ detail.settlementStatus }}</p>
+    <dl class="billing-totals">
+      <dt>Gross charges</dt>
+      <dd>{{ detail.gross }}</dd>
+      <dt>Credits (net of debits)</dt>
+      <dd>{{ detail.credits }}</dd>
+      <dt>Net charges</dt>
+      <dd>{{ detail.net }}</dd>
+      <dt>Allocated payments</dt>
+      <dd>{{ detail.paid }}</dd>
+      <dt>Outstanding</dt>
+      <dd>{{ detail.outstanding }}</dd>
+      <dt>Credit balance</dt>
+      <dd>{{ detail.creditBalance }}</dd>
+      <dt>Previous outstanding at issue (informational)</dt>
+      <dd>{{ detail.previousOutstanding ?? 'Legacy bill — no snapshot' }}</dd>
+    </dl>
+    <div class="table-scroll" role="region" aria-label="Bill charge details" tabindex="0">
+      <table seTable>
+        <caption>
+          Issued bill items
+        </caption>
+        <thead>
+          <tr>
+            <th>Charge</th>
+            <th>Quantity</th>
+            <th>Rate</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (line of detail.items; track line.configurationId) {
+            <tr>
+              <td>{{ line.description }}</td>
+              <td>{{ line.quantity }}</td>
+              <td>{{ line.unitRate }}</td>
+              <td>{{ line.amount }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @for (adjustment of detail.adjustments; track adjustment.id) {
+      <p>{{ adjustment.direction }} {{ adjustment.amount }} — {{ adjustment.reason }}</p>
+    }
+    <a routerLink="/society/billing/bills">Back to bills</a>
+  </section>
+} @else if (!id) {
+  <form class="property-actions" (ngSubmit)="load()">
+    <se-field controlId="bill-search" label="Search bill number"
+      ><input seInput name="q" [(ngModel)]="q"
+    /></se-field>
+    @if (!report) {
+      <se-field controlId="bill-status" label="Balance filter"
+        ><select seSelect name="status" [(ngModel)]="status">
+          <option value="ALL">All bills</option>
+          <option value="OUTSTANDING">Outstanding</option>
+          <option value="SETTLED">Settled</option>
+        </select></se-field
+      >
+    }
+    <button seButton variant="secondary" type="submit">Search</button>
+  </form>
+  @if (page(); as result) {
+    <p role="status">
+      {{ result.total }} matching bills · Outstanding {{ result.summary.outstanding }} · Credit
+      balance {{ result.summary.creditBalance }}
+    </p>
+    <div class="table-scroll" role="region" aria-label="Society bills" tabindex="0">
+      <table seTable>
+        <caption>
+          {{
+            report ? 'Outstanding issued bills' : 'Society bills'
+          }}
+        </caption>
+        <thead>
+          <tr>
+            <th>Bill</th>
+            <th>Flat</th>
+            <th>Period</th>
+            <th>Net</th>
+            <th>Paid</th>
+            <th>Outstanding</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of result.items; track row.id) {
+            <tr>
+              <td>
+                <a [routerLink]="['/society/billing/bills', row.id]">{{ row.billNumber }}</a>
+              </td>
+              <td>{{ row.buildingCode }} / {{ row.flatNumber }}</td>
+              <td>{{ row.periodCode }}</td>
+              <td>{{ row.net }}</td>
+              <td>{{ row.paid }}</td>
+              <td>{{ row.outstanding }}</td>
+              <td>{{ row.settlementStatus }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7">No matching bills.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <se-pagination
+      [total]="result.total"
+      [page]="result.page"
+      [pageSize]="result.pageSize"
+      (pageSelected)="load($event)"
+    />
+  }
+}

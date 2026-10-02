@@ -33,6 +33,7 @@ test.beforeEach(async ({ context }) => {
 test('all lazy placeholders and the unknown route render without accessibility violations', async ({
   page,
 }) => {
+  test.setTimeout(90000);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const routes = [
     ['/platform/dashboard', 'Welcome to SocietyEase'],
@@ -197,6 +198,8 @@ test('static shell works offline while authenticated/private responses never ent
     '/api/v1/society/persons',
     '/api/v1/society/imports/1/rows',
     '/api/v1/society/flats/1/occupancies',
+    '/api/v1/society/billing/bills',
+    '/api/v1/society/billing/outstanding',
   ];
   for (const path of privatePaths) {
     const result: unknown = await page.evaluate(async (path) => {

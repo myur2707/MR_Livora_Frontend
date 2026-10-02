@@ -16,5 +16,30 @@ export const NAVIGATION: readonly { label: string; path: string; icon: IconName;
       group: 'Community',
     },
     { label: 'Join a society', path: '/join-society', icon: 'people', group: 'Workspace' },
+    {
+      label: 'Charge configuration',
+      path: '/society/billing/configuration',
+      icon: 'grid',
+      group: 'Maintenance',
+    },
+    {
+      label: 'Billing periods',
+      path: '/society/billing/periods',
+      icon: 'grid',
+      group: 'Maintenance',
+    },
+    {
+      label: 'Generate bills',
+      path: '/society/billing/generate',
+      icon: 'grid',
+      group: 'Maintenance',
+    },
+    { label: 'Bills', path: '/society/billing/bills', icon: 'grid', group: 'Maintenance' },
+    {
+      label: 'Outstanding',
+      path: '/society/billing/outstanding',
+      icon: 'grid',
+      group: 'Maintenance',
+    },
     { label: 'UI library', path: '/ui', icon: 'grid', group: 'Foundation' },
   ];

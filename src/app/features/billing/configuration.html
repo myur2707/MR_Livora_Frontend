@@ -1,0 +1,259 @@
+<div class="page-heading billing-heading">
+  <p class="eyebrow">MAINTENANCE</p>
+  <h1>{{ periods ? 'Billing periods' : 'Charge configuration' }}</h1>
+  <p>
+    Monthly charges use the full amount at period start. Configuration changes apply to future
+    generation.
+  </p>
+</div>
+<se-form-notice [message]="error()" />
+@if (message()) {
+  <p class="form-success" role="status">{{ message() }}</p>
+}
+@if (canConfigure()) {
+  <div class="property-actions">
+    @if (periods) {
+      <button seButton type="button" (click)="open('period')">New billing period</button>
+    } @else {
+      <button seButton type="button" (click)="open('type')">New charge type</button
+      ><button seButton variant="secondary" type="button" (click)="open('configuration')">
+        Add configuration version
+      </button>
+    }
+  </div>
+}
+@if (form) {
+  <form
+    class="onboarding-form billing-form"
+    #editor="ngForm"
+    (ngSubmit)="save(editor.valid === true)"
+    novalidate
+  >
+    <h2>
+      {{
+        form === 'type'
+          ? 'New charge type'
+          : form === 'period'
+            ? 'New billing period'
+            : 'New configuration version'
+      }}
+    </h2>
+    @if (form === 'type' || form === 'period') {
+      <se-field
+        controlId="billing-code"
+        label="Code"
+        [required]="true"
+        [error]="editor.submitted && !code ? 'Code is required.' : null"
+        ><input
+          seInput
+          name="code"
+          [(ngModel)]="code"
+          required
+          maxlength="64"
+          pattern="[A-Z0-9][A-Z0-9_-]*"
+      /></se-field>
+    }
+    @if (form === 'type') {
+      <se-field
+        controlId="billing-name"
+        label="Charge name"
+        [required]="true"
+        [error]="editor.submitted && !name ? 'Name is required.' : null"
+        ><input seInput name="name" [(ngModel)]="name" required maxlength="100"
+      /></se-field>
+      <se-field
+        controlId="billing-frequency"
+        label="Frequency"
+        hint="Each one-time charge type is one event, billed once per flat."
+        ><select seSelect name="frequency" [(ngModel)]="frequency">
+          <option value="MONTHLY">Monthly</option>
+          <option value="ONE_TIME">One-time event</option>
+        </select></se-field
+      >
+    } @else if (form === 'period') {
+      <se-field controlId="billing-kind" label="Period kind"
+        ><select seSelect name="kind" [(ngModel)]="kind">
+          <option value="MONTHLY">Calendar month</option>
+          <option value="ONE_TIME">One-time day</option>
+        </select></se-field
+      >
+      <se-field controlId="billing-start" label="Start date" [required]="true"
+        ><input seInput type="date" name="startsOn" [(ngModel)]="startsOn" required
+      /></se-field>
+      <se-field
+        controlId="billing-end"
+        label="End date"
+        [required]="true"
+        hint="Monthly: last day of the same month. One-time: same as start."
+        ><input seInput type="date" name="endsOn" [(ngModel)]="endsOn" required
+      /></se-field>
+      <se-field controlId="billing-due" label="Due date" [required]="true"
+        ><input seInput type="date" name="dueOn" [(ngModel)]="dueOn" required
+      /></se-field>
+    } @else {
+      <se-billing-picker
+        resource="charge-types"
+        label="Choose charge type"
+        (selected)="chargeTypeId = $event"
+      />
+      <se-field controlId="billing-scope" label="Applies to"
+        ><select seSelect name="scope" [(ngModel)]="scope">
+          <option value="SOCIETY">Society default</option>
+          <option value="BUILDING">Building override</option>
+          <option value="FLAT">Flat override</option>
+        </select></se-field
+      >
+      @if (scope === 'BUILDING') {
+        <se-billing-picker
+          resource="buildings"
+          label="Choose building"
+          (selected)="buildingId = $event"
+        />
+      }
+      @if (scope === 'FLAT') {
+        <se-billing-picker resource="flats" label="Choose flat" (selected)="flatId = $event" />
+      }
+      <se-field controlId="billing-method" label="Calculation"
+        ><select seSelect name="method" [(ngModel)]="method">
+          <option value="FLAT_RATE">Fixed amount</option>
+          <option value="PER_SQ_FT">Per square foot</option>
+        </select></se-field
+      >
+      <se-field
+        controlId="billing-rate"
+        label="Amount / rate"
+        [required]="true"
+        [error]="
+          editor.submitted && !editor.controls['rate']?.valid
+            ? 'Enter a nonnegative amount with at most two decimals.'
+            : null
+        "
+        ><input
+          seInput
+          inputmode="decimal"
+          name="rate"
+          [(ngModel)]="rate"
+          required
+          pattern="(?:0|[1-9][0-9]{0,9})(?:\.[0-9]{1,2})?"
+      /></se-field>
+      <se-field controlId="billing-from" label="Effective from" [required]="true"
+        ><input seInput type="date" name="effectiveFrom" [(ngModel)]="effectiveFrom" required
+      /></se-field>
+      <se-field controlId="billing-until" label="Effective until (optional)"
+        ><input seInput type="date" name="effectiveUntil" [(ngModel)]="effectiveUntil"
+      /></se-field>
+      <se-field controlId="billing-eligibility" label="Flat eligibility"
+        ><select seSelect name="eligibility" [(ngModel)]="eligibility">
+          <option value="ALL_FLATS">All active flats</option>
+          <option value="OCCUPIED_ONLY">Occupied at period start</option>
+        </select></se-field
+      >
+      <label
+        ><input type="checkbox" name="enabled" [(ngModel)]="enabled" /> Enable this rule. A disabled
+        override excludes the flat from this charge.</label
+      >
+    }
+    <div class="property-actions">
+      <button seButton type="submit" [disabled]="busy()">Save</button
+      ><button seButton variant="secondary" type="button" [disabled]="busy()" (click)="form = null">
+        Cancel
+      </button>
+    </div>
+  </form>
+}
+<form class="property-actions" (ngSubmit)="load()">
+  <se-field controlId="billing-search" label="Search"
+    ><input seInput name="q" [(ngModel)]="q" /></se-field
+  ><button seButton variant="secondary" type="submit" [disabled]="loading()">Search</button>
+</form>
+@if (loading()) {
+  <p role="status">Loading records…</p>
+}
+@if (periods) {
+  @if (periodPage(); as page) {
+    <div class="table-scroll" role="region" aria-label="Billing periods" tabindex="0">
+      <table seTable>
+        <caption>
+          Billing periods
+        </caption>
+        <thead>
+          <tr>
+            <th>Code</th>
+            <th>Kind</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Due</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of page.items; track row.id) {
+            <tr>
+              <td>{{ row.code }}</td>
+              <td>{{ row.kind }}</td>
+              <td>{{ row.startsOn }}</td>
+              <td>{{ row.endsOn }}</td>
+              <td>{{ row.dueOn }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="5">No periods yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <se-pagination
+      [total]="page.total"
+      [page]="page.page"
+      [pageSize]="page.pageSize"
+      (pageSelected)="load($event)"
+    />
+  }
+} @else {
+  @if (configurations(); as page) {
+    <div class="table-scroll" role="region" aria-label="Charge versions" tabindex="0">
+      <table seTable>
+        <caption>
+          Immutable charge versions — flat overrides building, then society
+        </caption>
+        <thead>
+          <tr>
+            <th>Charge</th>
+            <th>Version</th>
+            <th>Scope / target</th>
+            <th>Rate</th>
+            <th>Dates</th>
+            <th>Eligibility</th>
+            <th>Enabled</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of page.items; track row.id) {
+            <tr>
+              <td>{{ row.chargeName }}</td>
+              <td>{{ row.version }}</td>
+              <td>
+                {{ row.scope }} {{ row.buildingCode || 'All active flats'
+                }}{{ row.flatNumber ? ' / ' + row.flatNumber : '' }}
+              </td>
+              <td>{{ row.rate }} / {{ row.calculationMethod }}</td>
+              <td>{{ row.effectiveFrom }} – {{ row.effectiveUntil || 'Open' }}</td>
+              <td>{{ row.eligibility }}</td>
+              <td>{{ row.enabled ? 'Yes' : 'No' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7">No configurations yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <se-pagination
+      [total]="page.total"
+      [page]="page.page"
+      [pageSize]="page.pageSize"
+      (pageSelected)="load($event)"
+    />
+  }
+}

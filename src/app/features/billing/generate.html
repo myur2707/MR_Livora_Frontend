@@ -1,0 +1,199 @@
+<div class="page-heading billing-heading">
+  <p class="eyebrow">MAINTENANCE</p>
+  <h1>Generate bills</h1>
+  <p>Review charges before issuing. Issued bills remain part of the permanent financial history.</p>
+</div>
+<se-form-notice [message]="error()" />
+@if (!permitted('generate')) {
+  <p>You can view bills. Generating bills requires an additional permission.</p>
+} @else {
+  <fieldset [disabled]="busy()" class="billing-form">
+    <se-billing-picker
+      resource="periods"
+      label="Choose billing period"
+      (selected)="choosePeriod($event)"
+    />
+    <form class="property-actions" (ngSubmit)="load()">
+      <se-field controlId="generate-search" label="Find flats"
+        ><input seInput name="q" [(ngModel)]="q" /></se-field
+      ><button seButton variant="secondary" type="submit" [disabled]="loading()">Search</button>
+    </form>
+    <p>{{ chosen().length }} of 50 flats selected. Selections are retained across pages.</p>
+    <div class="billing-options" aria-label="Select flats">
+      @for (flat of flats()?.items; track flat.id) {
+        <label class="billing-flat-choice"
+          ><input type="checkbox" [checked]="selected(flat.id)" (change)="toggle(flat)" />
+          {{ display(flat) }}</label
+        >
+      }
+    </div>
+    @if (loading()) {
+      <p role="status">Loading flats…</p>
+    }
+    @if (flats(); as page) {
+      <se-pagination
+        [total]="page.total"
+        [page]="page.page"
+        [pageSize]="page.pageSize"
+        (pageSelected)="load($event)"
+      />
+    }
+    @if (permitted('discount') && chosen().length) {
+      <details>
+        <summary>Authorize a discount</summary>
+        <form
+          class="onboarding-form"
+          #discountForm="ngForm"
+          (ngSubmit)="addDiscount(discountForm.valid === true)"
+          novalidate
+        >
+          <se-field controlId="discount-flat" label="Selected flat" [required]="true"
+            ><select seSelect name="flat" [(ngModel)]="discountFlat" required>
+              <option value="">Choose flat</option>
+              @for (flat of chosen(); track flat.id) {
+                <option [value]="flat.id">{{ display(flat) }}</option>
+              }
+            </select></se-field
+          >
+          <se-field controlId="discount-kind" label="Discount type"
+            ><select seSelect name="kind" [(ngModel)]="discountKind">
+              <option value="FIXED">Fixed amount</option>
+              <option value="PERCENT">Percentage</option>
+            </select></se-field
+          >
+          <se-field
+            controlId="discount-value"
+            label="Discount value"
+            [required]="true"
+            [error]="
+              discountForm.submitted && !discountForm.controls['value']?.valid
+                ? 'Enter a positive amount with at most two decimals.'
+                : null
+            "
+            ><input
+              seInput
+              inputmode="decimal"
+              name="value"
+              [(ngModel)]="discountValue"
+              required
+              pattern="(?:0|[1-9][0-9]{0,9})(?:\.[0-9]{1,2})?"
+          /></se-field>
+          <se-field
+            controlId="discount-reason"
+            label="Audited reason"
+            [required]="true"
+            [error]="
+              discountForm.submitted && !discountForm.controls['reason']?.valid
+                ? 'A reason of at least five characters is required.'
+                : null
+            "
+          >
+            <textarea
+              seInput
+              name="reason"
+              [(ngModel)]="discountReason"
+              required
+              minlength="5"
+              maxlength="500"
+            ></textarea>
+          </se-field>
+          <button seButton variant="secondary" type="submit">Apply discount to preview</button>
+        </form>
+      </details>
+    }
+    @for (discount of discounts; track discount.flatId) {
+      <p>
+        {{ flatLabel(discount.flatId) }}: {{ discount.kind }} {{ discount.value }} —
+        {{ discount.reason }}
+        <button
+          seButton
+          variant="secondary"
+          type="button"
+          (click)="removeDiscount(discount.flatId)"
+        >
+          Remove discount
+        </button>
+      </p>
+    }
+    <button seButton type="button" (click)="review()">Preview bills</button>
+  </fieldset>
+  @if (preview(); as plan) {
+    <section class="billing-preview" aria-label="Bill preview">
+      <h2>Review {{ plan.period.code }}</h2>
+      <p>
+        New charges: {{ plan.gross }} · Discounts: {{ plan.discount }} · New amount due:
+        {{ plan.net }}
+      </p>
+      <p>Previous outstanding is informational. It is not added to these bills.</p>
+      @for (flat of plan.flats; track flat.flatId) {
+        <article class="billing-flat-preview">
+          <h3>{{ flat.buildingCode }} / {{ flat.flatNumber }} — {{ flat.status }}</h3>
+          <p>
+            Gross {{ flat.gross }} · Discount {{ flat.discount }} · Net {{ flat.net }} · Previous
+            outstanding {{ flat.previousOutstanding }}
+          </p>
+          @for (exclusion of flat.exclusions; track $index) {
+            <p>{{ exclusion }}</p>
+          }
+          @if (flat.existingBillId) {
+            <a [routerLink]="['/society/billing/bills', flat.existingBillId]">View existing bill</a>
+          }
+          <div
+            class="table-scroll"
+            role="region"
+            [attr.aria-label]="'Preview lines for ' + flat.flatNumber"
+            tabindex="0"
+          >
+            <table seTable>
+              <caption>
+                Charge details for
+                {{
+                  flat.flatNumber
+                }}
+              </caption>
+              <thead>
+                <tr>
+                  <th>Charge</th>
+                  <th>Quantity</th>
+                  <th>Rate</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (line of flat.items; track line.configurationId) {
+                  <tr>
+                    <td>{{ line.description }}</td>
+                    <td>{{ line.quantity }}</td>
+                    <td>{{ line.unitRate }}</td>
+                    <td>{{ line.amount }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </article>
+      }
+      <label
+        ><input type="checkbox" [(ngModel)]="confirmed" [disabled]="busy()" /> I reviewed charges,
+        exclusions and any authorized discounts. Issue these bills.</label
+      >
+      <button seButton type="button" [disabled]="!confirmed || busy()" (click)="issue()">
+        Issue reviewed bills
+      </button>
+    </section>
+  }
+  @if (result(); as generated) {
+    <section role="status">
+      <h2>{{ generated.billCount }} bills issued</h2>
+      <p>Generation {{ generated.runId }}{{ generated.replayed ? ' (confirmed retry)' : '' }}</p>
+      <ul>
+        @for (id of generated.billIds; track id) {
+          <li>
+            <a [routerLink]="['/society/billing/bills', id]">View bill {{ id }}</a>
+          </li>
+        }
+      </ul>
+      <a routerLink="/society/billing/bills">View all bills</a>
+    </section>
+  }
+}
