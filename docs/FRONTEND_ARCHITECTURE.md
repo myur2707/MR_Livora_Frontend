@@ -12,7 +12,7 @@ The existing frontend repository contained README, license and ignore rules only
 - `public`: reviewed static mark, illustration, icons, theme bootstrapping script and manifest.
 - `scripts`, `e2e`: local build/PWA verification and browser tests.
 
-Platform and society route collections and individual feature components load lazily. There are no authentication guards masquerading as authorization, synthetic signed-in identities, tenant data services, business endpoints or financial screens. Authentication and membership checks belong to subsequent steps; the foundation is an openly accessible static preview.
+Platform and society route collections and individual feature components load lazily. Step 3 adds auth forms, an in-memory auth service and guards driven by current server sessions. Guards are UX only; server authorization remains mandatory. Business/financial routes remain placeholders. See [authentication](AUTHENTICATION.md) for protected routes, setup and tests.
 
 ## Shared control contract
 

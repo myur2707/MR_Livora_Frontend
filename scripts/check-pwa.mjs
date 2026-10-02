@@ -29,6 +29,8 @@ for (const path of [
   '/',
   '/login',
   '/forgot-password',
+  '/reset-password',
+  '/workspace',
   '/platform/dashboard',
   '/platform/societies',
   '/society/dashboard',

@@ -8,6 +8,8 @@ import { DrawerComponent } from '../shared/drawer';
 import { IconComponent } from '../shared/icon';
 import { BreadcrumbsComponent } from './breadcrumbs';
 import { SidebarComponent } from './sidebar';
+import { AuthService, authErrorMessage } from '../core/auth';
+import { ToastService } from '../shared/toast';
 
 @Component({
   selector: 'se-app-shell',
@@ -23,6 +25,10 @@ import { SidebarComponent } from './sidebar';
   templateUrl: './app-shell.html',
 })
 export class AppShellComponent {
+  protected readonly auth = inject(AuthService);
+  protected readonly signingOut = signal(false);
+  private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
   protected readonly collapsed = signal(false);
   protected readonly mobileOpen = signal(false);
   protected readonly theme = inject(ThemeService);
@@ -48,5 +54,17 @@ export class AppShellComponent {
       () => this.document.querySelector<HTMLElement>('main h1')?.focus({ preventScroll: true }),
       { injector: this.injector },
     );
+  }
+  protected async logout(): Promise<void> {
+    if (this.signingOut()) return;
+    this.signingOut.set(true);
+    try {
+      await this.auth.logout();
+      await this.router.navigateByUrl('/login');
+    } catch (error) {
+      this.toast.show(authErrorMessage(error));
+    } finally {
+      this.signingOut.set(false);
+    }
   }
 }

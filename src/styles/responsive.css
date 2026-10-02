@@ -43,6 +43,7 @@
 @media (max-width: 680px) {
   .app-header {
     min-height: 68px;
+    flex-wrap: wrap;
     padding-inline: 12px;
     gap: 8px;
   }
@@ -51,6 +52,7 @@
   }
   .header-actions {
     gap: 0;
+    margin-left: auto;
   }
   .header-divider {
     display: none;

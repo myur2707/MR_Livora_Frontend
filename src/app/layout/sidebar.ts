@@ -1,7 +1,8 @@
-import { Component, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { IconComponent } from '../shared/icon';
 import { NAVIGATION } from './navigation';
+import { AuthState } from '../core/auth-state';
 
 @Component({
   selector: 'se-sidebar',
@@ -12,5 +13,14 @@ import { NAVIGATION } from './navigation';
 export class SidebarComponent {
   readonly collapsed = input(false);
   readonly navigated = output<void>();
-  protected readonly navigation = NAVIGATION;
+  private readonly auth = inject(AuthState);
+  protected readonly navigation = computed(() =>
+    NAVIGATION.filter((item) =>
+      item.path.startsWith('/platform')
+        ? this.auth.identity()?.platformAdmin
+        : item.path.startsWith('/society')
+          ? !!this.auth.identity()?.activeSociety
+          : true,
+    ),
+  );
 }

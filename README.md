@@ -1,6 +1,6 @@
 # SocietyEase frontend
 
-A thoughtful Angular PWA foundation for community living. This repository contains **Step 2 only**: the application shell, shared controls, design tokens and placeholder routes. The independent `MR_Livora_Backend` repository retains Step 1 without changes.
+A thoughtful Angular PWA for community living. Steps 2–3 contain the shared shell and controls plus cookie-based login, logout, password reset and workspace selection. Business routes remain placeholders. The independent `MR_Livora_Backend` contains the preserved database baseline and server-enforced authentication/authorization.
 
 ## Run locally
 
@@ -11,15 +11,17 @@ npm ci
 npm run dev
 ```
 
-Open `http://127.0.0.1:4200`. Read [AGENTS.md](AGENTS.md) before making changes.
+Open `http://127.0.0.1:4200`. Run the backend on port 3000; the Angular dev proxy forwards API requests. Configure backend APP_ORIGIN to match this exact origin. See [authentication setup](docs/AUTHENTICATION.md). Read [AGENTS.md](AGENTS.md) before making changes.
 
 | Route                 | Purpose                              |
 | --------------------- | ------------------------------------ |
 | `/platform/dashboard` | Workspace overview placeholder       |
 | `/platform/societies` | Societies placeholder                |
 | `/society/dashboard`  | Society workspace placeholder        |
-| `/login`              | Sign-in placeholder                  |
-| `/forgot-password`    | Reset-password placeholder           |
+| `/login`              | Login form                           |
+| `/forgot-password`    | Generic reset request                |
+| `/reset-password`     | Single-use password reset            |
+| `/workspace`          | Validated society selection          |
 | `/ui`                 | Interactive shared component preview |
 | Any unknown route     | Clear not-found page                 |
 

@@ -1,6 +1,29 @@
 import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
+test.beforeEach(async ({ context }) => {
+  // Mock current server authorization, preserving the real production route guards.
+  const access = {
+    societyId: '1',
+    membershipId: '2',
+    name: 'Synthetic community',
+    roles: ['COMMITTEE_ADMIN'],
+    permissions: ['society.dashboard.read'],
+  };
+  await context.route('**/api/v1/auth/session', (route) =>
+    route.fulfill({
+      json: {
+        userId: '3',
+        email: 'synthetic@example.invalid',
+        platformAdmin: true,
+        memberships: [access],
+        activeSociety: access,
+        expiresAt: '2099-01-01T00:00:00Z',
+      },
+    }),
+  );
+});
+
 test('all lazy placeholders and the unknown route render without accessibility violations', async ({
   page,
 }) => {
@@ -11,6 +34,8 @@ test('all lazy placeholders and the unknown route render without accessibility v
     ['/society/dashboard', 'Your community space'],
     ['/login', 'Welcome home'],
     ['/forgot-password', 'A fresh start'],
+    ['/reset-password', 'Set a new password'],
+    ['/workspace', 'Choose your workspace'],
     ['/ui', 'Good design, in the details'],
     ['/missing-page', 'Page not found'],
   ] as const;
@@ -31,7 +56,7 @@ test('all lazy placeholders and the unknown route render without accessibility v
 });
 
 test('sidebar collapse and dark theme remain usable and survive refresh', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/platform/dashboard');
   await page.getByRole('button', { name: 'Collapse sidebar' }).click();
   await expect(page.getByRole('button', { name: 'Expand sidebar' })).toBeVisible();
   await page.getByRole('link', { name: 'Societies', exact: true }).click();
@@ -85,7 +110,7 @@ test('modal and drawer trap focus, close on Escape and restore focus', async ({ 
 
 test('mobile navigation works by keyboard and does not overflow at 320px', async ({ page }) => {
   await page.setViewportSize({ width: 320, height: 780 });
-  await page.goto('/');
+  await page.goto('/platform/dashboard');
   const opener = page.getByRole('button', { name: 'Open navigation' });
   await opener.focus();
   await page.keyboard.press('Enter');
@@ -141,8 +166,8 @@ test('static shell works offline while authenticated/private responses never ent
   });
   for (const path of privatePaths) expect(cached).not.toContain(path);
   await context.setOffline(true);
-  await page.goto('/platform/societies');
-  await expect(page.getByRole('heading', { name: 'Your societies', level: 1 })).toBeVisible();
+  await page.goto('/login');
+  await expect(page.getByRole('heading', { name: 'Welcome home', level: 1 })).toBeVisible();
   for (const path of privatePaths) {
     const result = await page.evaluate(async (path) => {
       try {

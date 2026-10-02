@@ -38,7 +38,7 @@ The workspace contains two separate Git repositories: `MR_Livora_Backend` (Node 
 
 ## Frontend foundation rules
 
-- This independent repository contains Step 2 only. Preserve the backend's Step 1; do not add authentication, business APIs or society/financial screens until requested.
+- This independent repository contains Steps 2–3: the PWA foundation and authentication UX. Preserve backend database/auth boundaries; do not add business APIs or society/financial screens until requested.
 - Use pinned Angular 22 standalone components, TypeScript 6, Node 24 and the existing Vitest/Playwright checks. Inspect scripts/styles before changing them.
 - Keep shared controls small and semantic. Use native controls/dialogs, consistent field feedback, visible focus and tested keyboard behavior.
 - Frontend configuration and all public assets are public. Never put secrets or private fixtures into bundles, environment configuration or public directories. Theme choice is the only localStorage preference.

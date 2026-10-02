@@ -287,3 +287,12 @@
   font-size: 11px;
   color: var(--muted);
 }
+.auth-form,
+.workspace-form {
+  display: grid;
+  gap: var(--space-5);
+  margin-top: var(--space-5);
+}
+.workspace-form {
+  max-width: 32rem;
+}
