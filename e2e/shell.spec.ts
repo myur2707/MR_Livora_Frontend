@@ -2,6 +2,12 @@ import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ context }) => {
+  await context.route('**/api/v1/platform/dashboard', (route) =>
+    route.fulfill({ json: { statuses: [{ status: 'DRAFT', total: 1 }] } }),
+  );
+  await context.route('**/api/v1/platform/societies?**', (route) =>
+    route.fulfill({ json: { items: [], total: 0, page: 1, pageSize: 20 } }),
+  );
   // Mock current server authorization, preserving the real production route guards.
   const access = {
     societyId: '1',

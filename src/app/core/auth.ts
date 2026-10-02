@@ -55,7 +55,7 @@ export class AuthService {
       throw error;
     }
   }
-  private async prepare(): Promise<void> {
+  async prepare(): Promise<void> {
     const result = await firstValueFrom(this.http.get<{ csrfToken: string }>('/api/v1/auth/csrf'));
     this.state.csrf.set(result.csrfToken);
   }

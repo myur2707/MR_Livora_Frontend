@@ -26,6 +26,21 @@ export const routes: Routes = [
     loadComponent: () => import('./layout/app-shell').then((m) => m.AppShellComponent),
     children: [
       {
+        path: 'accept-invitation',
+        title: 'Committee invitation · SocietyEase',
+        data: { breadcrumb: 'Invitation' },
+        loadComponent: () =>
+          import('./features/onboarding/invitation').then((m) => m.CommitteeInvitationComponent),
+      },
+      {
+        path: 'onboarding/societies/:id',
+        title: 'Society setup · SocietyEase',
+        data: { breadcrumb: 'Society setup', scope: 'committee' },
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./features/onboarding/wizard').then((m) => m.OnboardingWizardComponent),
+      },
+      {
         path: 'workspace',
         title: 'Choose workspace · SocietyEase',
         data: { breadcrumb: 'Workspace' },

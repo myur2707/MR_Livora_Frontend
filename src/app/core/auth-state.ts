@@ -14,6 +14,7 @@ export interface SessionIdentity {
   memberships: SocietyAccess[];
   activeSociety: SocietyAccess | null;
   expiresAt: string;
+  setupSocieties?: { societyId: string; name: string; status: string }[];
 }
 @Injectable({ providedIn: 'root' })
 export class AuthState {

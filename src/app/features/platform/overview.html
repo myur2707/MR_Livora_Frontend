@@ -1,67 +1,50 @@
-<div class="page-heading">
+<header class="page-heading">
   <div>
-    <p class="eyebrow">YOUR WORKSPACE</p>
+    <p class="eyebrow">PLATFORM WORKSPACE</p>
     <h1 tabindex="-1">Welcome to SocietyEase</h1>
-    <p>A little clarity. A little connection. A better place to call home.</p>
+    <p>Help new communities get ready for committee-led operations.</p>
   </div>
-  <se-badge tone="success"
-    ><span class="status-dot" aria-hidden="true"></span>Foundation preview</se-badge
-  >
-</div>
-<section class="welcome-panel" aria-labelledby="welcome-title">
+  <a seButton routerLink="/platform/societies">Manage societies</a>
+</header>
+<se-form-notice [message]="error()" />
+<section class="welcome-panel" aria-labelledby="platform-welcome">
   <div class="welcome-copy">
-    <span class="hero-tag"><se-icon name="sparkle" /> MADE FOR COMMUNITY</span>
-    <h2 id="welcome-title">A place for<br /><em>better living.</em></h2>
+    <p class="eyebrow">FROM FIRST STEPS TO A SHARED HOME</p>
+    <h2 id="platform-welcome">A clear path to<br />a thriving community.</h2>
     <p>
-      Bring your community together in a thoughtful, welcoming workspace. Everything begins with a
-      strong foundation.
+      Create a society, invite its committee and track setup. The committee reviews the details and
+      verifies activation.
     </p>
-    <a seButton routerLink="/platform/societies">Explore your workspace <se-icon name="arrow" /></a>
+    <a seButton routerLink="/platform/societies">Open society directory</a>
   </div>
   <div class="welcome-art">
-    <img src="/assets/brand/community.svg" alt="" width="520" height="300" /><span
-      class="art-caption"
-      >More than buildings. A sense of belonging.</span
-    >
+    <img src="/assets/brand/community.svg" alt="" width="520" height="300" />
   </div>
 </section>
-<div class="section-heading">
-  <div>
-    <p class="eyebrow">FIND YOUR WAY</p>
-    <h2>A workspace that feels like home</h2>
-  </div>
-  <a class="text-link" routerLink="/ui">Explore the UI library <se-icon name="arrow" /></a>
-</div>
-<div class="guide-grid">
-  <a class="guide-card" routerLink="/platform/societies"
-    ><span class="guide-icon"><se-icon name="building" /></span>
-    <h3>Your societies</h3>
-    <p>A clear, considered space for the communities you support.</p>
-    <span class="guide-link">Explore societies <se-icon name="arrow" /></span
-  ></a>
-  <a class="guide-card" routerLink="/society/dashboard"
-    ><span class="guide-icon peach"><se-icon name="people" /></span>
-    <h3>Community space</h3>
-    <p>A shared starting point for the everyday life of your society.</p>
-    <span class="guide-link">Take a look <se-icon name="arrow" /></span
-  ></a>
-  <a class="guide-card" routerLink="/ui"
-    ><span class="guide-icon lavender"><se-icon name="grid" /></span>
-    <h3>The little details</h3>
-    <p>Simple controls. Clear feedback. A consistent experience.</p>
-    <span class="guide-link">View the UI library <se-icon name="arrow" /></span
-  ></a>
-</div>
+@if (summary(); as counts) {
+  <section class="onboarding-stats" aria-label="Society lifecycle totals">
+    @for (count of counts; track count.status) {
+      <se-card
+        ><p class="eyebrow">{{ count.status.replaceAll('_', ' ') }}</p>
+        <p class="stat-value">{{ count.total }}</p></se-card
+      >
+    }
+    @if (!counts.length) {
+      <se-state
+        kind="empty"
+        title="Your first community starts here"
+        message="Create a draft society to begin."
+      />
+    }
+  </section>
+} @else if (!error()) {
+  <se-state
+    kind="loading"
+    title="Loading platform totals"
+    message="Fetching society lifecycle metadata."
+  />
+}
 <se-card
-  ><div class="foundation-note">
-    <span class="note-icon"><se-icon name="shield" /></span>
-    <div>
-      <h2>A thoughtful foundation</h2>
-      <p>
-        This is a preview of your workspace. Your community's information will have a place here as
-        setup continues.
-      </p>
-    </div>
-    <se-badge>Ready to take shape</se-badge>
-  </div></se-card
->
+  title="A focused platform workspace"
+  description="Society status and setup progress are available here. Private resident records and tenant financial operations are handled in committee workspaces."
+/>

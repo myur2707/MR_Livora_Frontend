@@ -1,0 +1,73 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">COMMITTEE INVITATION</p>
+    <h1 tabindex="-1">Help your community get started</h1>
+    <p>A committee-led start for your society.</p>
+  </div>
+</header>
+<se-form-notice [message]="error()" />
+@if (done()) {
+  <se-card title="Invitation accepted"
+    ><p>Your committee setup access is ready.</p>
+    <a seButton routerLink="/login">Sign in to continue</a
+    ><a seButton variant="secondary" routerLink="/workspace">Open workspace chooser</a></se-card
+  >
+} @else if (preview(); as invitation) {
+  <se-card [title]="invitation.societyName"
+    ><p>{{ invitation.displayName }}, this invitation is for {{ invitation.email }}.</p>
+    @if (invitation.requiresLogin) {
+      <p>
+        Sign in with the invited account, then reopen the link from your email. Existing passwords
+        are preserved.
+      </p>
+      <a class="text-link" routerLink="/login">Sign in with your existing account</a>
+    }
+    @if (auth.state.identity() && auth.state.identity()?.email !== invitation.email) {
+      <p>Another account is signed in. Sign out before accepting this invitation.</p>
+      <button seButton variant="secondary" type="button" [disabled]="busy()" (click)="signOut()">
+        Sign out current account
+      </button>
+    }
+    <form [formGroup]="form" (ngSubmit)="accept()" class="onboarding-form">
+      @if (!invitation.requiresLogin) {
+        <se-field
+          controlId="invite-password"
+          label="Password"
+          [required]="true"
+          hint="At least 15 characters."
+          [error]="
+            form.controls.password.touched && form.controls.password.invalid
+              ? 'Use at least 15 characters.'
+              : null
+          "
+          ><input
+            seInput
+            type="password"
+            formControlName="password"
+            required
+            minlength="15"
+            maxlength="128"
+            autocomplete="new-password" /></se-field
+        ><se-field controlId="invite-confirm" label="Confirm password" [required]="true"
+          ><input
+            seInput
+            type="password"
+            formControlName="confirmation"
+            required
+            autocomplete="new-password"
+        /></se-field>
+      }
+      <button
+        seButton
+        type="submit"
+        [disabled]="
+          busy() || (!!auth.state.identity() && auth.state.identity()?.email !== invitation.email)
+        "
+      >
+        Accept Committee Admin invitation
+      </button>
+    </form></se-card
+  >
+} @else if (!error()) {
+  <se-state kind="loading" title="Checking invitation" message="Validating the single-use link." />
+}

@@ -33,6 +33,9 @@ for (const path of [
   '/workspace',
   '/platform/dashboard',
   '/platform/societies',
+  '/platform/societies/1',
+  '/onboarding/societies/1',
+  '/accept-invitation',
   '/society/dashboard',
   '/ui',
 ])

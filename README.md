@@ -1,6 +1,6 @@
 # SocietyEase frontend
 
-A thoughtful Angular PWA for community living. Steps 2–3 contain the shared shell and controls plus cookie-based login, logout, password reset and workspace selection. Business routes remain placeholders. The independent `MR_Livora_Backend` contains the preserved database baseline and server-enforced authentication/authorization.
+A thoughtful Angular PWA for community living. Steps 2–4 contain the shared shell, cookie authentication, workspace selection and the initial society onboarding wizard with committee review and explicit activation. Ongoing resident management and financial screens remain later steps. The independent `MR_Livora_Backend` contains the preserved database baseline and server-enforced authentication/authorization.
 
 ## Run locally
 
@@ -17,8 +17,8 @@ Open `http://127.0.0.1:4200`. Run the backend on port 3000; the Angular dev prox
 
 | Route                 | Purpose                              |
 | --------------------- | ------------------------------------ |
-| `/platform/dashboard` | Workspace overview placeholder       |
-| `/platform/societies` | Societies placeholder                |
+| `/platform/dashboard` | Limited platform metadata            |
+| `/platform/societies` | Society directory and creation       |
 | `/society/dashboard`  | Society workspace placeholder        |
 | `/login`              | Login form                           |
 | `/forgot-password`    | Generic reset request                |
@@ -27,7 +27,7 @@ Open `http://127.0.0.1:4200`. Run the backend on port 3000; the Angular dev prox
 | `/ui`                 | Interactive shared component preview |
 | Any unknown route     | Clear not-found page                 |
 
-Authentication and tenant selection use the backend's live sessions and permissions. Business screens and APIs remain later steps; platform and society routes currently show placeholders.
+Use /platform/societies/:id for platform setup progress and /onboarding/societies/:id for the authorized Committee Admin wizard. Email links open /accept-invitation with a single-use fragment token. Read [Step 4 onboarding](docs/STEP_4_ONBOARDING.md) for the manual flow. Backend sessions and permissions enforce every operation. The society dashboard remains a foundation placeholder.
 
 ## Verify
 

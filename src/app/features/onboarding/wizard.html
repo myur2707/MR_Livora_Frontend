@@ -1,0 +1,638 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">{{ platform ? 'PLATFORM ONBOARDING' : 'COMMITTEE SETUP' }}</p>
+    <h1 tabindex="-1">Society onboarding</h1>
+    <p>{{ detail()?.name || 'A clear path to activation' }}</p>
+  </div>
+  <button seButton variant="secondary" type="button" [disabled]="busy()" (click)="load()">
+    Refresh setup
+  </button>
+</header>
+<se-form-notice [message]="error()" />
+@if (message()) {
+  <p class="onboarding-feedback" role="status">{{ message() }}</p>
+}
+@if (loading()) {
+  <se-state kind="loading" title="Loading setup" message="Fetching current onboarding progress." />
+} @else if (detail(); as society) {
+  @if (!society.revision) {
+    <se-card
+      title="Existing society"
+      description="This society predates the onboarding wizard. Its existing data and lifecycle are preserved."
+      ><dl class="setup-facts">
+        <div>
+          <dt>Code</dt>
+          <dd>{{ society.code }}</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd>{{ society.status }}</dd>
+        </div>
+        <div>
+          <dt>Time zone</dt>
+          <dd>{{ society.timezone }}</dd>
+        </div>
+      </dl></se-card
+    >
+  } @else {
+    <div class="onboarding-summary">
+      <se-badge [tone]="society.status === 'ACTIVE' ? 'success' : 'neutral'">{{
+        society.status.replaceAll('_', ' ')
+      }}</se-badge
+      ><span
+        >{{ society.counts.buildings }} buildings · {{ society.counts.flats }} flats ·
+        {{ society.counts.residents }} occupancy records</span
+      >
+    </div>
+    <nav aria-label="Onboarding steps">
+      <ol class="wizard-steps">
+        @for (label of steps; track label; let i = $index) {
+          <li>
+            <button
+              type="button"
+              [attr.aria-current]="step() === i ? 'step' : null"
+              (click)="step.set(i)"
+            >
+              <span class="step-number">{{ i + 1 }}</span
+              >{{ label }}
+            </button>
+          </li>
+        }
+      </ol>
+    </nav>
+    @if (step() === 0) {
+      <se-card title="Society"
+        ><dl class="setup-facts">
+          <div>
+            <dt>Name</dt>
+            <dd>{{ society.name }}</dd>
+          </div>
+          <div>
+            <dt>Code</dt>
+            <dd>{{ society.code }}</dd>
+          </div>
+          <div>
+            <dt>Time zone</dt>
+            <dd>{{ society.timezone }}</dd>
+          </div>
+        </dl>
+        @if (platform && society.status === 'DRAFT') {
+          <button
+            seButton
+            type="button"
+            [disabled]="busy()"
+            (click)="transition('SETUP_IN_PROGRESS')"
+          >
+            Begin setup
+          </button>
+        }
+        @if (platform && ['ACTIVE', 'SUSPENDED'].includes(society.status)) {
+          <div class="onboarding-actions">
+            @if (society.status === 'ACTIVE') {
+              <button
+                seButton
+                variant="secondary"
+                type="button"
+                [disabled]="busy()"
+                (click)="pendingStatus.set('SUSPENDED')"
+              >
+                Suspend society
+              </button>
+            } @else {
+              <button
+                seButton
+                type="button"
+                [disabled]="busy()"
+                (click)="pendingStatus.set('ACTIVE')"
+              >
+                Resume society
+              </button>
+            }
+            <button
+              seButton
+              variant="danger"
+              type="button"
+              [disabled]="busy()"
+              (click)="pendingStatus.set('DEACTIVATED')"
+            >
+              Deactivate society
+            </button>
+          </div>
+        }
+      </se-card>
+    }
+    @if (step() === 1) {
+      <se-card
+        title="Initial Committee Admin"
+        description="The recipient must accept the invitation before setup can be verified."
+      >
+        @if (society.invitation; as invitation) {
+          <div class="setup-facts">
+            <p>{{ invitation.displayName }} · {{ invitation.email }}</p>
+            <p>
+              <se-badge>{{ invitation.status }}</se-badge> Delivery: {{ invitation.deliveryStatus }}
+            </p>
+            <p>Expires {{ displayTime(invitation.expiresAt, society.timezone) }}</p>
+          </div>
+        }
+        @if (platform && editable() && !society.requirements.committee) {
+          <form [formGroup]="inviteForm" (ngSubmit)="invite()" class="onboarding-form">
+            <se-field
+              controlId="invite-name"
+              label="Committee Admin name"
+              [required]="true"
+              [error]="
+                inviteForm.controls.displayName.touched && inviteForm.controls.displayName.invalid
+                  ? 'Enter a name.'
+                  : null
+              "
+              ><input seInput formControlName="displayName" required maxlength="160"
+            /></se-field>
+            <se-field
+              controlId="invite-email"
+              label="Committee Admin email"
+              [required]="true"
+              [error]="
+                inviteForm.controls.email.touched && inviteForm.controls.email.invalid
+                  ? 'Enter a valid email.'
+                  : null
+              "
+              ><input seInput type="email" formControlName="email" required autocomplete="email"
+            /></se-field>
+            <button seButton type="submit" [disabled]="busy()">
+              {{ society.invitation ? 'Send new invitation' : 'Invite Committee Admin' }}
+            </button>
+          </form>
+        } @else if (society.requirements.committee) {
+          <p class="onboarding-feedback">Committee Admin accepted.</p>
+        }
+      </se-card>
+    }
+    @if (step() === 2) {
+      <se-card title="Buildings and flats">
+        @if (editable()) {
+          <form [formGroup]="buildingForm" (ngSubmit)="building()" class="onboarding-form">
+            <se-field
+              controlId="building-code"
+              label="Building code"
+              [required]="true"
+              [error]="
+                buildingForm.controls.code.touched && buildingForm.controls.code.invalid
+                  ? 'Enter a building code.'
+                  : null
+              "
+              ><input seInput formControlName="code" required maxlength="64"
+            /></se-field>
+            <se-field controlId="building-name" label="Building name" [required]="true"
+              ><input seInput formControlName="name" required maxlength="100"
+            /></se-field>
+            <se-field
+              controlId="flat-numbers"
+              label="Flat numbers"
+              [required]="true"
+              hint="Separate flat numbers with commas or new lines, up to 100 per building."
+            >
+              <textarea seInput formControlName="numbers" required rows="3"></textarea>
+            </se-field>
+            <se-field
+              controlId="flat-area"
+              label="Area per flat (sq ft)"
+              hint="Optional for flat-rate charges. Use two decimals, such as 900.00."
+              [error]="
+                buildingForm.controls.areaSqFt.touched && buildingForm.controls.areaSqFt.invalid
+                  ? 'Enter a positive area with two decimal places.'
+                  : null
+              "
+              ><input seInput formControlName="areaSqFt" inputmode="decimal"
+            /></se-field>
+            <button seButton type="submit" [disabled]="busy()">Add building and flats</button>
+          </form>
+        }
+        @if (flats().length) {
+          <div class="table-scroll">
+            <table seTable>
+              <caption class="sr-only">
+                Setup flats
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Building</th>
+                  <th scope="col">Flat</th>
+                  <th scope="col">Area (sq ft)</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (flat of flats(); track flat.id) {
+                  <tr>
+                    <td>{{ flat.buildingName }}</td>
+                    <th scope="row">{{ flat.flatNumber }}</th>
+                    <td>{{ flat.areaSqFt || 'Not provided' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <se-state
+            kind="empty"
+            title="No flats added"
+            message="Add a building with at least one flat."
+          />
+        }
+        @if (structure(); as data) {
+          <se-pagination
+            [total]="data.total"
+            [page]="data.page"
+            [pageSize]="data.pageSize"
+            (pageSelected)="flatPage($event)"
+          />
+        }
+      </se-card>
+    }
+    @if (step() === 3) {
+      <se-card
+        title="Residents"
+        description="Review the initial occupants, including vacant flats. People do not need a login account."
+      >
+        @if (platform) {
+          <p>
+            Private resident details are available to the committee. This section is
+            {{ society.requirements.residents ? 'confirmed' : 'awaiting committee review' }}.
+          </p>
+        } @else {
+          @if (editable()) {
+            @if (structure(); as data) {
+              <p>Select flats from page {{ data.page }}.</p>
+              <se-pagination
+                [total]="data.total"
+                [page]="data.page"
+                [pageSize]="data.pageSize"
+                (pageSelected)="flatPage($event)"
+              />
+            }
+            <form [formGroup]="residentForm" (ngSubmit)="resident()" class="onboarding-form">
+              <se-field controlId="resident-name" label="Resident name" [required]="true"
+                ><input seInput formControlName="displayName" required maxlength="160"
+              /></se-field>
+              <se-field controlId="resident-flat" label="Resident flat" [required]="true"
+                ><select seSelect formControlName="flatId" required>
+                  <option value="">Choose a flat</option>
+                  @for (flat of flats(); track flat.id) {
+                    <option [value]="flat.id">
+                      {{ flat.buildingCode }} / {{ flat.flatNumber }}
+                    </option>
+                  }
+                </select></se-field
+              >
+              <se-field controlId="resident-type" label="Occupancy type" [required]="true"
+                ><select seSelect formControlName="occupancyType">
+                  @for (
+                    type of ['OWNER', 'TENANT', 'FAMILY_MEMBER', 'AUTHORIZED_OCCUPANT'];
+                    track type
+                  ) {
+                    <option [value]="type">{{ type.replaceAll('_', ' ') }}</option>
+                  }
+                </select></se-field
+              >
+              <se-field controlId="resident-start" label="Occupancy start" [required]="true"
+                ><input seInput type="date" formControlName="startsOn" required
+              /></se-field>
+              <se-field
+                controlId="resident-end"
+                label="Occupancy end"
+                hint="Leave empty for current occupancy."
+                ><input seInput type="date" formControlName="endsOn"
+              /></se-field>
+              <button seButton type="submit" [disabled]="busy()">Add initial resident</button>
+            </form>
+          }
+          @if (residents(); as data) {
+            @if (data.items.length) {
+              <div class="table-scroll">
+                <table seTable>
+                  <caption class="sr-only">
+                    Initial residents
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Person</th>
+                      <th scope="col">Flat</th>
+                      <th scope="col">Occupancy</th>
+                      <th scope="col">Period</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (resident of data.items; track resident.id) {
+                      <tr>
+                        <th scope="row">{{ resident.displayName }}</th>
+                        <td>{{ resident.flatNumber }}</td>
+                        <td>{{ resident.occupancyType.replaceAll('_', ' ') }}</td>
+                        <td>{{ resident.startsOn }} – {{ resident.endsOn || 'Current' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+              <se-pagination
+                [total]="data.total"
+                [page]="data.page"
+                [pageSize]="data.pageSize"
+                (pageSelected)="residentPage($event)"
+              />
+            } @else {
+              <p>
+                No initial residents have been entered. Vacant flats can be confirmed explicitly.
+              </p>
+            }
+          }
+          @if (editable()) {
+            <label class="setup-attestation"
+              ><input
+                type="checkbox"
+                #residentCheck
+                [checked]="residentsAttested()"
+                (change)="residentsAttested.set(residentCheck.checked)"
+              />I reviewed the initial resident list, including empty flats.</label
+            ><button
+              seButton
+              type="button"
+              [disabled]="busy() || !residentsAttested()"
+              (click)="confirm('residents')"
+            >
+              Confirm residents review
+            </button>
+          }
+        }
+      </se-card>
+    }
+    @if (step() === 4) {
+      <se-card title="Maintenance">
+        @if (platform) {
+          <p>
+            The committee configures and confirms maintenance.
+            {{ society.counts.maintenance }} configurations recorded.
+          </p>
+        } @else {
+          @if (editable()) {
+            <form [formGroup]="maintenanceForm" (ngSubmit)="maintenance()" class="onboarding-form">
+              <se-field
+                controlId="charge-code"
+                label="Charge code"
+                [required]="true"
+                hint="Uppercase letters, numbers, underscores or hyphens."
+                ><input seInput formControlName="code" required
+              /></se-field>
+              <se-field controlId="charge-name" label="Charge name" [required]="true"
+                ><input seInput formControlName="name" required maxlength="100"
+              /></se-field>
+              <se-field controlId="charge-method" label="Calculation method" [required]="true"
+                ><select seSelect formControlName="method">
+                  <option value="FLAT_RATE">Flat rate</option>
+                  <option value="PER_SQ_FT">Per square foot</option>
+                </select></se-field
+              >
+              <se-field
+                controlId="charge-rate"
+                label="Rate"
+                [required]="true"
+                hint="Use two decimals, such as 1000.00."
+                [error]="
+                  maintenanceForm.controls.rate.touched && maintenanceForm.controls.rate.invalid
+                    ? 'Enter a nonnegative amount with two decimal places.'
+                    : null
+                "
+                ><input seInput formControlName="rate" inputmode="decimal" required
+              /></se-field>
+              <se-field controlId="charge-from" label="Effective from" [required]="true"
+                ><input seInput formControlName="effectiveFrom" type="date" required
+              /></se-field>
+              <button seButton type="submit" [disabled]="busy()">
+                Add initial maintenance charge
+              </button>
+            </form>
+          }
+          @if (configurations().length) {
+            <div class="table-scroll">
+              <table seTable>
+                <caption class="sr-only">
+                  Initial maintenance charges
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Charge</th>
+                    <th scope="col">Method</th>
+                    <th scope="col">Rate</th>
+                    <th scope="col">Effective from</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (charge of configurations(); track charge.id) {
+                    <tr>
+                      <th scope="row">{{ charge.name }}</th>
+                      <td>{{ charge.method.replaceAll('_', ' ') }}</td>
+                      <td>{{ charge.rate }}</td>
+                      <td>{{ charge.effectiveFrom }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+          @if (chargesPage(); as data) {
+            <se-pagination
+              [total]="data.total"
+              [page]="data.page"
+              [pageSize]="data.pageSize"
+              (pageSelected)="chargePage($event)"
+            />
+          }
+          @if (editable()) {
+            <label class="setup-attestation"
+              ><input
+                type="checkbox"
+                #chargeCheck
+                [checked]="maintenanceAttested()"
+                (change)="maintenanceAttested.set(chargeCheck.checked)"
+              />I reviewed the initial maintenance configuration.</label
+            ><button
+              seButton
+              type="button"
+              [disabled]="busy() || !maintenanceAttested() || !configurations().length"
+              (click)="confirm('maintenance')"
+            >
+              Confirm maintenance review
+            </button>
+          }
+        }
+      </se-card>
+    }
+    @if (step() === 5) {
+      <se-card
+        title="Committee verification"
+        description="All required sections must be complete before the committee can record its review."
+      >
+        <ul class="setup-checklist">
+          <li>
+            <se-badge [tone]="society.requirements.committee ? 'success' : 'warning'"
+              >Committee Admin:
+              {{ society.requirements.committee ? 'Ready' : 'Incomplete' }}</se-badge
+            >
+          </li>
+          <li>
+            <se-badge
+              [tone]="
+                society.requirements.buildings && society.requirements.flats ? 'success' : 'warning'
+              "
+              >Buildings/Flats:
+              {{
+                society.requirements.buildings && society.requirements.flats
+                  ? 'Ready'
+                  : 'Incomplete'
+              }}</se-badge
+            >
+          </li>
+          <li>
+            <se-badge [tone]="society.requirements.residents ? 'success' : 'warning'"
+              >Residents: {{ society.requirements.residents ? 'Ready' : 'Incomplete' }}</se-badge
+            >
+          </li>
+          <li>
+            <se-badge [tone]="society.requirements.maintenance ? 'success' : 'warning'"
+              >Maintenance:
+              {{ society.requirements.maintenance ? 'Ready' : 'Incomplete' }}</se-badge
+            >
+          </li>
+        </ul>
+        @if (!platform && ['SETUP_IN_PROGRESS', 'PENDING_VERIFICATION'].includes(society.status)) {
+          <label class="setup-attestation"
+            ><input
+              type="checkbox"
+              #reviewCheck
+              [checked]="reviewAttested()"
+              (change)="reviewAttested.set(reviewCheck.checked)"
+            />I reviewed the buildings, flats, resident list and maintenance setup.</label
+          ><button
+            seButton
+            type="button"
+            [disabled]="busy() || !complete() || !reviewAttested()"
+            (click)="confirm('review')"
+          >
+            Record committee review
+          </button>
+        }
+        @if (platform && society.status === 'SETUP_IN_PROGRESS') {
+          <button
+            seButton
+            type="button"
+            [disabled]="busy() || !complete()"
+            (click)="transition('PENDING_VERIFICATION')"
+          >
+            Submit for committee verification
+          </button>
+        }
+        @if (platform && society.status === 'PENDING_VERIFICATION') {
+          <button
+            seButton
+            variant="secondary"
+            type="button"
+            [disabled]="busy()"
+            (click)="transition('SETUP_IN_PROGRESS')"
+          >
+            Return to setup for changes
+          </button>
+        }
+        @if (society.reviewedAt) {
+          <p>Committee review recorded {{ displayTime(society.reviewedAt, society.timezone) }}.</p>
+        }
+      </se-card>
+    }
+    @if (step() === 6) {
+      <se-card title="Activate society">
+        @if (society.verifiedAt) {
+          <p class="onboarding-feedback">
+            Verified {{ displayTime(society.verifiedAt, society.timezone) }} by committee membership
+            {{ society.verifierMembershipId }}.
+          </p>
+          <a seButton routerLink="/workspace">Open workspace chooser</a>
+        } @else if (platform) {
+          <p>
+            The Committee Admin must review the setup and explicitly Verify &amp; Activate. Platform
+            access cannot bypass this step.
+          </p>
+        } @else {
+          <p>
+            Activation opens the society workspace for active members. Completed verification is
+            retained in the society history.
+          </p>
+          <button
+            seButton
+            type="button"
+            [disabled]="
+              busy() ||
+              society.status !== 'PENDING_VERIFICATION' ||
+              !society.reviewed ||
+              !complete()
+            "
+            (click)="activationDialog.set(true)"
+          >
+            Verify &amp; Activate
+          </button>
+        }
+      </se-card>
+    }
+    <se-card title="Setup history"
+      ><ol class="setup-history">
+        @for (event of society.events; track event.id) {
+          <li>
+            <strong>{{ event.action.replaceAll('.', ' ').replaceAll('_', ' ') }}</strong
+            ><span
+              >{{ event.toStatus.replaceAll('_', ' ') }} ·
+              {{ displayTime(event.createdAt, society.timezone) }}</span
+            >
+          </li>
+        }
+      </ol></se-card
+    >
+  }
+}
+<se-dialog
+  title="Verify and activate this society?"
+  [open]="activationDialog()"
+  (closed)="activationDialog.set(false)"
+  ><p>
+    I confirm that the society setup is correct. My verification will be recorded and the committee
+    will operate the active society.
+  </p>
+  <div class="onboarding-actions">
+    <button seButton variant="secondary" type="button" (click)="activationDialog.set(false)">
+      Keep reviewing</button
+    ><button seButton type="button" [disabled]="busy()" (click)="activate()">
+      Confirm Verify &amp; Activate
+    </button>
+  </div></se-dialog
+>
+<se-dialog
+  title="Change society lifecycle?"
+  [open]="pendingStatus() !== null"
+  (closed)="pendingStatus.set(null)"
+  ><p>
+    Change the society to {{ pendingStatus()?.replaceAll('_', ' ') }}. Deactivation is terminal.
+    Existing records are retained.
+  </p>
+  <div class="onboarding-actions">
+    <button seButton variant="secondary" type="button" (click)="pendingStatus.set(null)">
+      Cancel
+    </button>
+    @if (pendingStatus(); as status) {
+      <button
+        seButton
+        variant="danger"
+        type="button"
+        [disabled]="busy()"
+        (click)="transition(status)"
+      >
+        Confirm status change
+      </button>
+    }
+  </div></se-dialog
+>

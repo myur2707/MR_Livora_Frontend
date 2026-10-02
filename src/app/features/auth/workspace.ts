@@ -27,6 +27,21 @@ import { StateComponent } from '../../shared/state';
       @if (identity.platformAdmin) {
         <p><a seButton routerLink="/platform/dashboard">Open platform workspace</a></p>
       }
+      @if (identity.setupSocieties?.length) {
+        <section aria-label="Communities awaiting setup">
+          <h2>Complete society setup</h2>
+          @for (society of identity.setupSocieties; track society.societyId) {
+            <p>
+              <a
+                seButton
+                variant="secondary"
+                [routerLink]="['/onboarding/societies', society.societyId]"
+                >Set up {{ society.name }}</a
+              >
+            </p>
+          }
+        </section>
+      }
       @if (identity.memberships.length) {
         <form class="workspace-form" (submit)="select($event, selection.value)">
           <se-field controlId="workspace-society" label="Community" [required]="true">

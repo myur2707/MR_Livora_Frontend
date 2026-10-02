@@ -1,0 +1,112 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">PLATFORM WORKSPACE</p>
+    <h1 tabindex="-1">Your societies</h1>
+    <p>Guide new communities from first setup to committee activation.</p>
+  </div>
+  <button seButton type="button" (click)="showCreate.set(!showCreate())">Create society</button>
+</header>
+<se-form-notice [message]="error()" />
+@if (showCreate()) {
+  <se-card
+    title="New society"
+    description="Create a draft. The committee will review and activate it after setup."
+  >
+    <form [formGroup]="form" (ngSubmit)="create()" class="onboarding-form">
+      <se-field
+        controlId="society-code"
+        label="Society code"
+        [required]="true"
+        hint="3–64 uppercase letters, numbers, underscores or hyphens."
+        [error]="
+          form.controls.code.touched && form.controls.code.invalid
+            ? 'Enter a valid, unique society code.'
+            : null
+        "
+        ><input seInput formControlName="code" required maxlength="64"
+      /></se-field>
+      <se-field
+        controlId="society-name"
+        label="Society name"
+        [required]="true"
+        [error]="
+          form.controls.name.touched && form.controls.name.invalid
+            ? 'Enter the society name.'
+            : null
+        "
+        ><input seInput formControlName="name" required maxlength="200"
+      /></se-field>
+      <se-field
+        controlId="society-timezone"
+        label="Time zone"
+        [required]="true"
+        hint="For example, Asia/Kolkata."
+        ><input seInput formControlName="timezone" required maxlength="64"
+      /></se-field>
+      <button seButton type="submit" [disabled]="busy()">
+        {{ busy() ? 'Creating…' : 'Create draft society' }}
+      </button>
+    </form>
+  </se-card>
+}
+<div class="section-heading">
+  <se-field controlId="societies-filter" label="Lifecycle status"
+    ><select seSelect #filterSelect (change)="filter(filterSelect.value)">
+      <option value="">All statuses</option>
+      @for (status of statuses; track status) {
+        <option [value]="status">{{ status.replaceAll('_', ' ') }}</option>
+      }
+    </select></se-field
+  ><button seButton variant="secondary" type="button" (click)="load()">Refresh societies</button>
+</div>
+@if (loading()) {
+  <se-state kind="loading" title="Loading societies" message="Fetching platform metadata." />
+} @else if (result(); as data) {
+  @if (data.items.length) {
+    <se-card
+      ><div class="table-scroll">
+        <table seTable>
+          <caption class="sr-only">
+            Society directory
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Society</th>
+              <th scope="col">Code</th>
+              <th scope="col">Status</th>
+              <th scope="col">Setup</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (society of data.items; track society.id) {
+              <tr>
+                <th scope="row">{{ society.name }}</th>
+                <td>{{ society.code }}</td>
+                <td>
+                  <se-badge>{{ society.status.replaceAll('_', ' ') }}</se-badge>
+                </td>
+                <td>
+                  <a class="text-link" [routerLink]="['/platform/societies', society.id]"
+                    >{{ society.revision ? 'View setup' : 'View society' }}
+                    <span class="sr-only">for {{ society.name }}</span></a
+                  >
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <se-pagination
+        [total]="data.total"
+        [page]="data.page"
+        [pageSize]="data.pageSize"
+        (pageSelected)="load($event)"
+    /></se-card>
+  } @else {
+    <se-state
+      kind="empty"
+      title="No societies found"
+      message="Create a draft society to begin onboarding."
+    />
+  }
+}
