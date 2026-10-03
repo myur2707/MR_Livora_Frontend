@@ -286,7 +286,7 @@ test('complaint validation is associated with fields and submit uses authorized 
 
 test('bill filters are explicit and printable receipt excludes staff identities', async ({
   page,
-}) => {
+}, testInfo) => {
   const api = await portal(page);
   await page.goto('/society/resident/bills?flatId=101');
   await page.getByLabel('Bill status').selectOption('OUTSTANDING');
@@ -312,6 +312,22 @@ test('bill filters are explicit and printable receipt excludes staff identities'
     .toBe(true);
   await page.goto('/society/resident/payments/401/receipt');
   await expect(page.getByRole('button', { name: 'Print / save PDF' })).toBeVisible();
+  await page.evaluate(() => {
+    const original = window.print.bind(window);
+    window.print = () => {
+      document.documentElement.dataset['receiptPrintCalled'] = 'true';
+      original();
+    };
+  });
+  await page.getByRole('button', { name: 'Print / save PDF' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-receipt-print-called', 'true');
+  const pdf = await page.pdf({
+    path: testInfo.outputPath('own-receipt.pdf'),
+    format: 'A4',
+    tagged: true,
+  });
+  expect(pdf.subarray(0, 4).toString()).toBe('%PDF');
+  expect(pdf.length).toBeGreaterThan(5000);
   await page.emulateMedia({ media: 'print' });
   await expect(page.getByRole('article', { name: 'My printable receipt' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Receipt R-401' })).toBeVisible();
