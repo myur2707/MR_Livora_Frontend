@@ -47,3 +47,5 @@ The workspace contains two separate Git repositories: `MR_Livora_Backend` (Node 
 - Preserve the static-only worker policy: no data groups or runtime asset URL patterns; allowlist navigation to static shells. Run `npm run pwa:check` after the production build and the browser cache/offline tests after changes to this boundary.
 - Run `npm run check`, `npm run test:e2e`, dependency audit and source/diff review; report actual results and manual-only checks. Stop at the requested step.
 - Step 9 resident routes and context/session clearing follow docs/STEP_9_RESIDENT_PORTAL.md. Preserve backend-controlled occupancy/bill and own-payer receipt privacy, static-only worker caching and memory-only resident views.
+
+- Step 11 follows docs/STEP_11_REPORTS.md: backend-scoped report filters/totals, separate export permission, memory-only views and discarded late-context downloads.

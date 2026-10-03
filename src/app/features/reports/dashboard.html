@@ -1,0 +1,91 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">SOCIETY OPERATIONS</p>
+    <h1 tabindex="-1">Committee dashboard</h1>
+    <p>A current view of your community and its work.</p>
+  </div>
+</header>
+@if (auth.identity()?.activeSociety?.permissions.includes('society.dashboard.manage')) {
+  <se-form-notice [message]="summary.error()" />
+  @if (summary.loading()) {
+    <p role="status">Loading society summary…</p>
+  }
+  @if (summary.value(); as data) {
+    <p>As of {{ data.asOf }} · {{ data.timezone }}</p>
+    <section class="onboarding-stats" aria-label="Community totals">
+      <se-card
+        ><p>Active flats</p>
+        <p class="stat-value">{{ data.flats }}</p></se-card
+      ><se-card
+        ><p>Occupied flats</p>
+        <p class="stat-value">{{ data.occupancy.occupiedFlats }}</p></se-card
+      ><se-card
+        ><p>Current occupants</p>
+        <p class="stat-value">{{ data.occupancy.persons }}</p></se-card
+      ><se-card
+        ><p>Pending complaints</p>
+        <p class="stat-value">{{ data.pendingComplaints }}</p>
+        @if (auth.identity()?.activeSociety?.permissions.includes('society.complaints.manage')) {
+          <a routerLink="/society/community/complaints">Review complaints</a>
+        }
+      </se-card>
+    </section>
+    <section class="resident-section" aria-label="Occupancy types">
+      <h2>Current occupancy</h2>
+      <p>
+        {{ data.occupancy.occupancies }} occupancy records across
+        {{ data.occupancy.occupiedFlats }} flats.
+      </p>
+      @for (item of data.occupancy.types; track item.type) {
+        <p>{{ item.type.replaceAll('_', ' ') }}: {{ item.total }}</p>
+      }
+    </section>
+    @if (
+      auth.identity()?.activeSociety?.permissions.includes('society.finance.read')
+        ? data.finance
+        : null;
+      as finance
+    ) {
+      <section class="resident-section">
+        <h2>Maintenance and collections</h2>
+        <p>Collection events: {{ finance.from }} through {{ finance.to }} · {{ data.timezone }}</p>
+        <div class="onboarding-stats">
+          <se-card
+            ><p>Current outstanding</p>
+            <p class="stat-value">₹ {{ finance.billing['outstanding'] }}</p>
+            <a routerLink="/society/reports/outstanding">Outstanding report</a></se-card
+          ><se-card
+            ><p>Collections recorded</p>
+            <p class="stat-value">₹ {{ finance.collections['collections'] }}</p>
+            <p>After returns: ₹ {{ finance.collections['netRecorded'] }}</p>
+            <a routerLink="/society/reports/collection">Collection report</a></se-card
+          ><se-card
+            ><p>Cash recorded</p>
+            <p class="stat-value">₹ {{ finance.cash['collections'] }}</p>
+            <p>After returns: ₹ {{ finance.cash['netRecorded'] }}</p>
+            <a routerLink="/society/reports/cash-collection">Cash collection report</a></se-card
+          >
+        </div>
+        <h3>Billing status</h3>
+        @for (item of finance.billingStatuses; track item.status) {
+          <p>{{ item.status.replaceAll('_', ' ') }}: {{ item.total }}</p>
+        } @empty {
+          <p>No bills yet.</p>
+        }
+      </section>
+    }
+    <section class="resident-section" aria-label="Recent published notices">
+      <h2>Recent notices</h2>
+      @for (item of data.recentNotices; track item.id) {
+        <se-card
+          ><h3>
+            <a [routerLink]="['/society/resident/notices', item.id]">{{ item.title }}</a>
+          </h3>
+          <p>{{ item.publishedAt | date: 'medium' }}</p></se-card
+        >
+      } @empty {
+        <p>No published notices yet.</p>
+      }
+    </section>
+  }
+}

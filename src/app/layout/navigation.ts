@@ -33,6 +33,18 @@ export const NAVIGATION: readonly { label: string; path: string; icon: IconName;
     { label: 'Societies', path: '/platform/societies', icon: 'building', group: 'Workspace' },
     { label: 'Community space', path: '/society/dashboard', icon: 'people', group: 'Workspace' },
     {
+      label: 'Financial reports',
+      path: '/society/reports/outstanding',
+      icon: 'grid',
+      group: 'Reports',
+    },
+    {
+      label: 'Resident reports',
+      path: '/society/reports/residents',
+      icon: 'people',
+      group: 'Reports',
+    },
+    {
       label: 'Committee notices',
       path: '/society/community/notices',
       icon: 'grid',

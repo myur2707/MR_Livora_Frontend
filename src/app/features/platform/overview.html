@@ -7,6 +7,12 @@
   <a seButton routerLink="/platform/societies">Manage societies</a>
 </header>
 <se-form-notice [message]="error()" />
+@if (operations(); as data) {
+  <p>
+    {{ data.totalSocieties }} societies · {{ data.pendingVerification }} awaiting committee
+    verification
+  </p>
+}
 <section class="welcome-panel" aria-labelledby="platform-welcome">
   <div class="welcome-copy">
     <p class="eyebrow">FROM FIRST STEPS TO A SHARED HOME</p>

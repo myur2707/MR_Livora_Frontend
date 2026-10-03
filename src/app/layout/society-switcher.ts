@@ -43,7 +43,12 @@ export class SocietySwitcher {
       // Leave the private route before changing context; its requests/data are destroyed.
       await this.router.navigateByUrl('/workspace');
       await this.auth.selectSociety(id);
-      await this.router.navigateByUrl('/society/resident/dashboard');
+      const committee = this.auth.state
+        .identity()
+        ?.activeSociety?.permissions.includes('society.dashboard.manage');
+      await this.router.navigateByUrl(
+        committee ? '/society/dashboard' : '/society/resident/dashboard',
+      );
     } catch (error) {
       this.toast.show(authErrorMessage(error));
     } finally {

@@ -70,3 +70,5 @@ On deployments, retain older hashed assets during rollout so existing clients ca
 Step 5 adds society-scoped Buildings, Flats, Residents, occupancy history and reviewed CSV imports. See [management guide](docs/STEP_5_PROPERTY_MANAGEMENT.md). Select an active society as Committee Admin for management; Steps 7?8 add permission-scoped billing and payment features.
 
 Step 8 [payment recording, printable receipts, returns and collection reports](docs/STEP_8_PAYMENTS.md) extends the existing Maintenance workspace. The backend owns additive local upgrades; existing accounts and earlier-step data are retained.
+
+Step 11 adds permission-scoped committee dashboards and seven server-side reports with safe CSV downloads. See [report guide](docs/STEP_11_REPORTS.md).

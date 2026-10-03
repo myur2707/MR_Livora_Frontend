@@ -225,6 +225,19 @@ test('static shell works offline while authenticated/private responses never ent
     '/api/v1/society/resident/notices',
     '/api/v1/society/resident/complaints',
     '/api/v1/society/resident/profile',
+    '/api/v1/society/dashboard',
+    ...[
+      'outstanding',
+      'collection',
+      'cash-collection',
+      'payments',
+      'residents',
+      'flat-occupancy',
+      'billing',
+    ].flatMap((kind) => [
+      '/api/v1/society/reports/' + kind,
+      '/api/v1/society/reports/' + kind + '/export',
+    ]),
   ];
   for (const path of privatePaths) {
     const result: unknown = await page.evaluate(async (path) => {

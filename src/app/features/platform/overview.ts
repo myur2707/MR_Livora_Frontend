@@ -15,19 +15,33 @@ export class OverviewComponent implements OnInit {
   private readonly api = inject(OnboardingApi);
   protected readonly summary = signal<{ status: string; total: number }[] | null>(null);
   protected readonly error = signal<string | null>(null);
+  protected readonly operations = signal<{
+    totalSocieties: number;
+    pendingVerification: number;
+    updatedAt: string | null;
+  } | null>(null);
   ngOnInit(): void {
     void this.load();
   }
   protected async load(): Promise<void> {
     this.error.set(null);
     try {
-      this.summary.set(
-        (
-          await this.api.get<{ statuses: { status: string; total: number }[] }>(
-            '/platform/dashboard',
-          )
-        ).statuses,
-      );
+      const data = await this.api.get<{
+        statuses: { status: string; total: number }[];
+        totalSocieties?: number;
+        pendingVerification?: number;
+        updatedAt?: string;
+      }>('/platform/dashboard');
+      this.summary.set(data.statuses);
+      this.operations.set({
+        totalSocieties:
+          data.totalSocieties ?? data.statuses.reduce((sum, row) => sum + row.total, 0),
+        pendingVerification:
+          data.pendingVerification ??
+          data.statuses.find((row) => row.status === 'PENDING_VERIFICATION')?.total ??
+          0,
+        updatedAt: data.updatedAt ?? null,
+      });
     } catch (error) {
       this.error.set(onboardingError(error));
     }

@@ -2,6 +2,36 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import type { CanActivateFn, UrlTree } from '@angular/router';
 import { AuthService } from './auth';
+export const reportGuard: CanActivateFn = async (route) => {
+  const auth = inject(AuthService),
+    router = inject(Router);
+  try {
+    const identity = await auth.refresh(),
+      kind = route.paramMap.get('kind');
+    if (
+      ![
+        'outstanding',
+        'collection',
+        'cash-collection',
+        'payments',
+        'residents',
+        'flat-occupancy',
+        'billing',
+      ].includes(kind ?? '')
+    )
+      return router.createUrlTree(['/workspace']);
+    const permission =
+      kind === 'residents' || kind === 'flat-occupancy'
+        ? 'society.members.manage'
+        : 'society.finance.read';
+    return (
+      !!identity?.activeSociety?.permissions.includes(permission) ||
+      router.createUrlTree(['/workspace'])
+    );
+  } catch {
+    return router.createUrlTree(['/login']);
+  }
+};
 export function communityGuard(
   permission: 'society.notices.manage' | 'society.complaints.manage',
 ): CanActivateFn {

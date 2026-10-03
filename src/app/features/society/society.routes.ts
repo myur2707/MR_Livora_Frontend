@@ -1,7 +1,13 @@
-import { managementGuard, financeGuard, communityGuard } from '../../core/auth-guards';
+import { managementGuard, financeGuard, communityGuard, reportGuard } from '../../core/auth-guards';
 import type { Routes } from '@angular/router';
 
 export const SOCIETY_ROUTES: Routes = [
+  {
+    path: 'reports/:kind',
+    canActivate: [reportGuard],
+    data: { breadcrumb: 'Reports' },
+    loadComponent: () => import('../reports/reports').then((m) => m.SocietyReportsPage),
+  },
   ...(['notices', 'notices/new', 'notices/:id'] as const).map((path) => ({
     path: 'community/' + path,
     canActivate: [communityGuard('society.notices.manage')],
@@ -104,7 +110,6 @@ export const SOCIETY_ROUTES: Routes = [
       eyebrow: 'SOCIETY WORKSPACE',
       message: 'One welcoming place for the everyday life of your society.',
     },
-    loadComponent: () =>
-      import('../resident-portal/dashboard').then((m) => m.ResidentDashboardPage),
+    loadComponent: () => import('../reports/society-dashboard').then((m) => m.SocietyDashboardPage),
   },
 ];
