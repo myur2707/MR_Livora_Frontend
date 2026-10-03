@@ -69,6 +69,22 @@ const paged = (items: unknown[]) => ({
   pageSize: 20,
   summary: { outstanding: '90.22', creditBalance: '0.00' },
 });
+test('session loss during an unrelated request removes already visible private bill details', async ({
+  page,
+}) => {
+  await mock(page, (route) => route.fulfill({ json: bill }));
+  await page.goto('/society/billing/bills/41');
+  await expect(page.getByRole('table', { name: 'Issued bill items' })).toContainText(
+    'Maintenance snapshot',
+  );
+  await page.route('**/api/v1/auth/csrf', (route) =>
+    route.fulfill({ status: 401, json: { error: { code: 'AUTH_REQUIRED' } } }),
+  );
+  await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole('table', { name: 'Issued bill items' })).toHaveCount(0);
+  await expect(page.locator('body')).not.toContainText('Maintenance snapshot');
+});
 async function mock(
   page: Page,
   handler: (route: Route, path: string) => Promise<void>,

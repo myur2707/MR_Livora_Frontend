@@ -1,5 +1,13 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, DestroyRef, Injector, afterNextRender, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  Injector,
+  afterNextRender,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ThemeService } from '../core/theme';
@@ -38,6 +46,13 @@ export class AppShellComponent {
   private readonly injector = inject(Injector);
 
   constructor() {
+    let hadSession = false;
+    effect(() => {
+      const signedIn = this.auth.state.identity() !== null;
+      // Destroy every private routed view when any API request detects session loss.
+      if (hadSession && !signedIn) void this.router.navigateByUrl('/login');
+      hadSession = signedIn;
+    });
     const breakpoint = this.document.defaultView?.matchMedia('(min-width: 960px)');
     const closeOnDesktop = (): void => {
       if (breakpoint?.matches) this.mobileOpen.set(false);

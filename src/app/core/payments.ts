@@ -1,5 +1,5 @@
+import { apiErrorMessage } from './api-error';
 import { billingError } from './billing';
-import { HttpErrorResponse } from '@angular/common/http';
 import type { Page } from './onboarding';
 export const PAYMENT_METHODS = ['CASH', 'UPI', 'BANK_TRANSFER', 'CHEQUE'] as const;
 export interface PaymentAllocation {
@@ -76,28 +76,15 @@ export function paymentMoney(value: bigint): string {
     n = negative ? -value : value;
   return (negative ? '-' : '') + String(n / 100n) + '.' + String(n % 100n).padStart(2, '0');
 }
+const paymentErrorMessages: Readonly<Record<string, string>> = {
+  OVERPAYMENT: 'An allocation exceeds the bill outstanding. Refresh bills before retrying.',
+  ALLOCATION_TOTAL: 'Allocate the exact payment or refund amount to the selected bills.',
+  DUPLICATE_REFERENCE: 'This transaction reference is already recorded. Review payment history.',
+  PAYMENT_STATE: 'This action is unavailable for the payment’s current state or remaining amount.',
+  REFUND_ALLOCATION: 'A refund exceeds the remaining original allocation.',
+  PAYMENT_DATE: 'Payment dates cannot be in the future; returns cannot precede the payment.',
+  IDEMPOTENCY_CONFLICT: 'This request was already used. Review payment history before retrying.',
+};
 export function paymentError(error: unknown): string {
-  const payload: unknown = error instanceof HttpErrorResponse ? error.error : null;
-  const nested =
-    typeof payload === 'object' && payload !== null && 'error' in payload ? payload.error : null;
-  const code =
-    typeof nested === 'object' && nested !== null && 'code' in nested ? nested.code : null;
-  switch (code) {
-    case 'OVERPAYMENT':
-      return 'An allocation exceeds the bill outstanding. Refresh bills before retrying.';
-    case 'ALLOCATION_TOTAL':
-      return 'Allocate the exact payment or refund amount to the selected bills.';
-    case 'DUPLICATE_REFERENCE':
-      return 'This transaction reference is already recorded. Review payment history.';
-    case 'PAYMENT_STATE':
-      return 'This action is unavailable for the payment’s current state or remaining amount.';
-    case 'REFUND_ALLOCATION':
-      return 'A refund exceeds the remaining original allocation.';
-    case 'PAYMENT_DATE':
-      return 'Payment dates cannot be in the future; returns cannot precede the payment.';
-    case 'IDEMPOTENCY_CONFLICT':
-      return 'This request was already used. Review payment history before retrying.';
-    default:
-      return billingError(error);
-  }
+  return apiErrorMessage(error, paymentErrorMessages) ?? billingError(error);
 }

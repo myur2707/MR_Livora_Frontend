@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "society-ease": {
+    "mr-livora": {
       "projectType": "application",
       "schematics": {},
       "root": "",
@@ -17,7 +17,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
-            "outputPath": "dist/society-ease",
+            "outputPath": "dist/mr-livora",
             "browser": "src/main.ts",
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -30,6 +30,11 @@
           },
           "configurations": {
             "production": {
+              "optimization": {
+                "scripts": true,
+                "styles": { "minify": true, "inlineCritical": false },
+                "fonts": true
+              },
               "serviceWorker": "ngsw-config.json",
               "budgets": [
                 {
@@ -58,10 +63,10 @@
           "options": { "proxyConfig": "proxy.conf.json" },
           "configurations": {
             "production": {
-              "buildTarget": "society-ease:build:production"
+              "buildTarget": "mr-livora:build:production"
             },
             "development": {
-              "buildTarget": "society-ease:build:development"
+              "buildTarget": "mr-livora:build:development"
             }
           },
           "defaultConfiguration": "development"

@@ -1,5 +1,6 @@
+import { apiErrorMessage } from './api-error';
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth';
 export const societyStatuses = [
@@ -91,42 +92,27 @@ export function displaySocietyTime(value: string, timezone: string): string {
     timeStyle: 'short',
   }).format(new Date(value));
 }
+const onboardingErrorMessages: Readonly<Record<string, string>> = {
+  REVISION_CONFLICT: 'The setup changed or conflicts with existing data. Refresh and try again.',
+  CONFLICT: 'The setup changed or conflicts with existing data. Refresh and try again.',
+  SETUP_INCOMPLETE: 'Complete all required setup sections before verification.',
+  REVIEW_REQUIRED: 'Review the current setup before activation.',
+  SETUP_LOCKED: 'Setup is locked in this lifecycle state.',
+  INVITATION_INVALID: 'This invitation is unavailable or expired. Ask for a new invitation.',
+  INVITATION_LOGIN_REQUIRED: 'Sign in with the invited account, then reopen the email invitation.',
+  COMMITTEE_ALREADY_ASSIGNED: 'The initial committee administrator is already assigned.',
+  RATE_LIMITED: 'Too many requests. Please try again later.',
+  INVALID_REQUEST: 'Check the form fields and try again.',
+  INVALID_TRANSITION: 'This lifecycle transition is not allowed.',
+  COMMITTEE_VERIFICATION_REQUIRED: 'The committee must verify and activate this society.',
+  NOT_FOUND: 'This society is unavailable to your account.',
+  ACCESS_DENIED: 'This society is unavailable to your account.',
+};
 export function onboardingError(error: unknown): string {
-  const payload: unknown = error instanceof HttpErrorResponse ? error.error : null;
-  const nested =
-    typeof payload === 'object' && payload !== null && 'error' in payload ? payload.error : null;
-  const code =
-    typeof nested === 'object' && nested !== null && 'code' in nested ? nested.code : null;
-  switch (code) {
-    case 'REVISION_CONFLICT':
-    case 'CONFLICT':
-      return 'The setup changed or conflicts with existing data. Refresh and try again.';
-    case 'SETUP_INCOMPLETE':
-      return 'Complete all required setup sections before verification.';
-    case 'REVIEW_REQUIRED':
-      return 'Review the current setup before activation.';
-    case 'SETUP_LOCKED':
-      return 'Setup is locked in this lifecycle state.';
-    case 'INVITATION_INVALID':
-      return 'This invitation is unavailable or expired. Ask for a new invitation.';
-    case 'INVITATION_LOGIN_REQUIRED':
-      return 'Sign in with the invited account, then reopen the email invitation.';
-    case 'COMMITTEE_ALREADY_ASSIGNED':
-      return 'The initial committee administrator is already assigned.';
-    case 'RATE_LIMITED':
-      return 'Too many requests. Please try again later.';
-    case 'INVALID_REQUEST':
-      return 'Check the form fields and try again.';
-    case 'INVALID_TRANSITION':
-      return 'This lifecycle transition is not allowed.';
-    case 'COMMITTEE_VERIFICATION_REQUIRED':
-      return 'The committee must verify and activate this society.';
-    case 'NOT_FOUND':
-    case 'ACCESS_DENIED':
-      return 'This society is unavailable to your account.';
-    default:
-      return 'Unable to complete your request. Please try again.';
-  }
+  return (
+    apiErrorMessage(error, onboardingErrorMessages) ??
+    'Unable to complete your request. Please try again.'
+  );
 }
 @Injectable({ providedIn: 'root' })
 export class OnboardingApi {

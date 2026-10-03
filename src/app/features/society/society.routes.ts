@@ -74,7 +74,7 @@ export const SOCIETY_ROUTES: Routes = [
   {
     path: 'resident-access',
     canActivate: [managementGuard],
-    title: 'Resident access · SocietyEase',
+    title: 'Resident access · MR Livora',
     data: { breadcrumb: 'Resident access' },
     loadComponent: () =>
       import('../resident-access/committee').then((m) => m.ResidentAccessCommittee),
@@ -83,27 +83,27 @@ export const SOCIETY_ROUTES: Routes = [
   ...(['buildings', 'flats', 'persons'] as const).map((kind) => ({
     path: kind,
     canActivate: [managementGuard],
-    title: kind === 'persons' ? 'Residents · SocietyEase' : kind + ' · SocietyEase',
+    title: kind === 'persons' ? 'Residents · MR Livora' : kind + ' · MR Livora',
     data: { kind, breadcrumb: kind === 'persons' ? 'Residents' : kind },
     loadComponent: () => import('../property/directory').then((m) => m.PropertyDirectory),
   })),
   {
     path: 'flats/:id',
     canActivate: [managementGuard],
-    title: 'Flat details · SocietyEase',
+    title: 'Flat details · MR Livora',
     data: { breadcrumb: 'Flat details' },
     loadComponent: () => import('../property/flat-detail').then((m) => m.FlatDetail),
   },
   {
     path: 'imports',
     canActivate: [managementGuard],
-    title: 'CSV imports · SocietyEase',
+    title: 'CSV imports · MR Livora',
     data: { breadcrumb: 'Imports' },
     loadComponent: () => import('../property/imports').then((m) => m.PropertyImports),
   },
   {
     path: 'dashboard',
-    title: 'Community space · SocietyEase',
+    title: 'Community space · MR Livora',
     data: {
       breadcrumb: 'Dashboard',
       heading: 'Your community space',

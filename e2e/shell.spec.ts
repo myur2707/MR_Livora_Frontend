@@ -1,4 +1,29 @@
 import AxeBuilder from '@axe-core/playwright';
+test('production CSP blocks inline scripts while application styles and navigation load', async ({
+  page,
+}) => {
+  const response = await page.goto('/login');
+  await expect(page).toHaveTitle('Sign in · MR Livora');
+  await expect(page.getByRole('link', { name: 'MR Livora', exact: true })).toBeVisible();
+  await expect(page.locator('.auth-footer')).toHaveText('A smarter way to live together.');
+  expect(response?.headers()['content-security-policy']).toContain("script-src 'self'");
+  await expect(page.getByRole('heading', { name: 'Welcome home' })).toBeVisible();
+  expect(
+    await page
+      .getByRole('button', { name: 'Switch to dark theme' })
+      .evaluate((node) => node.getBoundingClientRect().width),
+  ).toBeGreaterThan(30);
+  await page.evaluate(() => {
+    const script = document.createElement('script');
+    script.textContent = "document.documentElement.dataset['inlineExecuted'] = 'yes'";
+    document.body.append(script);
+  });
+  expect(
+    await page.evaluate(() => document.documentElement.dataset['inlineExecuted']),
+  ).toBeUndefined();
+  await page.getByRole('button', { name: 'Switch to dark theme' }).click();
+  await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+});
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ context }) => {
@@ -48,7 +73,7 @@ test('all lazy placeholders and the unknown route render without accessibility v
   test.setTimeout(90000);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const routes = [
-    ['/platform/dashboard', 'Welcome to SocietyEase'],
+    ['/platform/dashboard', 'Welcome to MR Livora'],
     ['/platform/societies', 'Your societies'],
     ['/society/dashboard', 'Your community space'],
     ['/login', 'Welcome home'],

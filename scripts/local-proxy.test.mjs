@@ -13,6 +13,24 @@ async function freePort() {
   await new Promise((resolve) => server.close(resolve));
   return port;
 }
+void test('static hosting applies browser security headers even to missing assets', async () => {
+  const local = await preview('');
+  await local.ready;
+  try {
+    const response = await fetch('http://127.0.0.1:' + local.port + '/missing-security-test.js');
+    assert.equal(response.status, 404);
+    const policy = response.headers.get('Content-Security-Policy');
+    assert.ok(policy.includes("script-src 'self'"));
+    assert.ok(policy.includes("frame-ancestors 'none'"));
+    assert.ok(policy.includes("object-src 'none'"));
+    assert.ok(!policy.includes('unsafe-eval'));
+    assert.equal(response.headers.get('X-Frame-Options'), 'DENY');
+    assert.equal(response.headers.get('X-Content-Type-Options'), 'nosniff');
+    assert.equal(response.headers.get('Referrer-Policy'), 'no-referrer');
+  } finally {
+    await stop(local.child);
+  }
+});
 async function preview(api, fixtures = '') {
   const port = await freePort();
   const child = spawn(process.execPath, ['scripts/serve-preview.mjs'], {

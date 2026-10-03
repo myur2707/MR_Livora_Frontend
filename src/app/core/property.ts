@@ -1,5 +1,6 @@
+import { apiErrorMessage } from './api-error';
 import { inject, Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from './auth';
 import type { Page } from './onboarding';
@@ -63,50 +64,35 @@ export const csvTemplates = {
   RESIDENTS:
     'person_reference,display_name,contact_email,contact_phone,building_code,flat_number,occupancy_type,starts_on,ends_on\n',
 };
+const propertyErrorMessages: Readonly<Record<string, string>> = {
+  REVISION_CONFLICT: 'This record or society context changed. Refresh before trying again.',
+  CONTEXT_CHANGED: 'This record or society context changed. Refresh before trying again.',
+  CONFLICT:
+    'This code, flat number or resident reference already exists. Archived identifiers remain reserved.',
+  OCCUPANCY_OVERLAP:
+    'This person already has an overlapping occupancy of the same type in this flat.',
+  HISTORY_IMMUTABLE: 'Closed occupancy history is read-only.',
+  ARCHIVE_DEPENDENCIES:
+    'End ongoing occupancies or archive child flats before archiving this record.',
+  REFERENCE_IMMUTABLE: 'Assigned resident references cannot be changed.',
+  RESOURCE_ARCHIVED: 'Archived records are read-only.',
+  INVALID_CSV: 'Check CSV headers, quoting, UTF-8 encoding and limits: 256 KiB, 500 rows.',
+  REVALIDATE_REQUIRED: 'Society data changed since preview. Revalidate and review the rows again.',
+  IMPORT_UNAVAILABLE: 'This import is confirmed, cancelled or expired. Upload a new file.',
+  IMPORT_ROW_CONFLICT:
+    'A reviewed CSV row conflicts with current data. Revalidate; the entire import was rolled back.',
+  IMPORT_ERRORS: 'Correct every row error before confirming the import.',
+  IMPORT_WARNINGS: 'Review and acknowledge duplicate warnings before confirmation.',
+  INVALID_REQUEST: 'Check required fields, formats and dates. End date must follow start date.',
+  NOT_FOUND: 'This record is unavailable in your selected society.',
+  ACCESS_DENIED: 'This record is unavailable in your selected society.',
+  RATE_LIMITED: 'Too many requests. Please try again later.',
+};
 export function propertyError(error: unknown): string {
-  const payload: unknown = error instanceof HttpErrorResponse ? error.error : null;
-  const nested =
-    typeof payload === 'object' && payload !== null && 'error' in payload ? payload.error : null;
-  const code =
-    typeof nested === 'object' && nested !== null && 'code' in nested ? nested.code : null;
-  switch (code) {
-    case 'REVISION_CONFLICT':
-    case 'CONTEXT_CHANGED':
-      return 'This record or society context changed. Refresh before trying again.';
-    case 'CONFLICT':
-      return 'This code, flat number or resident reference already exists. Archived identifiers remain reserved.';
-    case 'OCCUPANCY_OVERLAP':
-      return 'This person already has an overlapping occupancy of the same type in this flat.';
-    case 'HISTORY_IMMUTABLE':
-      return 'Closed occupancy history is read-only.';
-    case 'ARCHIVE_DEPENDENCIES':
-      return 'End ongoing occupancies or archive child flats before archiving this record.';
-    case 'REFERENCE_IMMUTABLE':
-      return 'Assigned resident references cannot be changed.';
-    case 'RESOURCE_ARCHIVED':
-      return 'Archived records are read-only.';
-    case 'INVALID_CSV':
-      return 'Check CSV headers, quoting, UTF-8 encoding and limits: 256 KiB, 500 rows.';
-    case 'REVALIDATE_REQUIRED':
-      return 'Society data changed since preview. Revalidate and review the rows again.';
-    case 'IMPORT_UNAVAILABLE':
-      return 'This import is confirmed, cancelled or expired. Upload a new file.';
-    case 'IMPORT_ROW_CONFLICT':
-      return 'A reviewed CSV row conflicts with current data. Revalidate; the entire import was rolled back.';
-    case 'IMPORT_ERRORS':
-      return 'Correct every row error before confirming the import.';
-    case 'IMPORT_WARNINGS':
-      return 'Review and acknowledge duplicate warnings before confirmation.';
-    case 'INVALID_REQUEST':
-      return 'Check required fields, formats and dates. End date must follow start date.';
-    case 'NOT_FOUND':
-    case 'ACCESS_DENIED':
-      return 'This record is unavailable in your selected society.';
-    case 'RATE_LIMITED':
-      return 'Too many requests. Please try again later.';
-    default:
-      return 'Unable to complete your request. Please try again.';
-  }
+  return (
+    apiErrorMessage(error, propertyErrorMessages) ??
+    'Unable to complete your request. Please try again.'
+  );
 }
 @Injectable({ providedIn: 'root' })
 export class PropertyApi {

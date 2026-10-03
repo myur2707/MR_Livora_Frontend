@@ -2,7 +2,7 @@ import { createServer, request as httpRequest } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 
-const root = resolve('dist/society-ease/browser');
+const root = resolve('dist/mr-livora/browser');
 const port = Number(process.env.PORT ?? 4173);
 const fixtures = process.env.PWA_TEST_FIXTURES === '1';
 const apiOrigin = process.env.PREVIEW_API_ORIGIN;
@@ -33,6 +33,14 @@ const server = createServer((request, response) => {
 });
 
 async function serve(request, response) {
+  response.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; worker-src 'self'; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+  );
+  response.setHeader('X-Content-Type-Options', 'nosniff');
+  response.setHeader('X-Frame-Options', 'DENY');
+  response.setHeader('Referrer-Policy', 'no-referrer');
+  response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
   try {
     const pathname = decodeURIComponent(new URL(request.url ?? '/', 'http://localhost').pathname);
     if (api && /^\/api(\/|$)/.test(pathname)) {

@@ -58,4 +58,5 @@ export default tseslint.config(
     files: ['**/*.html'],
     extends: [...angular.configs.templateRecommended, ...angular.configs.templateAccessibility],
   },
+  { files: ['src/**/*.ts'], rules: { complexity: ['error', 30] } },
 );

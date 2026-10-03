@@ -271,8 +271,8 @@ test('expired private request clears resident views and fails closed on refresh'
   await page.getByRole('button', { name: 'Refresh', exact: true }).click();
   await expect(page.getByText('Receipt R-401')).toHaveCount(0);
   await expect(page.getByText('₹ 80.25', { exact: true })).toHaveCount(0);
-  await expect(page.getByRole('heading', { name: 'Community access unavailable' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Sign in', exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(page.getByRole('heading', { name: 'Welcome home' })).toBeVisible();
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Welcome home' })).toBeVisible();
 });

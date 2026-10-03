@@ -218,6 +218,25 @@ test('CSV download preserves safe content and oversized exports show a clear out
   ).toEqual([]);
 });
 
+test('nonfinancial reports omit empty totals and remain accessible in both themes', async ({
+  page,
+}) => {
+  await reports(page);
+  await page.setViewportSize({ width: 320, height: 760 });
+  for (const kind of ['residents', 'flat-occupancy']) {
+    await page.goto('/society/reports/' + kind);
+    await expect(page.getByText('Private report row 1', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('Report totals', { exact: true })).toHaveCount(0);
+    for (const theme of ['light', 'dark']) {
+      await page.evaluate(
+        (value) => document.documentElement.setAttribute('data-theme', value),
+        theme,
+      );
+      expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
+    }
+  }
+});
+
 test('society switch discards an in-flight private export and loads the new dashboard', async ({
   page,
 }) => {

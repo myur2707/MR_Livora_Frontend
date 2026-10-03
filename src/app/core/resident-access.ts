@@ -1,5 +1,5 @@
+import { apiErrorMessage } from './api-error';
 import { Injectable, inject } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { OnboardingApi } from './onboarding';
 export interface ResidentInvitation {
   id: string;
@@ -36,34 +36,28 @@ export interface RegistrationRequest {
   membershipId: string | null;
   occupancyId: string | null;
 }
+const residentAccessErrorMessages: Readonly<Record<string, string>> = {
+  RESIDENT_LINK_INVALID:
+    'This link is unavailable or expired. Existing accounts must sign in with the intended email, then reopen the invitation.',
+  RESIDENT_ACCESS_CONFLICT:
+    'This record is already linked or changed. Review current membership, identity and occupancy before trying again.',
+  CONFLICT:
+    'This record is already linked or changed. Review current membership, identity and occupancy before trying again.',
+  INVALID_REQUEST:
+    'Check required fields and dates, and confirm that identity and residency were verified.',
+  OCCUPANCY_OVERLAP:
+    'This person already has a matching occupancy. Select and verify the existing occupancy.',
+  NOT_FOUND: 'This record is unavailable in your selected society.',
+  ACCESS_DENIED: 'This record is unavailable in your selected society.',
+  RATE_LIMITED: 'Too many requests. Please try again later.',
+  CONTEXT_CHANGED: 'Your society context changed. Refresh before trying again.',
+  CSRF_INVALID: 'Your session expired. Refresh and try again.',
+};
 export function residentAccessError(error: unknown): string {
-  const payload: unknown = error instanceof HttpErrorResponse ? error.error : null;
-  const nested =
-    typeof payload === 'object' && payload !== null && 'error' in payload ? payload.error : null;
-  const code =
-    typeof nested === 'object' && nested !== null && 'code' in nested ? nested.code : null;
-  switch (code) {
-    case 'RESIDENT_LINK_INVALID':
-      return 'This link is unavailable or expired. Existing accounts must sign in with the intended email, then reopen the invitation.';
-    case 'RESIDENT_ACCESS_CONFLICT':
-    case 'CONFLICT':
-      return 'This record is already linked or changed. Review current membership, identity and occupancy before trying again.';
-    case 'INVALID_REQUEST':
-      return 'Check required fields and dates, and confirm that identity and residency were verified.';
-    case 'OCCUPANCY_OVERLAP':
-      return 'This person already has a matching occupancy. Select and verify the existing occupancy.';
-    case 'NOT_FOUND':
-    case 'ACCESS_DENIED':
-      return 'This record is unavailable in your selected society.';
-    case 'RATE_LIMITED':
-      return 'Too many requests. Please try again later.';
-    case 'CONTEXT_CHANGED':
-      return 'Your society context changed. Refresh before trying again.';
-    case 'CSRF_INVALID':
-      return 'Your session expired. Refresh and try again.';
-    default:
-      return 'Unable to complete this request. Please try again.';
-  }
+  return (
+    apiErrorMessage(error, residentAccessErrorMessages) ??
+    'Unable to complete this request. Please try again.'
+  );
 }
 @Injectable({ providedIn: 'root' })
 export class ResidentAccessApi {

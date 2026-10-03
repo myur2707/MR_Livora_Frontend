@@ -1,5 +1,5 @@
+import { apiErrorMessage } from './api-error';
 import { Injectable, inject } from '@angular/core';
-import { HttpErrorResponse } from '@angular/common/http';
 import { OnboardingApi } from './onboarding';
 import type { Page } from './onboarding';
 export interface BillingChoice {
@@ -107,44 +107,30 @@ export function choiceLabel(choice: BillingChoice): string {
     ? choice.buildingCode + ' / ' + choice.flatNumber
     : (choice.code ? choice.code + ' · ' : '') + (choice.name ?? choice.kind ?? '');
 }
+const billingErrorMessages: Readonly<Record<string, string>> = {
+  PREVIEW_CHANGED: 'Billing data changed. Review a new preview before issuing bills.',
+  NO_NEW_BILLS: 'No new charges are available for the selected flats.',
+  IDEMPOTENCY_CONFLICT: 'This request was already used. Refresh and review the bill list.',
+  MISSING_AREA: 'A selected flat needs a positive area for its per-square-foot charge.',
+  INVALID_DISCOUNT:
+    'Enter a positive discount within the bill amount; percentages must be at most 100.',
+  AMOUNT_LIMIT: 'The billing limit was exceeded. Review amounts or use a smaller batch.',
+  BILLING_LIMIT: 'The billing limit was exceeded. Review amounts or use a smaller batch.',
+  INVALID_REQUEST: 'Check required fields, dates and amounts (at most two decimal places).',
+  INVALID_AMOUNT: 'Check required fields, dates and amounts (at most two decimal places).',
+  CONFLICT: 'A matching code, version or bill already exists. Refresh and review current records.',
+  NOT_FOUND: 'This record is unavailable in your selected society.',
+  ACCESS_DENIED: 'This record is unavailable in your selected society.',
+  CONTEXT_CHANGED: 'Your society changed. Refresh before continuing.',
+  RATE_LIMITED: 'Too many requests. Please try again later.',
+  CSRF_INVALID: 'Your session expired. Sign in again.',
+  AUTH_REQUIRED: 'Your session expired. Sign in again.',
+};
 export function billingError(error: unknown): string {
-  const payload: unknown = error instanceof HttpErrorResponse ? error.error : null;
-  const nested =
-    typeof payload === 'object' && payload !== null && 'error' in payload ? payload.error : null;
-  const code =
-    typeof nested === 'object' && nested !== null && 'code' in nested ? nested.code : null;
-  switch (code) {
-    case 'PREVIEW_CHANGED':
-      return 'Billing data changed. Review a new preview before issuing bills.';
-    case 'NO_NEW_BILLS':
-      return 'No new charges are available for the selected flats.';
-    case 'IDEMPOTENCY_CONFLICT':
-      return 'This request was already used. Refresh and review the bill list.';
-    case 'MISSING_AREA':
-      return 'A selected flat needs a positive area for its per-square-foot charge.';
-    case 'INVALID_DISCOUNT':
-      return 'Enter a positive discount within the bill amount; percentages must be at most 100.';
-    case 'AMOUNT_LIMIT':
-    case 'BILLING_LIMIT':
-      return 'The billing limit was exceeded. Review amounts or use a smaller batch.';
-    case 'INVALID_REQUEST':
-    case 'INVALID_AMOUNT':
-      return 'Check required fields, dates and amounts (at most two decimal places).';
-    case 'CONFLICT':
-      return 'A matching code, version or bill already exists. Refresh and review current records.';
-    case 'NOT_FOUND':
-    case 'ACCESS_DENIED':
-      return 'This record is unavailable in your selected society.';
-    case 'CONTEXT_CHANGED':
-      return 'Your society changed. Refresh before continuing.';
-    case 'RATE_LIMITED':
-      return 'Too many requests. Please try again later.';
-    case 'CSRF_INVALID':
-    case 'AUTH_REQUIRED':
-      return 'Your session expired. Sign in again.';
-    default:
-      return 'Unable to complete this request. Check your connection and try again.';
-  }
+  return (
+    apiErrorMessage(error, billingErrorMessages) ??
+    'Unable to complete this request. Check your connection and try again.'
+  );
 }
 @Injectable({ providedIn: 'root' })
 export class BillingApi {

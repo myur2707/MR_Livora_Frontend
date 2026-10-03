@@ -156,14 +156,16 @@
         separately.
       </p>
     }
-    <div class="onboarding-stats" aria-label="Report totals">
-      @for (entry of summaryEntries(data.summary); track entry[0]) {
-        <se-card
-          ><p>{{ summaryLabel(entry[0]) }}</p>
-          <p class="stat-value">₹ {{ entry[1] }}</p></se-card
-        >
-      }
-    </div>
+    @if (summaryEntries(data.summary).length) {
+      <section class="onboarding-stats" aria-label="Report totals">
+        @for (entry of summaryEntries(data.summary); track entry[0]) {
+          <se-card
+            ><p>{{ summaryLabel(entry[0]) }}</p>
+            <p class="stat-value">₹ {{ entry[1] }}</p></se-card
+          >
+        }
+      </section>
+    }
     @if (auth.identity()?.activeSociety?.permissions.includes('society.reports.export')) {
       <button
         seButton

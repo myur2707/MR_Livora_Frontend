@@ -1,4 +1,6 @@
-# SocietyEase frontend
+# MR Livora frontend
+
+A smarter way to live together.
 
 Step 10 adds [committee notice management and complaint assignment/status history](docs/STEP_10_COMMUNITY.md), plus categorized resident complaints and own status history. Select an ACTIVE society with the relevant committee permissions to open the Community navigation.
 
@@ -64,7 +66,7 @@ See [frontend architecture and components](docs/FRONTEND_ARCHITECTURE.md), [PWA 
 
 Frontend configuration and compiled bundles are public. This application does not consume `.env` files; `.env.example` documents this boundary. Never include tokens, passwords, database settings, private fixtures or tenant data in `src`, `public`, build-time configuration or caches. Theme choice is the only localStorage preference.
 
-Serve the static build from `dist/society-ease/browser`. A production host should return the static index for application routes, keep API/upload routes separate, use HTTPS and suitable security headers, and serve `ngsw.json`, `ngsw-worker.js` and the index with revalidation. The supplied preview server is a loopback development/testing tool, not a production application server. Its synthetic private-response fixtures are enabled only by the browser-test runner and are not business APIs.
+Serve the static build from `dist/mr-livora/browser`. A production host should return the static index for application routes, keep API/upload routes separate, use HTTPS and suitable security headers, and serve `ngsw.json`, `ngsw-worker.js` and the index with revalidation. The supplied preview server is a loopback development/testing tool, not a production application server. Its synthetic private-response fixtures are enabled only by the browser-test runner and are not business APIs.
 
 On deployments, retain older hashed assets during rollout so existing clients can finish loading, deploy the generated assets and worker manifest together, and reload to activate a newly installed worker. No automatic mid-form reload is introduced. Offline availability covers only the static interface. Authenticated APIs, resident data, bills, payments, receipts and uploads remain network-only.
 Step 5 adds society-scoped Buildings, Flats, Residents, occupancy history and reviewed CSV imports. See [management guide](docs/STEP_5_PROPERTY_MANAGEMENT.md). Select an active society as Committee Admin for management; Steps 7?8 add permission-scoped billing and payment features.

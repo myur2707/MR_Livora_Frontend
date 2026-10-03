@@ -2,11 +2,14 @@ import assert from 'node:assert/strict';
 import { readFile, access } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
-const root = resolve('dist/society-ease/browser');
+const root = resolve('dist/mr-livora/browser');
 const json = async (path) => JSON.parse(await readFile(path, 'utf8'));
 const config = await json('ngsw-config.json');
 const manifest = await json(resolve(root, 'manifest.webmanifest'));
 const built = await json(resolve(root, 'ngsw.json'));
+const index = await readFile(resolve(root, 'index.html'), 'utf8');
+assert.doesNotMatch(index, /<script\b(?![^>]*\bsrc=)[^>]*>/i, 'CSP requires external scripts');
+assert.doesNotMatch(index, /\son[a-z]+\s*=/i, 'CSP forbids inline event handlers');
 assert.deepEqual(config.dataGroups, [], 'No private/data response caching is allowed');
 assert.deepEqual(built.dataGroups, []);
 assert.equal(built.assetGroups.length, 1);
@@ -130,7 +133,9 @@ for (const path of [
   '/login/private',
 ])
   assert.equal(navigation(path), false, path + ' must bypass shell navigation');
-assert.equal(manifest.name, 'SocietyEase');
+assert.equal(manifest.name, 'MR Livora');
+assert.equal(manifest.short_name, 'MR Livora');
+assert.equal(manifest.description, 'A smarter way to live together.');
 assert.equal(manifest.display, 'standalone');
 assert.equal(manifest.start_url, '/');
 assert.equal(manifest.scope, '/');
