@@ -2,6 +2,33 @@ import type { IconName } from '../shared/icon';
 
 export const NAVIGATION: readonly { label: string; path: string; icon: IconName; group: string }[] =
   [
+    ...(
+      [
+        'dashboard',
+        'flats',
+        'bills',
+        'payments',
+        'receipts',
+        'notices',
+        'complaints',
+        'profile',
+      ] as const
+    ).map((path, index) => ({
+      path: '/society/resident/' + path,
+      label:
+        [
+          'My community',
+          'My Flats',
+          'My Bills',
+          'Payment History',
+          'My Receipts',
+          'Notices',
+          'My Complaints',
+          'My Profile',
+        ][index] ?? path,
+      icon: 'home' as const,
+      group: 'My living',
+    })),
     { label: 'Overview', path: '/platform/dashboard', icon: 'home', group: 'Workspace' },
     { label: 'Societies', path: '/platform/societies', icon: 'building', group: 'Workspace' },
     { label: 'Community space', path: '/society/dashboard', icon: 'people', group: 'Workspace' },

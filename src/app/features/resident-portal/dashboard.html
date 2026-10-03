@@ -1,0 +1,67 @@
+<header class="page-heading payment-screen">
+  <div>
+    <p class="eyebrow">MY COMMUNITY</p>
+    <h1 tabindex="-1">Your community space</h1>
+    <p>{{ auth.identity()?.activeSociety?.name }}</p>
+  </div>
+  <button
+    seButton
+    variant="secondary"
+    type="button"
+    [disabled]="view.loading()"
+    (click)="refresh()"
+  >
+    Refresh
+  </button>
+</header>
+<se-form-notice [message]="view.error()" />
+@if (view.loading()) {
+  <p role="status">Loading your community…</p>
+}
+@if (auth.identity()?.activeSociety && view.value(); as data) {
+  <section class="resident-metrics" aria-label="Your maintenance summary">
+    <se-card
+      ><h2>Current due</h2>
+      <p class="resident-amount">{{ money(data.currentDue) }}</p>
+      <p>Bills not yet overdue.</p>
+      <a routerLink="/society/resident/bills">View my bills</a></se-card
+    >
+    <se-card
+      ><h2>Overdue</h2>
+      <p class="resident-amount">{{ money(data.overdue) }}</p>
+      <p>Outstanding after the due date.</p></se-card
+    >
+    <se-card
+      ><h2>Recent payment</h2>
+      @if (data.recentPayment; as payment) {
+        <p class="resident-amount">{{ money(payment.amount) }}</p>
+        <p>{{ payment.paymentDate }} · {{ payment.method }} · {{ payment.status }}</p>
+        <a [routerLink]="['/society/resident/payments', payment.id, 'receipt']">Open receipt</a>
+      } @else {
+        <p>No payments recorded for you yet.</p>
+      }
+    </se-card>
+  </section>
+  <nav class="resident-links" aria-label="My community shortcuts">
+    <a seButton variant="secondary" routerLink="/society/resident/flats">My Flats</a
+    ><a seButton variant="secondary" routerLink="/society/resident/payments">Payment History</a
+    ><a seButton variant="secondary" routerLink="/society/resident/complaints">My Complaints</a
+    ><a seButton variant="secondary" routerLink="/society/resident/profile">My Profile</a>
+  </nav>
+  <section class="resident-section" aria-label="Recent notices">
+    <div class="section-heading">
+      <h2>Community notices</h2>
+      <a routerLink="/society/resident/notices">All notices</a>
+    </div>
+    @for (notice of data.notices; track notice.id) {
+      <se-card
+        ><h3>
+          <a [routerLink]="['/society/resident/notices', notice.id]">{{ notice.title }}</a>
+        </h3>
+        <p class="resident-text">{{ notice.body }}</p></se-card
+      >
+    } @empty {
+      <p>No published notices yet.</p>
+    }
+  </section>
+}

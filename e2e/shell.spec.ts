@@ -2,6 +2,18 @@ import AxeBuilder from '@axe-core/playwright';
 import { test, expect } from '@playwright/test';
 
 test.beforeEach(async ({ context }) => {
+  await context.route('**/api/v1/society/resident/dashboard', (route) =>
+    route.fulfill({
+      json: {
+        societyName: 'Synthetic community',
+        timezone: 'Asia/Kolkata',
+        currentDue: '0.00',
+        overdue: '0.00',
+        recentPayment: null,
+        notices: [],
+      },
+    }),
+  );
   await context.route('**/api/v1/platform/dashboard', (route) =>
     route.fulfill({ json: { statuses: [{ status: 'DRAFT', total: 1 }] } }),
   );
@@ -183,6 +195,8 @@ test('static shell works offline while authenticated/private responses never ent
   page,
   context,
 }) => {
+  // Cache checks must fetch the preview server's cacheable sentinel, without an API mock.
+  await context.unroute('**/api/v1/society/resident/dashboard');
   await page.goto('/');
   await page.evaluate(async () => {
     await navigator.serviceWorker.ready;
@@ -203,6 +217,14 @@ test('static shell works offline while authenticated/private responses never ent
     '/api/v1/society/billing/payments',
     '/api/v1/society/billing/payments/1/receipt',
     '/api/v1/society/billing/payments/report',
+    '/api/v1/society/resident/dashboard',
+    '/api/v1/society/resident/flats',
+    '/api/v1/society/resident/bills/1',
+    '/api/v1/society/resident/payments/1/receipt',
+    '/api/v1/society/resident/receipts',
+    '/api/v1/society/resident/notices',
+    '/api/v1/society/resident/complaints',
+    '/api/v1/society/resident/profile',
   ];
   for (const path of privatePaths) {
     const result: unknown = await page.evaluate(async (path) => {

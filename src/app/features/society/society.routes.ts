@@ -3,6 +3,11 @@ import type { Routes } from '@angular/router';
 
 export const SOCIETY_ROUTES: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+  {
+    path: 'resident',
+    data: { breadcrumb: 'My community' },
+    loadChildren: () => import('../resident-portal/resident.routes').then((m) => m.RESIDENT_ROUTES),
+  },
   ...(['payments', 'payments/report', 'payments/:id/receipt'] as const).map((path) => ({
     path: 'billing/' + path,
     canActivate: [financeGuard],
@@ -88,6 +93,6 @@ export const SOCIETY_ROUTES: Routes = [
       message: 'One welcoming place for the everyday life of your society.',
     },
     loadComponent: () =>
-      import('../workspace-placeholder').then((m) => m.WorkspacePlaceholderComponent),
+      import('../resident-portal/dashboard').then((m) => m.ResidentDashboardPage),
   },
 ];

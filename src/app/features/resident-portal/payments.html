@@ -1,0 +1,108 @@
+<header class="page-heading payment-screen">
+  <div>
+    <p class="eyebrow">MY PAYMENTS</p>
+    <h1 tabindex="-1">{{ id ? 'My Receipt' : receipts ? 'My Receipts' : 'Payment History' }}</h1>
+    <p>Only payments recorded with you as the payer.</p>
+  </div>
+  @if (detail.value()) {
+    <button seButton type="button" (click)="print()">Print / save PDF</button>
+  }
+</header>
+<se-form-notice [message]="detail.error() || list.error()" />
+@if (list.loading() || detail.loading()) {
+  <p role="status">Loading your payments…</p>
+}
+@if (detail.value(); as payment) {
+  <article class="payment-receipt" aria-label="My printable receipt">
+    <h2>Receipt {{ payment.receiptNumber }}</h2>
+    <p>{{ payment.societyName }} · {{ payment.buildingCode }} / {{ payment.flatNumber }}</p>
+    <p>Payer: {{ payment.payerName }}</p>
+    <p>{{ payment.paymentDate }} · {{ payment.method }} · {{ payment.status }}</p>
+    @if (payment.reference) {
+      <p>Reference: {{ payment.reference }}</p>
+    }
+    <p>
+      Original amount: {{ money(payment.amount) }} · Effective allocated:
+      {{ money(payment.netAmount) }}
+    </p>
+    <div
+      class="table-scroll"
+      role="region"
+      aria-label="Receipt allocations scroll area"
+      tabindex="0"
+    >
+      <table seTable aria-label="My receipt allocations">
+        <thead>
+          <tr>
+            <th scope="col">Bill</th>
+            <th scope="col">Original allocation</th>
+            <th scope="col">Refunded</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (allocation of payment.allocations; track $index) {
+            <tr>
+              <td>{{ allocation.billNumber }}</td>
+              <td>{{ money(allocation.amount) }}</td>
+              <td>{{ money(allocation.refunded) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @for (refund of payment.refunds; track $index) {
+      <p>Refund recorded: {{ money(refund.amount) }} · {{ refund.date }} · {{ refund.method }}</p>
+    }
+    <p>
+      This receipt records collection by your society. A reversed or refunded entry remains part of
+      its history.
+    </p>
+  </article>
+  <p class="payment-screen"><a routerLink="/society/resident/receipts">All my receipts</a></p>
+}
+@if (list.value(); as data) {
+  <div class="table-scroll" role="region" aria-label="Payment list scroll area" tabindex="0">
+    <table seTable aria-label="My payments">
+      <thead>
+        <tr>
+          <th scope="col">Date</th>
+          <th scope="col">Flat</th>
+          <th scope="col">Method</th>
+          <th scope="col">Amount</th>
+          <th scope="col">Status</th>
+          <th scope="col">Receipt</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (payment of data.items; track payment.id) {
+          <tr>
+            <td>{{ payment.paymentDate }}</td>
+            <td>{{ payment.buildingCode }} / {{ payment.flatNumber }}</td>
+            <td>{{ payment.method }}</td>
+            <td>{{ money(payment.amount) }}</td>
+            <td>{{ payment.status }}</td>
+            <td>
+              @if (payment.receiptNumber) {
+                <a [routerLink]="['/society/resident/payments', payment.id, 'receipt']">{{
+                  payment.receiptNumber
+                }}</a>
+              } @else {
+                Receipt unavailable
+              }
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6">No payments recorded for you yet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <se-pagination
+    [page]="data.page"
+    [pageSize]="data.pageSize"
+    [total]="data.total"
+    (pageSelected)="load($event)"
+  />
+}

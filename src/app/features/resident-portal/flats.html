@@ -1,0 +1,54 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">MY HOME</p>
+    <h1 tabindex="-1">{{ id ? 'My Flat details' : 'My Flats' }}</h1>
+    <p>Only your current approved occupancies.</p>
+  </div>
+</header>
+<se-form-notice [message]="detail.error() || list.error()" />
+@if (list.loading() || detail.loading()) {
+  <p role="status">Loading authorized flats…</p>
+}
+@if (detail.value(); as flat) {
+  <se-card
+    ><h2>{{ flat.buildingCode }} / {{ flat.flatNumber }}</h2>
+    <p>{{ flat.buildingName }}</p>
+    @if (flat.areaSqFt) {
+      <p>Area: {{ flat.areaSqFt }} sq ft</p>
+    }
+    @for (occupancy of flat.occupancies; track $index) {
+      <p>
+        {{ occupancy.type }} · From {{ occupancy.startsOn }}
+        @if (occupancy.endsOn) {
+          · Until {{ occupancy.endsOn }}
+        }
+      </p>
+    }
+    <a routerLink="/society/resident/bills" [queryParams]="{ flatId: flat.id }"
+      >Bills for this flat</a
+    ></se-card
+  >
+  <p><a routerLink="/society/resident/flats">All my flats</a></p>
+}
+@if (list.value(); as data) {
+  <div class="resident-grid">
+    @for (flat of data.items; track flat.id) {
+      <se-card
+        ><h2>
+          <a [routerLink]="['/society/resident/flats', flat.id]"
+            >{{ flat.buildingCode }} / {{ flat.flatNumber }}</a
+          >
+        </h2>
+        <p>{{ flat.buildingName }}</p></se-card
+      >
+    } @empty {
+      <p>No current authorized flats. Contact your committee if an occupancy needs updating.</p>
+    }
+  </div>
+  <se-pagination
+    [page]="data.page"
+    [pageSize]="data.pageSize"
+    [total]="data.total"
+    (pageSelected)="load($event)"
+  />
+}

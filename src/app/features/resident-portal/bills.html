@@ -1,0 +1,114 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">MY MAINTENANCE</p>
+    <h1 tabindex="-1">{{ id ? 'My Bill details' : 'My Bills' }}</h1>
+    <p>Bill access follows your current occupancy and its start date.</p>
+  </div>
+</header>
+<se-form-notice [message]="detail.error() || list.error()" />
+@if (list.loading() || detail.loading()) {
+  <p role="status">Loading your bills…</p>
+}
+@if (detail.value(); as bill) {
+  <section class="payment-receipt" aria-label="My authorized bill">
+    <h2>{{ bill.billNumber }}</h2>
+    <p>{{ bill.buildingCode }} / {{ bill.flatNumber }} · {{ bill.periodCode }}</p>
+    <p>{{ bill.startsOn }} to {{ bill.endsOn }} · Due {{ bill.dueOn }}</p>
+    <p>{{ bill.settlementStatus }}</p>
+    <div class="table-scroll" role="region" aria-label="Bill items scroll area" tabindex="0">
+      <table seTable aria-label="My bill items">
+        <thead>
+          <tr>
+            <th scope="col">Charge</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Rate</th>
+            <th scope="col">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of bill.items; track item.lineNumber) {
+            <tr>
+              <td>{{ item.description }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ money(item.unitRate) }}</td>
+              <td>{{ money(item.amount) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <dl class="resident-totals">
+      <div>
+        <dt>Gross</dt>
+        <dd>{{ money(bill.gross) }}</dd>
+      </div>
+      <div>
+        <dt>Net adjustments</dt>
+        <dd>{{ money(bill.credits) }}</dd>
+      </div>
+      <div>
+        <dt>Bill total</dt>
+        <dd>{{ money(bill.net) }}</dd>
+      </div>
+      <div>
+        <dt>Effective paid</dt>
+        <dd>{{ money(bill.paid) }}</dd>
+      </div>
+      <div>
+        <dt>Outstanding</dt>
+        <dd>{{ money(bill.outstanding) }}</dd>
+      </div>
+    </dl>
+    <p>Contact your committee to arrange payment. This portal shows recorded payments.</p>
+  </section>
+  <p><a routerLink="/society/resident/bills">All my bills</a></p>
+}
+@if (!id) {
+  <form class="resident-filter" (ngSubmit)="load()">
+    <se-field controlId="resident-bill-status" label="Bill status"
+      ><select seSelect name="status" [(ngModel)]="status">
+        <option value="ALL">All authorized bills</option>
+        <option value="OUTSTANDING">Outstanding</option>
+        <option value="SETTLED">Settled</option>
+      </select></se-field
+    ><button seButton type="submit">Apply filter</button>
+  </form>
+}
+@if (list.value(); as data) {
+  <div class="table-scroll" role="region" aria-label="Bill list scroll area" tabindex="0">
+    <table seTable aria-label="My authorized bills">
+      <thead>
+        <tr>
+          <th scope="col">Bill</th>
+          <th scope="col">Flat</th>
+          <th scope="col">Due</th>
+          <th scope="col">Status</th>
+          <th scope="col">Outstanding</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (bill of data.items; track bill.id) {
+          <tr>
+            <td>
+              <a [routerLink]="['/society/resident/bills', bill.id]">{{ bill.billNumber }}</a>
+            </td>
+            <td>{{ bill.buildingCode }} / {{ bill.flatNumber }}</td>
+            <td>{{ bill.dueOn }}</td>
+            <td>{{ bill.settlementStatus }}</td>
+            <td>{{ money(bill.outstanding) }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5">No authorized bills match this filter.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <se-pagination
+    [page]="data.page"
+    [pageSize]="data.pageSize"
+    [total]="data.total"
+    (pageSelected)="load($event)"
+  />
+}

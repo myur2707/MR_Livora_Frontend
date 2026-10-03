@@ -18,7 +18,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         error.status === 401 &&
         !request.url.endsWith('/login')
       )
-        state.identity.set(null);
+        state.clear();
       return throwError(() => error);
     }),
   );

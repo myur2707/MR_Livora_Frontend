@@ -1,0 +1,91 @@
+.resident-metrics,
+.resident-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
+  gap: var(--space-4);
+}
+.resident-metrics se-card,
+.resident-grid se-card {
+  min-width: 0;
+}
+.resident-amount {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  margin-block: var(--space-4);
+  overflow-wrap: anywhere;
+}
+.resident-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-block: var(--space-6);
+}
+.resident-section {
+  display: grid;
+  gap: var(--space-4);
+  margin-block: var(--space-6);
+}
+.resident-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin-top: var(--space-3);
+}
+.resident-totals {
+  display: grid;
+  gap: var(--space-3);
+  margin-block: var(--space-5);
+}
+.resident-totals div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: var(--space-2);
+}
+.resident-totals dd {
+  text-align: right;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.resident-filter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.society-switcher {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 0.75rem;
+}
+.society-switcher select {
+  max-width: 10rem;
+  min-height: 2.5rem;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  padding: var(--space-2);
+}
+@media (max-width: 600px) {
+  .society-switcher label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .society-switcher select {
+    max-width: 7rem;
+  }
+  .header-actions {
+    gap: var(--space-1);
+    flex-wrap: wrap;
+    max-width: 100%;
+  }
+  .header-actions .header-divider {
+    display: none;
+  }
+}

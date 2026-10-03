@@ -1,8 +1,10 @@
 # SocietyEase frontend
 
-A thoughtful Angular PWA for community living. Steps 2–7 contain the shared shell, cookie authentication, workspace selection, society onboarding/activation, property/resident management, verified resident access and maintenance/bill generation screens. The independent `MR_Livora_Backend` enforces authorization and preserves database history.
+Step 9 adds [resident dashboard, authorized flats/bills, own payments/receipts, notices, complaints and profile](docs/STEP_9_RESIDENT_PORTAL.md), plus validated community switching. Open `/society/resident/dashboard`; backend membership, verified person and occupancy rules enforce access.
 
-See [Step 7 billing](docs/STEP_7_BILLING.md) for charge versions, billing periods, reviewed generation, discounts, immutable bill details and outstanding reports. Monthly maintenance uses the full amount at period start with no proration. Open the Maintenance navigation after selecting an ACTIVE society with finance permissions. Payment recording remains a later step.
+A thoughtful Angular PWA for community living. Steps 2–9 contain the shared shell, cookie authentication, workspace selection, society onboarding/activation, property/resident management, verified resident access, billing/payment screens and the resident portal. The independent `MR_Livora_Backend` enforces authorization and preserves database history.
+
+See [Step 7 billing](docs/STEP_7_BILLING.md) for charge versions, billing periods, reviewed generation, discounts, immutable bill details and outstanding reports. Monthly maintenance uses the full amount at period start with no proration. Open the Maintenance navigation after selecting an ACTIVE society with finance permissions. Step 8 supports payment recording and resident Step 9 pages expose only authorized own records.
 
 ## Run locally
 
@@ -21,7 +23,7 @@ Open `http://127.0.0.1:4200`. Run the backend on port 3000; the Angular dev prox
 | --------------------- | ------------------------------------ |
 | `/platform/dashboard` | Limited platform metadata            |
 | `/platform/societies` | Society directory and creation       |
-| `/society/dashboard`  | Society workspace placeholder        |
+| `/society/dashboard`  | Resident summary                     |
 | `/login`              | Login form                           |
 | `/forgot-password`    | Generic reset request                |
 | `/reset-password`     | Single-use password reset            |
@@ -29,7 +31,7 @@ Open `http://127.0.0.1:4200`. Run the backend on port 3000; the Angular dev prox
 | `/ui`                 | Interactive shared component preview |
 | Any unknown route     | Clear not-found page                 |
 
-Use /platform/societies/:id for platform setup progress and /onboarding/societies/:id for the authorized Committee Admin wizard. Email links open /accept-invitation with a single-use fragment token. Read [Step 4 onboarding](docs/STEP_4_ONBOARDING.md) for the manual flow. Backend sessions and permissions enforce every operation. The society dashboard remains a foundation placeholder.
+Use /platform/societies/:id for platform setup progress and /onboarding/societies/:id for the authorized Committee Admin wizard. Email links open /accept-invitation with a single-use fragment token. Read [Step 4 onboarding](docs/STEP_4_ONBOARDING.md) for the manual flow. Backend sessions and permissions enforce every operation. The society dashboard now shows the resident summary.
 
 ## Verify
 

@@ -10,6 +10,7 @@ import { BreadcrumbsComponent } from './breadcrumbs';
 import { SidebarComponent } from './sidebar';
 import { AuthService, authErrorMessage } from '../core/auth';
 import { ToastService } from '../shared/toast';
+import { SocietySwitcher } from './society-switcher';
 
 @Component({
   selector: 'se-app-shell',
@@ -21,6 +22,7 @@ import { ToastService } from '../shared/toast';
     IconComponent,
     BreadcrumbsComponent,
     SidebarComponent,
+    SocietySwitcher,
   ],
   templateUrl: './app-shell.html',
 })
