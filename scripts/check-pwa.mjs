@@ -53,6 +53,12 @@ for (const path of [
   '/society/billing/bills',
   '/society/billing/bills/1',
   '/society/billing/outstanding',
+  '/society/billing/payments',
+  '/society/billing/payments/new',
+  '/society/billing/payments/report',
+  '/society/billing/payments/1',
+  '/society/billing/payments/1/receipt',
+  '/society/billing/payments/1/correct',
   '/ui',
 ])
   assert.ok(navigation(path), path);
@@ -74,6 +80,9 @@ for (const path of [
   '/api/v1/society/billing/bills',
   '/api/v1/society/billing/bills/1',
   '/api/v1/society/billing/outstanding',
+  '/api/v1/society/billing/payments',
+  '/api/v1/society/billing/payments/1/receipt',
+  '/api/v1/society/billing/payments/report',
   '/private',
   '/login/private',
 ])

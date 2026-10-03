@@ -35,6 +35,13 @@ export const NAVIGATION: readonly { label: string; path: string; icon: IconName;
       group: 'Maintenance',
     },
     { label: 'Bills', path: '/society/billing/bills', icon: 'grid', group: 'Maintenance' },
+    { label: 'Payments', path: '/society/billing/payments', icon: 'grid', group: 'Maintenance' },
+    {
+      label: 'Collection report',
+      path: '/society/billing/payments/report',
+      icon: 'grid',
+      group: 'Maintenance',
+    },
     {
       label: 'Outstanding',
       path: '/society/billing/outstanding',

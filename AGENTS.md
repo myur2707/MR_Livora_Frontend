@@ -38,7 +38,7 @@ The workspace contains two separate Git repositories: `MR_Livora_Backend` (Node 
 
 ## Frontend foundation rules
 
-- This repository contains Steps 2–6: PWA, authentication, initial society onboarding, property/resident management and verified resident access UX. Follow docs/STEP_4_ONBOARDING.md, docs/STEP_5_PROPERTY_MANAGEMENT.md and docs/STEP_6_RESIDENT_ACCESS.md. Preserve backend verification/privacy boundaries. Step 7 adds maintenance and bill generation UX. Follow docs/STEP_7_BILLING.md; payment recording remains a later step.
+- This repository contains Steps 2–6: PWA, authentication, initial society onboarding, property/resident management and verified resident access UX. Follow docs/STEP_4_ONBOARDING.md, docs/STEP_5_PROPERTY_MANAGEMENT.md and docs/STEP_6_RESIDENT_ACCESS.md. Preserve backend verification/privacy boundaries. Step 7 adds maintenance and bill generation UX. Follow docs/STEP_7_BILLING.md; Step 8 adds payment recording/receipt/history/refund/correction/report UX; follow docs/STEP_8_PAYMENTS.md and preserve the append-only backend/security boundaries.
 - Use pinned Angular 22 standalone components, TypeScript 6, Node 24 and the existing Vitest/Playwright checks. Inspect scripts/styles before changing them.
 - Keep shared controls small and semantic. Use native controls/dialogs, consistent field feedback, visible focus and tested keyboard behavior.
 - Frontend configuration and all public assets are public. Never put secrets or private fixtures into bundles, environment configuration or public directories. Theme choice is the only localStorage preference.

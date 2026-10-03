@@ -3,6 +3,27 @@ import type { Routes } from '@angular/router';
 
 export const SOCIETY_ROUTES: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+  ...(['payments', 'payments/report', 'payments/:id/receipt'] as const).map((path) => ({
+    path: 'billing/' + path,
+    canActivate: [financeGuard],
+    data: {
+      mode: path.endsWith('report') ? 'report' : path.endsWith('receipt') ? 'receipt' : 'history',
+      breadcrumb: 'Payments',
+    },
+    loadComponent: () => import('../payments/history').then((m) => m.PaymentHistoryPage),
+  })),
+  ...(['payments/new', 'payments/:id/correct'] as const).map((path) => ({
+    path: 'billing/' + path,
+    canActivate: [financeGuard],
+    data: { breadcrumb: 'Record payment' },
+    loadComponent: () => import('../payments/record').then((m) => m.PaymentRecordPage),
+  })),
+  {
+    path: 'billing/payments/:id',
+    canActivate: [financeGuard],
+    data: { breadcrumb: 'Payment details' },
+    loadComponent: () => import('../payments/history').then((m) => m.PaymentHistoryPage),
+  },
   ...(['configuration', 'periods'] as const).map((mode) => ({
     path: 'billing/' + mode,
     canActivate: [financeGuard],

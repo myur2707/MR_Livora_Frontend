@@ -200,6 +200,9 @@ test('static shell works offline while authenticated/private responses never ent
     '/api/v1/society/flats/1/occupancies',
     '/api/v1/society/billing/bills',
     '/api/v1/society/billing/outstanding',
+    '/api/v1/society/billing/payments',
+    '/api/v1/society/billing/payments/1/receipt',
+    '/api/v1/society/billing/payments/report',
   ];
   for (const path of privatePaths) {
     const result: unknown = await page.evaluate(async (path) => {

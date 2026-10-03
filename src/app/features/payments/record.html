@@ -1,0 +1,195 @@
+<div class="page-heading billing-heading">
+  <p class="eyebrow">PAYMENTS</p>
+  <h1>{{ id ? 'Correct a payment' : 'Record a payment' }}</h1>
+  <p>
+    Record money already received by the committee or accountant. Full and partial payments are
+    supported.
+  </p>
+</div>
+<se-form-notice [message]="error()" />
+@if (!canRecord) {
+  <p>You do not have permission to record this action.</p>
+} @else {
+  <form #form="ngForm" (ngSubmit)="save(form.valid)">
+    <fieldset class="payment-form" [disabled]="saving()">
+      <legend>{{ id ? 'Replacement payment' : 'Payment details' }}</legend>
+      @if (original(); as p) {
+        <p>
+          Original: {{ p.receiptNumber }} · {{ p.buildingCode }} / {{ p.flatNumber }} ·
+          {{ p.amount }}. The original record is retained and reversed atomically.
+        </p>
+      } @else {
+        <se-billing-picker resource="flats" label="Flat" (selected)="selectFlat($event)" />
+      }
+      <se-billing-picker
+        resource="payments/payers"
+        label="Payer"
+        (selected)="payerPersonId = $event; edited()"
+      />
+      @if (original(); as p) {
+        <p>Current payer: {{ p.payerName }}</p>
+      }
+      <se-billing-picker
+        resource="payments/collectors"
+        label="Authorized collector"
+        (selected)="collectedByUserId = $event; edited()"
+      />
+      @if (original(); as p) {
+        <p>Current collector: {{ p.collectorName ?? 'Legacy collector' }}</p>
+      }
+      <div class="payment-fields">
+        <se-field controlId="payment-method" label="Method" [required]="true"
+          ><select seSelect name="method" [(ngModel)]="method" (ngModelChange)="edited()" required>
+            @for (option of methods; track option) {
+              <option [value]="option">{{ option }}</option>
+            }
+          </select></se-field
+        >
+        <se-field
+          controlId="payment-date"
+          label="Payment date"
+          [required]="true"
+          hint="The society’s local calendar date; cannot be in the future."
+          ><input
+            seInput
+            type="date"
+            name="paymentDate"
+            [(ngModel)]="paymentDate"
+            (ngModelChange)="edited()"
+            required
+        /></se-field>
+        <se-field
+          controlId="payment-amount"
+          label="Amount"
+          [required]="true"
+          hint="At most two decimal places. Excess payment is rejected."
+          [error]="
+            form.submitted && form.controls['amount']?.invalid
+              ? 'Enter an amount with at most two decimal places.'
+              : null
+          "
+          ><input
+            seInput
+            name="amount"
+            inputmode="decimal"
+            [(ngModel)]="amount"
+            (ngModelChange)="edited()"
+            pattern="(?:0|[1-9][0-9]{0,9})(?:\.[0-9]{1,2})?"
+            required
+        /></se-field>
+        <se-field
+          controlId="payment-reference"
+          label="Transaction reference"
+          [required]="method !== 'CASH'"
+          ><input
+            seInput
+            name="reference"
+            [(ngModel)]="reference"
+            (ngModelChange)="edited()"
+            maxlength="128"
+            [required]="method !== 'CASH'"
+        /></se-field>
+        <se-field controlId="payment-notes" label="Notes">
+          <textarea
+            seInput
+            name="notes"
+            [(ngModel)]="notes"
+            (ngModelChange)="edited()"
+            maxlength="1000"
+          ></textarea>
+        </se-field>
+      </div>
+      @if (flatId) {
+        <h2>Allocate to bills</h2>
+        <button seButton type="button" variant="secondary" (click)="loadBills()">
+          Refresh bills
+        </button>
+      }
+      @if (loading()) {
+        <p role="status">Loading balances…</p>
+      }
+      @if (bills(); as result) {
+        <div class="table-scroll" role="region" aria-label="Payment bill allocations" tabindex="0">
+          <table seTable>
+            <caption>
+              Choose one or more bills for this flat
+            </caption>
+            <thead>
+              <tr>
+                <th>Bill</th>
+                <th>Available balance</th>
+                <th>Allocation</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (bill of result.items; track bill.id) {
+                <tr>
+                  <td>{{ bill.billNumber }} · {{ bill.periodCode }}</td>
+                  <td>{{ available(bill) }}</td>
+                  <td>
+                    <se-field
+                      [controlId]="'allocation-' + bill.id"
+                      [label]="'Allocate to ' + bill.billNumber"
+                      ><input
+                        seInput
+                        [name]="'bill-' + bill.id"
+                        inputmode="decimal"
+                        [(ngModel)]="selected[bill.id]"
+                        (ngModelChange)="edited()"
+                        pattern="(?:0|[1-9][0-9]{0,9})(?:\.[0-9]{1,2})?"
+                    /></se-field>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="3">No eligible bills.</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <se-pagination
+          [total]="result.total"
+          [page]="result.page"
+          [pageSize]="result.pageSize"
+          (pageSelected)="loadBills($event)"
+        />
+      }
+      <p role="status">Allocated total: {{ total() }}</p>
+      @if (id) {
+        <se-field controlId="correction-date" label="Correction date" [required]="true"
+          ><input
+            seInput
+            type="date"
+            name="operationDate"
+            [(ngModel)]="operationDate"
+            (ngModelChange)="edited()"
+            required
+        /></se-field>
+        <se-field controlId="correction-reason" label="Correction reason" [required]="true">
+          <textarea
+            seInput
+            name="reason"
+            [(ngModel)]="reason"
+            (ngModelChange)="edited()"
+            minlength="5"
+            maxlength="500"
+            required
+          ></textarea>
+        </se-field>
+      }
+      <label class="payment-confirm"
+        ><input type="checkbox" name="confirmed" [(ngModel)]="confirmed" required />
+        {{
+          id
+            ? 'I reviewed the replacement and reason; retain and reverse the original.'
+            : 'I confirm this money was received and these allocations are correct.'
+        }}</label
+      >
+      <button seButton type="submit" [disabled]="saving() || loading()">
+        {{ saving() ? 'Saving…' : id ? 'Confirm correction' : 'Record payment' }}
+      </button>
+      <a routerLink="/society/billing/payments">Payment history</a>
+    </fieldset>
+  </form>
+}

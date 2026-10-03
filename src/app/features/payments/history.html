@@ -1,0 +1,380 @@
+<div class="page-heading billing-heading payment-screen">
+  <p class="eyebrow">PAYMENTS</p>
+  <h1>
+    {{
+      id
+        ? receipt
+          ? 'Payment receipt'
+          : 'Payment details'
+        : report
+          ? 'Collection report'
+          : 'Payment history'
+    }}
+  </h1>
+  <p>
+    SocietyEase records physical collections and returns. Reversals correct the ledger; they do not
+    transfer money.
+  </p>
+</div>
+<div class="payment-screen">
+  <se-form-notice [message]="error()" />
+  @if (message()) {
+    <p role="status">{{ message() }}</p>
+  }
+  @if (loading()) {
+    <p role="status">Loading payments…</p>
+  }
+</div>
+@if (detail(); as p) {
+  <article class="payment-receipt" aria-label="Printable payment receipt">
+    <h2>{{ p.societyName }}</h2>
+    <p>Receipt {{ p.receiptNumber ?? 'Unavailable' }} · {{ p.status }}</p>
+    @if (p.legacyReceipt) {
+      <p>Legacy receipt: names shown from current records; no original name snapshot exists.</p>
+    }
+    <dl class="billing-totals">
+      <dt>Flat</dt>
+      <dd>{{ p.buildingCode }} / {{ p.flatNumber }}</dd>
+      <dt>Payer</dt>
+      <dd>{{ p.payerName }}</dd>
+      <dt>Payment date</dt>
+      <dd>{{ p.paymentDate }}</dd>
+      <dt>Method</dt>
+      <dd>{{ p.method }}</dd>
+      <dt>Amount received ({{ p.currency }})</dt>
+      <dd>{{ p.amount }}</dd>
+      <dt>Reference</dt>
+      <dd>{{ p.reference ?? '—' }}</dd>
+      <dt>Collected by</dt>
+      <dd>{{ p.collectorName ?? 'Legacy collector' }}</dd>
+      <dt>Recorded by</dt>
+      <dd>{{ p.recorderName ?? 'Legacy recorder' }}</dd>
+      <dt>Issued at (UTC)</dt>
+      <dd>{{ p.issuedAt ?? 'Unavailable' }}</dd>
+      <dt>Refunded</dt>
+      <dd>{{ p.refunded }}</dd>
+      <dt>Effective payment</dt>
+      <dd>{{ p.netAmount }}</dd>
+    </dl>
+    <div class="table-scroll" role="region" aria-label="Receipt allocations" tabindex="0">
+      <table seTable>
+        <caption>
+          Bill allocations
+        </caption>
+        <thead>
+          <tr>
+            <th>Bill</th>
+            <th>Received</th>
+            <th>Refunded</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of p.allocations; track a.billId) {
+            <tr>
+              <td>{{ a.billNumber }}</td>
+              <td>{{ a.amount }}</td>
+              <td>{{ a.refunded }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    @if (p.notes) {
+      <p>Notes: {{ p.notes }}</p>
+    }
+    @if (p.reversal; as r) {
+      <p>
+        <strong>Reversed on {{ r.operationDate }}:</strong> {{ r.reason }}
+      </p>
+      @if (r.replacementPaymentId) {
+        <p>
+          Corrected by a replacement payment.
+          <a
+            class="payment-screen"
+            [routerLink]="['/society/billing/payments', r.replacementPaymentId]"
+            >View replacement</a
+          >
+        </p>
+      }
+    }
+    @if (p.correctedFromPaymentId) {
+      <p>
+        Replacement for a preserved original payment.
+        <a
+          class="payment-screen"
+          [routerLink]="['/society/billing/payments', p.correctedFromPaymentId]"
+          >View original</a
+        >
+      </p>
+    }
+    @for (refund of p.refunds; track refund.id) {
+      <p>
+        Refund {{ refund.amount }} · {{ refund.operationDate }} · {{ refund.method }} ·
+        {{ refund.reason }}
+        @if (refund.reference) {
+          · {{ refund.reference }}
+        }
+      </p>
+    }
+    <p>
+      Payment acknowledged as recorded by the society. This receipt does not authorize a bank
+      transfer.
+    </p>
+  </article>
+  <div class="property-actions payment-screen">
+    @if (p.receiptNumber) {
+      <button seButton type="button" (click)="print()">Print receipt</button>
+    }
+    <a routerLink="/society/billing/payments">Payment history</a>
+    @if (can('society.finance.reverse') && editable()) {
+      <button seButton variant="secondary" type="button" (click)="open('reverse')">
+        Reverse record</button
+      ><a seButton variant="secondary" [routerLink]="['/society/billing/payments', p.id, 'correct']"
+        >Correct payment</a
+      >
+    }
+    @if (can('society.finance.reverse') && refundable()) {
+      <button seButton variant="secondary" type="button" (click)="open('refund')">
+        Record refund
+      </button>
+    }
+  </div>
+  @if (action) {
+    <form #form="ngForm" class="payment-screen" (ngSubmit)="submit(form.valid)">
+      <fieldset class="payment-form" [disabled]="saving()">
+        <legend>
+          {{
+            action === 'refund' ? 'Record money physically returned' : 'Reverse an incorrect record'
+          }}
+        </legend>
+        <se-field controlId="return-date" label="Action date" [required]="true"
+          ><input
+            seInput
+            type="date"
+            name="operationDate"
+            [(ngModel)]="operationDate"
+            (ngModelChange)="changed()"
+            required
+        /></se-field>
+        <se-field controlId="return-reason" label="Reason" [required]="true">
+          <textarea
+            seInput
+            name="reason"
+            [(ngModel)]="reason"
+            (ngModelChange)="changed()"
+            minlength="5"
+            maxlength="500"
+            required
+          ></textarea>
+        </se-field>
+        @if (action === 'refund') {
+          <se-field controlId="refund-method" label="Refund method" [required]="true"
+            ><select
+              seSelect
+              name="refundMethod"
+              [(ngModel)]="refundMethod"
+              (ngModelChange)="changed()"
+              required
+            >
+              @for (option of methods; track option) {
+                <option [value]="option">{{ option }}</option>
+              }
+            </select></se-field
+          >
+          <se-field
+            controlId="refund-reference"
+            label="Refund reference"
+            [required]="refundMethod !== 'CASH'"
+            ><input
+              seInput
+              name="reference"
+              [(ngModel)]="reference"
+              (ngModelChange)="changed()"
+              maxlength="128"
+              [required]="refundMethod !== 'CASH'"
+          /></se-field>
+          @for (a of p.allocations; track a.billId) {
+            <se-field
+              [controlId]="'refund-' + a.billId"
+              [label]="'Refund from ' + a.billNumber"
+              [hint]="'Remaining allocation: ' + remaining(a.amount, a.refunded)"
+              ><input
+                seInput
+                [name]="'allocation-' + a.billId"
+                inputmode="decimal"
+                [(ngModel)]="allocations[a.billId]"
+                (ngModelChange)="changed()"
+                pattern="(?:0|[1-9][0-9]{0,9})(?:\.[0-9]{1,2})?"
+            /></se-field>
+          }
+          <p role="status">Refund total: {{ refundTotal() }}</p>
+        }
+        <label class="payment-confirm"
+          ><input type="checkbox" name="confirmed" [(ngModel)]="confirmed" required />
+          {{
+            action === 'refund'
+              ? 'I confirm money was returned and the selected balances must be restored.'
+              : 'I confirm this recording was incorrect; preserve its history and restore balances.'
+          }}</label
+        >
+        <button seButton type="submit" [disabled]="saving()">
+          {{ saving() ? 'Saving…' : 'Confirm action' }}</button
+        ><button
+          seButton
+          variant="secondary"
+          type="button"
+          (click)="action = ''"
+          [disabled]="saving()"
+        >
+          Cancel
+        </button>
+      </fieldset>
+    </form>
+  }
+} @else if (!id) {
+  <div class="property-actions">
+    @if (can('society.finance.record')) {
+      <a seButton routerLink="/society/billing/payments/new">Record payment</a>
+    }
+    <a [routerLink]="report ? '/society/billing/payments' : '/society/billing/payments/report'">{{
+      report ? 'Payment history' : 'Collection report'
+    }}</a>
+  </div>
+  <form class="payment-form" (ngSubmit)="load()">
+    <div class="payment-fields">
+      <se-field controlId="payment-search" label="Receipt or reference"
+        ><input seInput name="q" [(ngModel)]="q" maxlength="100"
+      /></se-field>
+      <se-field controlId="collection-from" label="From date"
+        ><input seInput type="date" name="from" [(ngModel)]="from" /></se-field
+      ><se-field controlId="collection-to" label="To date"
+        ><input seInput type="date" name="to" [(ngModel)]="to"
+      /></se-field>
+      <se-field controlId="collection-method" label="Method filter"
+        ><select seSelect name="method" [(ngModel)]="method">
+          <option value="">All methods</option>
+          @for (option of methods; track option) {
+            <option [value]="option">{{ option }}</option>
+          }
+        </select></se-field
+      >
+    </div>
+    <se-billing-picker
+      resource="payments/report-collectors"
+      label="Collector filter"
+      (selected)="collectorUserId = $event"
+    /><button seButton variant="secondary" type="button" (click)="collectorUserId = ''; load()">
+      Clear collector filter</button
+    ><button seButton type="submit">Apply filters</button>
+  </form>
+  @if (payments(); as result) {
+    <p role="status">{{ result.total }} matching payments</p>
+    <div class="table-scroll" role="region" aria-label="Payment history" tabindex="0">
+      <table seTable>
+        <caption>
+          Recorded payments
+        </caption>
+        <thead>
+          <tr>
+            <th>Receipt</th>
+            <th>Flat</th>
+            <th>Date</th>
+            <th>Method</th>
+            <th>Amount</th>
+            <th>Effective</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of result.items; track p.id) {
+            <tr>
+              <td>
+                <a [routerLink]="['/society/billing/payments', p.id]">{{
+                  p.receiptNumber ?? 'Payment details'
+                }}</a>
+              </td>
+              <td>{{ p.buildingCode }} / {{ p.flatNumber }}</td>
+              <td>{{ p.paymentDate }}</td>
+              <td>{{ p.method }}</td>
+              <td>{{ p.amount }}</td>
+              <td>{{ p.netAmount }}</td>
+              <td>{{ p.status }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7">No matching payments.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <se-pagination
+      [total]="result.total"
+      [page]="result.page"
+      [pageSize]="result.pageSize"
+      (pageSelected)="load($event)"
+    />
+  }
+  @if (collection(); as result) {
+    <dl class="billing-totals">
+      <dt>Recorded collections</dt>
+      <dd>{{ result.summary.collections }}</dd>
+      <dt>Physical refunds recorded</dt>
+      <dd>{{ result.summary.refunds }}</dd>
+      <dt>Bookkeeping reversals</dt>
+      <dd>{{ result.summary.reversals }}</dd>
+      <dt>Net recorded movement</dt>
+      <dd>{{ result.summary.netRecorded }}</dd>
+    </dl>
+    <p>
+      Dates follow each collection, refund or reversal event. Collector filters refer to the
+      original collector. Select CASH for the cash collection report.
+    </p>
+    <div class="table-scroll" role="region" aria-label="Collection events" tabindex="0">
+      <table seTable>
+        <caption>
+          {{
+            result.total
+          }}
+          matching ledger events
+        </caption>
+        <thead>
+          <tr>
+            <th>Receipt</th>
+            <th>Event</th>
+            <th>Date</th>
+            <th>Method</th>
+            <th>Signed amount</th>
+            <th>Reference</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of result.items; track e.kind + e.id) {
+            <tr>
+              <td>
+                <a [routerLink]="['/society/billing/payments', e.paymentId]">{{
+                  e.receiptNumber ?? 'Payment details'
+                }}</a>
+              </td>
+              <td>{{ e.kind }}</td>
+              <td>{{ e.eventDate }}</td>
+              <td>{{ e.method }}</td>
+              <td>{{ e.amount }}</td>
+              <td>{{ e.reference ?? '—' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="6">No matching collections.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <se-pagination
+      [total]="result.total"
+      [page]="result.page"
+      [pageSize]="result.pageSize"
+      (pageSelected)="load($event)"
+    />
+  }
+}
