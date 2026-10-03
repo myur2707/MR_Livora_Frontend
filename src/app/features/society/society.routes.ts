@@ -1,7 +1,19 @@
-import { managementGuard, financeGuard } from '../../core/auth-guards';
+import { managementGuard, financeGuard, communityGuard } from '../../core/auth-guards';
 import type { Routes } from '@angular/router';
 
 export const SOCIETY_ROUTES: Routes = [
+  ...(['notices', 'notices/new', 'notices/:id'] as const).map((path) => ({
+    path: 'community/' + path,
+    canActivate: [communityGuard('society.notices.manage')],
+    data: { breadcrumb: 'Committee notices', create: path === 'notices/new' },
+    loadComponent: () => import('../community/notices').then((m) => m.CommitteeNoticesPage),
+  })),
+  ...(['complaints', 'complaints/:id'] as const).map((path) => ({
+    path: 'community/' + path,
+    canActivate: [communityGuard('society.complaints.manage')],
+    data: { breadcrumb: 'Committee complaints' },
+    loadComponent: () => import('../community/complaints').then((m) => m.CommitteeComplaintsPage),
+  })),
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   {
     path: 'resident',

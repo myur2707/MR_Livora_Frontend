@@ -55,12 +55,14 @@ export interface ResidentPayment {
   refunds?: { amount: string; date: string; method: string }[];
 }
 export interface ResidentNotice {
+  authorName?: string;
   id: string;
   title: string;
   body: string;
   publishedAt: string;
 }
 export interface ResidentComplaint {
+  category: string;
   id: string;
   flatId: string;
   title: string;
@@ -101,6 +103,7 @@ export class ResidentPortalApi {
     );
   }
   complain(fields: {
+    category?: string;
     flatId: string;
     title: string;
     description: string;

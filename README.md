@@ -1,5 +1,7 @@
 # SocietyEase frontend
 
+Step 10 adds [committee notice management and complaint assignment/status history](docs/STEP_10_COMMUNITY.md), plus categorized resident complaints and own status history. Select an ACTIVE society with the relevant committee permissions to open the Community navigation.
+
 Step 9 adds [resident dashboard, authorized flats/bills, own payments/receipts, notices, complaints and profile](docs/STEP_9_RESIDENT_PORTAL.md), plus validated community switching. Open `/society/resident/dashboard`; backend membership, verified person and occupancy rules enforce access.
 
 A thoughtful Angular PWA for community living. Steps 2–9 contain the shared shell, cookie authentication, workspace selection, society onboarding/activation, property/resident management, verified resident access, billing/payment screens and the resident portal. The independent `MR_Livora_Backend` enforces authorization and preserves database history.

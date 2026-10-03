@@ -32,6 +32,18 @@ export const NAVIGATION: readonly { label: string; path: string; icon: IconName;
     { label: 'Overview', path: '/platform/dashboard', icon: 'home', group: 'Workspace' },
     { label: 'Societies', path: '/platform/societies', icon: 'building', group: 'Workspace' },
     { label: 'Community space', path: '/society/dashboard', icon: 'people', group: 'Workspace' },
+    {
+      label: 'Committee notices',
+      path: '/society/community/notices',
+      icon: 'grid',
+      group: 'Community',
+    },
+    {
+      label: 'Committee complaints',
+      path: '/society/community/complaints',
+      icon: 'people',
+      group: 'Community',
+    },
     { label: 'Buildings', path: '/society/buildings', icon: 'building', group: 'Community' },
     { label: 'Flats', path: '/society/flats', icon: 'building', group: 'Community' },
     { label: 'Residents', path: '/society/persons', icon: 'people', group: 'Community' },

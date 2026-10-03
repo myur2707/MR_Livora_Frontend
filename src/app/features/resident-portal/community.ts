@@ -11,6 +11,8 @@ import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../sha
 import { PaginationComponent } from '../../shared/pagination';
 import { CardComponent } from '../../shared/card';
 import { ResidentView } from './view';
+import { COMPLAINT_CATEGORIES } from '../../core/community';
+import type { ComplaintHistory } from '../../core/community';
 @Component({
   selector: 'se-resident-community',
   imports: [
@@ -36,6 +38,9 @@ export class ResidentCommunityPage {
   protected readonly complaint = new ResidentView<ResidentComplaint>();
   protected readonly flats = new ResidentView<Page<ResidentFlat>>();
   protected readonly saving = signal(false);
+  protected readonly history = new ResidentView<Page<ComplaintHistory>>();
+  protected readonly categories = COMPLAINT_CATEGORIES;
+  protected category = 'OTHER';
   protected readonly submitError = signal<string | null>(null);
   protected readonly attempted = signal(false);
   protected id: string | null = null;
@@ -46,6 +51,7 @@ export class ResidentCommunityPage {
     this.route.paramMap.pipe(takeUntilDestroyed(inject(DestroyRef))).subscribe((params) => {
       this.id = params.get('id');
       void this.load();
+      if (!this.notices && this.id) void this.loadHistory();
       if (!this.notices && !this.id) void this.loadFlats();
     });
   }
@@ -61,6 +67,11 @@ export class ResidentCommunityPage {
   protected loadFlats(page = 1): Promise<void> {
     this.flatId = '';
     return this.flats.load(() => this.api.list<ResidentFlat>('flats', page));
+  }
+  protected loadHistory(page = 1): Promise<void> {
+    return this.history.load(() =>
+      this.api.list<ComplaintHistory>('complaints/' + this.id + '/history', page),
+    );
   }
   protected error(field: 'flat' | 'title' | 'description'): string | null {
     if (!this.attempted()) return null;
@@ -80,6 +91,7 @@ export class ResidentCommunityPage {
     this.submitError.set(null);
     try {
       const result = await this.api.complain({
+        category: this.category,
         flatId: this.flatId,
         title: this.title.trim(),
         description: this.description.trim(),

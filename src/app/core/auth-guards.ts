@@ -2,6 +2,23 @@ import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import type { CanActivateFn, UrlTree } from '@angular/router';
 import { AuthService } from './auth';
+export function communityGuard(
+  permission: 'society.notices.manage' | 'society.complaints.manage',
+): CanActivateFn {
+  return async () => {
+    const auth = inject(AuthService),
+      router = inject(Router);
+    try {
+      const identity = await auth.refresh();
+      return (
+        !!identity?.activeSociety?.permissions.includes(permission) ||
+        router.createUrlTree(['/workspace'])
+      );
+    } catch {
+      return router.createUrlTree(['/login']);
+    }
+  };
+}
 
 // UX only: the API independently validates sessions, membership and permissions.
 export const financeGuard = async (): Promise<boolean | UrlTree> => {

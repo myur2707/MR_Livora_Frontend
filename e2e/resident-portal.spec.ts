@@ -76,11 +76,12 @@ async function portal(page: Page) {
     publishedAt: '2026-10-01T00:00:00Z',
   };
   const complaint = {
+    category: 'PLUMBING',
     id: '601',
     flatId: '101',
     title: 'Water pressure',
     description: 'Please check the pipe.',
-    status: 'OPEN',
+    status: 'NEW',
     createdAt: '2026-10-03T00:00:00Z',
     resolvedAt: null,
     buildingCode: 'A',
@@ -154,9 +155,21 @@ async function portal(page: Page) {
       if (resource === 'notices') return list([notice]);
       if (resource === 'notices/501') return route.fulfill({ json: notice });
       if (resource === 'complaints/601') return route.fulfill({ json: complaint });
+      if (resource === 'complaints/601/history')
+        return list([
+          {
+            id: '1',
+            fromStatus: null,
+            toStatus: 'NEW',
+            note: 'Complaint submitted',
+            revision: 1,
+            createdAt: '2026-10-03T00:00:00Z',
+          },
+        ]);
       if (resource === 'complaints') {
         if (request.method() === 'POST') {
           expect(request.postDataJSON()).toEqual({
+            category: 'OTHER',
             flatId: '101',
             title: 'Water pressure',
             description: 'Please check the pipe.',
