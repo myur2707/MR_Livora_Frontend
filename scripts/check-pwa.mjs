@@ -15,12 +15,19 @@ assert.deepEqual(built.dataGroups, []);
 assert.equal(built.assetGroups.length, 1);
 assert.equal(built.assetGroups[0].patterns.length, 0, 'No runtime URL asset patterns');
 const allowed =
-  /^\/(?:index\.html|[a-zA-Z0-9_-]+\.js|[a-zA-Z0-9_-]+\.css|manifest\.webmanifest|favicon\.svg|assets\/brand\/[a-zA-Z0-9_-]+\.svg|icons\/[a-zA-Z0-9_-]+\.png)$/;
+  /^\/(?:index\.html|[a-zA-Z0-9_-]+\.js|[a-zA-Z0-9_-]+\.css|manifest\.webmanifest|assets\/brand\/(?:[a-zA-Z0-9_-]+\.svg|logo\.png|monogram\.png)|icons\/[a-zA-Z0-9_-]+\.png)$/;
 for (const url of built.assetGroups[0].urls) {
   assert.match(url, allowed, 'Only allowlisted static files may be cached');
   assert.ok(built.hashTable[url], 'Every cached asset must be versioned by content hash');
 }
 assert.ok(built.assetGroups[0].urls.includes('/index.html'));
+for (const asset of [
+  '/assets/brand/logo.png',
+  '/assets/brand/monogram.png',
+  '/icons/favicon-32.png',
+])
+  assert.ok(built.assetGroups[0].urls.includes(asset), asset + ' must work offline');
+assert.match(index, /href="\/icons\/favicon-32\.png"/);
 assert.equal(built.navigationRequestStrategy, 'performance');
 function navigation(path) {
   return (

@@ -22,6 +22,8 @@ import { StateComponent } from '../../shared/state';
 import { TableDirective } from '../../shared/table';
 import { PaginationComponent } from '../../shared/pagination';
 import { DialogComponent } from '../../shared/dialog';
+import { parseFlatNumbers, propertyNumberLimits, type FlatNumberPlan } from './flat-numbers';
+import { parseWingCodes, type WingPlan } from './wing-codes';
 @Component({
   selector: 'se-onboarding-wizard',
   imports: [
@@ -59,12 +61,26 @@ export class OnboardingWizardComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
   protected readonly busy = signal(false);
+  protected readonly wingOptions = ['A', 'B', 'C', 'D'];
+  protected readonly multipleWings = signal(false);
+  protected readonly rowHouses = signal(false);
+  protected readonly numberLimits = computed(
+    () => propertyNumberLimits[this.rowHouses() ? 'rowHouses' : 'flats'],
+  );
+  protected readonly selectedWings = signal<string[]>([]);
+  protected readonly wingPlan = signal<WingPlan>({ codes: [], error: null });
+  protected readonly batchError = computed(() =>
+    this.wingPlan().codes.length * this.flatPlan().numbers.length > 500
+      ? 'Add at most 500 flats across all wings per batch.'
+      : null,
+  );
+  protected readonly flatPlan = signal<FlatNumberPlan>({ numbers: [], error: null });
   protected readonly loading = signal(true);
   protected readonly step = signal(0);
   protected readonly steps = [
-    'Society',
+    'Society or Township',
     'Committee Admin',
-    'Buildings/Flats',
+    'Buildings / Wings / Flats',
     'Residents',
     'Maintenance',
     'Verification',
@@ -99,10 +115,8 @@ export class OnboardingWizardComponent implements OnInit {
       '',
       [(control: AbstractControl) => Validators.required(control), Validators.maxLength(64)],
     ],
-    name: [
-      '',
-      [(control: AbstractControl) => Validators.required(control), Validators.maxLength(100)],
-    ],
+    name: ['', [Validators.maxLength(100)]],
+    customCodes: [''],
     numbers: ['', [(control: AbstractControl) => Validators.required(control)]],
     areaSqFt: ['', [Validators.pattern(/^[1-9]\d{0,7}\.\d{2}$/)]],
   });
@@ -239,27 +253,92 @@ export class OnboardingWizardComponent implements OnInit {
       'Invitation queued. Refresh to check delivery.',
     );
   }
+  protected previewFlats(): void {
+    const plan = parseFlatNumbers(
+      this.buildingForm.controls.numbers.value,
+      this.rowHouses() ? 'rowHouses' : 'flats',
+    );
+    if (this.rowHouses() && plan.error)
+      plan.error = plan.error.replaceAll('flat', 'row house').replace('per wing', 'per batch');
+    this.flatPlan.set(plan);
+  }
+  protected setPropertyType(rowHouses: boolean): void {
+    this.rowHouses.set(rowHouses);
+    this.error.set(null);
+    if (this.buildingForm.controls.numbers.value) this.previewFlats();
+  }
+  protected setWingMode(multiple: boolean): void {
+    this.multipleWings.set(multiple);
+    this.error.set(null);
+  }
+  protected toggleWing(code: string, event: Event): void {
+    const checked = event.target instanceof HTMLInputElement && event.target.checked;
+    this.selectedWings.update((codes) =>
+      checked ? [...codes, code] : codes.filter((v) => v !== code),
+    );
+    this.previewWings();
+  }
+  protected selectAllWings(): void {
+    this.selectedWings.set([...this.wingOptions]);
+    this.previewWings();
+  }
+  protected previewWings(): void {
+    this.wingPlan.set(
+      parseWingCodes(this.selectedWings(), this.buildingForm.controls.customCodes.value),
+    );
+  }
   protected async building(): Promise<void> {
     this.buildingForm.markAllAsTouched();
-    if (this.buildingForm.invalid) return;
+    const rowHouses = this.rowHouses();
+    const multiple = !rowHouses && this.multipleWings();
+    if (
+      multiple || rowHouses
+        ? this.buildingForm.controls.numbers.invalid || this.buildingForm.controls.areaSqFt.invalid
+        : this.buildingForm.invalid
+    )
+      return;
     const value = this.buildingForm.getRawValue();
-    const numbers = value.numbers
-      .split(/[,\n]/)
-      .map((v) => v.trim())
-      .filter(Boolean);
-    if (!numbers.length || numbers.length > 100) {
-      this.error.set('Enter between 1 and 100 flat numbers.');
+    this.previewFlats();
+    if (multiple) this.previewWings();
+    const { numbers, error } = this.flatPlan();
+    const validationError = error || (multiple && (this.wingPlan().error || this.batchError()));
+    if (validationError) {
+      this.error.set(validationError);
       return;
     }
-    await this.run(async (detail) => {
-      await this.api.post(this.prefix + '/buildings', {
-        revision: detail.revision,
-        code: value.code,
-        name: value.name,
-        flats: numbers.map((number) => ({ number, areaSqFt: value.areaSqFt || null })),
-      });
-      this.buildingForm.reset();
-    }, 'Building and flats added.');
+    const flats = numbers.map((number) => ({ number, areaSqFt: value.areaSqFt || null }));
+    const count = this.wingPlan().codes.length;
+    await this.run(
+      async (detail) => {
+        if (rowHouses) {
+          await this.api.post(this.prefix + '/row-houses', {
+            revision: detail.revision,
+            houses: flats,
+          });
+        } else if (multiple) {
+          await this.api.post(this.prefix + '/buildings/batch', {
+            revision: detail.revision,
+            buildings: this.wingPlan().codes.map((code) => ({ code, name: 'Wing ' + code, flats })),
+          });
+        } else {
+          await this.api.post(this.prefix + '/buildings', {
+            revision: detail.revision,
+            code: value.code,
+            name: value.name.trim() || 'Wing ' + value.code.trim(),
+            flats,
+          });
+        }
+        this.buildingForm.reset();
+        this.selectedWings.set([]);
+        this.wingPlan.set({ codes: [], error: null });
+        this.flatPlan.set({ numbers: [], error: null });
+      },
+      rowHouses
+        ? numbers.length + ' row houses added.'
+        : multiple
+          ? count + ' wings and ' + count * numbers.length + ' flats added.'
+          : 'Wing and flats added.',
+    );
   }
   protected async resident(): Promise<void> {
     this.residentForm.markAllAsTouched();

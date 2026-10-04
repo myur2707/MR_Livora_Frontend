@@ -8,13 +8,13 @@ export const PLATFORM_ROUTES: Routes = [
   },
   {
     path: 'societies',
-    title: 'Societies · MR Livora',
-    data: { breadcrumb: 'Societies' },
+    title: 'Societies or Townships · MR Livora',
+    data: { breadcrumb: 'Societies or Townships' },
     loadComponent: () => import('./societies').then((m) => m.SocietiesComponent),
   },
   {
     path: 'societies/:id',
-    title: 'Society onboarding · MR Livora',
+    title: 'Society or Township onboarding · MR Livora',
     data: { breadcrumb: 'Onboarding', scope: 'platform' },
     loadComponent: () => import('../onboarding/wizard').then((m) => m.OnboardingWizardComponent),
   },

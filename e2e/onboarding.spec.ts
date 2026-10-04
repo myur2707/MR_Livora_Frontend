@@ -108,7 +108,7 @@ test('committee wizard requires review and explicit activation; stale server con
   });
   await page.goto('/onboarding/societies/10');
   await expect(
-    page.getByRole('heading', { name: 'Society onboarding', exact: true }),
+    page.getByRole('heading', { name: 'Society or Township onboarding', exact: true }),
   ).toBeVisible();
   for (const button of await page.locator('.wizard-steps button').all()) {
     await button.click();
@@ -227,4 +227,267 @@ test('invitation token stays in memory and new account acceptance validates matc
   expect(
     await page.evaluate(() => JSON.stringify(localStorage) + JSON.stringify(sessionStorage)),
   ).not.toContain(token);
+});
+
+test('wing range preview creates separate flat lists and rejects invalid plans', async ({
+  page,
+}) => {
+  const posts: unknown[] = [];
+  await page.route('**/api/v1/**', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/session'))
+      return route.fulfill({
+        json: {
+          userId: '1',
+          email: 'platform@example.invalid',
+          platformAdmin: true,
+          memberships: [],
+          activeSociety: null,
+        },
+      });
+    if (path.endsWith('/csrf')) return route.fulfill({ json: { csrfToken: 'synthetic-csrf' } });
+    if (path.endsWith('/buildings') && route.request().method() === 'POST') {
+      const body: unknown = route.request().postDataJSON();
+      posts.push(body);
+      return route.fulfill({ status: 204 });
+    }
+    if (path.endsWith('/structure'))
+      return route.fulfill({ json: { items: [], total: 0, page: 1, pageSize: 50 } });
+    return route.fulfill({ json: { ...setup, revision: String(3 + posts.length) } });
+  });
+  await page.goto('/platform/societies/10');
+  await expect(
+    page.getByRole('heading', { name: 'Society or Township onboarding', exact: true }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: /3\s*Buildings/ }).click();
+  await expect(page.locator('#wing-options option')).toHaveCount(4);
+  for (const wing of ['A', 'B']) {
+    await page.getByLabel(/^Wing code/).fill(wing);
+    await page.getByLabel(/^Flat numbers/).fill('101-103, 201-202');
+    const preview = page.getByRole('region', { name: 'Flat preview' });
+    await expect(preview).toContainText('5 flats will be added to wing ' + wing);
+    await expect(preview).toContainText('101, 102, 103, 201, 202');
+    expect(posts).toHaveLength(wing === 'A' ? 0 : 1);
+    await page.getByRole('button', { name: 'Add wing and flats', exact: true }).click();
+    await expect(
+      page.getByRole('status').filter({ hasText: 'Wing and flats added.' }),
+    ).toBeVisible();
+    await expect(page.getByLabel(/^Flat numbers/)).toHaveValue('');
+  }
+  expect(posts).toEqual(
+    ['A', 'B'].map((wing, index) => ({
+      revision: String(3 + index),
+      code: wing,
+      name: 'Wing ' + wing,
+      flats: ['101', '102', '103', '201', '202'].map((number) => ({ number, areaSqFt: null })),
+    })),
+  );
+  await page.getByLabel(/^Wing code/).fill('EAST');
+  await page.getByLabel(/^Flat numbers/).fill('1-101');
+  await expect(
+    page.getByRole('button', { name: 'Add wing and flats', exact: true }),
+  ).toBeDisabled();
+  await expect(page.getByText('Use an ascending numeric range', { exact: false })).toBeVisible();
+  await page.getByLabel(/^Flat numbers/).fill('101-103,103');
+  await expect(
+    page.getByText('A flat number appears more than once.', { exact: false }),
+  ).toBeVisible();
+  expect(posts).toHaveLength(2);
+  await page.getByLabel(/^Flat numbers/).fill('001-003');
+  await expect(page.getByRole('region', { name: 'Flat preview' })).toContainText('001, 002, 003');
+  await page.setViewportSize({ width: 320, height: 800 });
+  expect(
+    (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations,
+  ).toEqual([]);
+  await page.getByRole('button', { name: 'Add wing and flats', exact: true }).click();
+  await expect(page.getByLabel(/^Flat numbers/)).toHaveValue('');
+  expect(posts).toHaveLength(3);
+  expect(posts[2]).toEqual({
+    revision: '5',
+    code: 'EAST',
+    name: 'Wing EAST',
+    flats: ['001', '002', '003'].map((number) => ({ number, areaSqFt: null })),
+  });
+});
+
+test('row house ranges hide wing options, retain conflicts and allow later ranges', async ({
+  page,
+}) => {
+  const posts: unknown[] = [];
+  let conflict = true;
+  await page.route('**/api/v1/**', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/session'))
+      return route.fulfill({
+        json: {
+          userId: '1',
+          email: 'platform@example.invalid',
+          platformAdmin: true,
+          memberships: [],
+          activeSociety: null,
+        },
+      });
+    if (path.endsWith('/csrf')) return route.fulfill({ json: { csrfToken: 'synthetic-csrf' } });
+    if (path.endsWith('/row-houses')) {
+      posts.push(route.request().postDataJSON());
+      return conflict
+        ? route.fulfill({ status: 409, json: { error: { code: 'CONFLICT' } } })
+        : route.fulfill({ status: 201 });
+    }
+    if (path.endsWith('/structure'))
+      return route.fulfill({ json: { items: [], total: 0, page: 1, pageSize: 50 } });
+    return route.fulfill({ json: setup });
+  });
+  await page.goto('/platform/societies/10');
+  await page.getByRole('button', { name: /3\s*Buildings/ }).click();
+  await page.getByRole('radio', { name: 'Add multiple wings', exact: true }).check();
+  await page.getByLabel('Other wing codes').fill('a,A');
+  await page.getByRole('radio', { name: 'Row houses', exact: true }).check();
+  await expect(page.getByRole('group', { name: 'How would you like to add wings?' })).toHaveCount(
+    0,
+  );
+  await expect(page.getByLabel(/^Wing code/)).toHaveCount(0);
+  await expect(page.getByLabel('Wing name')).toHaveCount(0);
+  await expect(page.getByLabel('Other wing codes')).toHaveCount(0);
+  await expect(page.getByText('Maximum 200 row houses per batch.', { exact: false })).toBeVisible();
+  await page.getByLabel(/^Row house numbers/).fill('1-201');
+  await expect(page.getByRole('button', { name: 'Add row houses', exact: true })).toBeDisabled();
+  await page.getByLabel(/^Row house numbers/).fill('1-5,5');
+  await expect(
+    page.getByText('A row house number appears more than once.', { exact: false }),
+  ).toBeVisible();
+  await page.getByLabel(/^Row house numbers/).fill('1-5');
+  await expect(page.getByRole('region', { name: 'Row house preview' })).toContainText(
+    '1, 2, 3, 4, 5',
+  );
+  await page.getByRole('button', { name: 'Add row houses', exact: true }).click();
+  await expect(
+    page.getByRole('alert').filter({ hasText: 'setup changed or conflicts' }),
+  ).toBeVisible();
+  await expect(page.getByLabel(/^Row house numbers/)).toHaveValue('1-5');
+  conflict = false;
+  await page.getByRole('button', { name: 'Add row houses', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: '5 row houses added.' })).toBeVisible();
+  const expected = {
+    revision: '3',
+    houses: ['1', '2', '3', '4', '5'].map((number) => ({ number, areaSqFt: null })),
+  };
+  expect(posts).toEqual([expected, expected]);
+  await page.getByLabel(/^Row house numbers/).fill('6-7');
+  await page.getByLabel('Area per row house (sq ft)').fill('900.00');
+  await page.setViewportSize({ width: 320, height: 800 });
+  expect(
+    (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations,
+  ).toEqual([]);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole('button', { name: 'Add row houses', exact: true }).click();
+  await expect(page.getByLabel(/^Row house numbers/)).toHaveValue('');
+  expect(posts[2]).toEqual({
+    revision: '3',
+    houses: ['6', '7'].map((number) => ({ number, areaSqFt: '900.00' })),
+  });
+  await page.getByLabel(/^Row house numbers/).fill('8-207');
+  await expect(page.getByRole('region', { name: 'Row house preview' })).toContainText(
+    '200 row houses will be added.',
+  );
+  await page.getByRole('button', { name: 'Add row houses', exact: true }).click();
+  await expect(page.getByRole('status').filter({ hasText: '200 row houses added.' })).toBeVisible();
+  expect(posts[3]).toEqual({
+    revision: '3',
+    houses: Array.from({ length: 200 }, (_, n) => ({ number: String(n + 8), areaSqFt: null })),
+  });
+  await page.getByRole('radio', { name: 'Flats', exact: true }).check();
+  await expect(page.getByRole('radio', { name: 'Add multiple wings', exact: true })).toBeVisible();
+});
+
+test('multiple wings share ranges, preview counts and send one atomic batch; conflicts preserve the draft', async ({
+  page,
+}) => {
+  const posts: unknown[] = [];
+  let conflict = true;
+  await page.route('**/api/v1/**', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/session'))
+      return route.fulfill({
+        json: {
+          userId: '1',
+          email: 'platform@example.invalid',
+          platformAdmin: true,
+          memberships: [],
+          activeSociety: null,
+        },
+      });
+    if (path.endsWith('/csrf')) return route.fulfill({ json: { csrfToken: 'synthetic-csrf' } });
+    if (path.endsWith('/buildings/batch')) {
+      const body: unknown = route.request().postDataJSON();
+      posts.push(body);
+      return conflict
+        ? route.fulfill({
+            status: 409,
+            json: {
+              error: {
+                code: 'CONFLICT',
+                message: 'A wing already exists. Check the codes and try again.',
+              },
+            },
+          })
+        : route.fulfill({ status: 201 });
+    }
+    if (path.endsWith('/structure'))
+      return route.fulfill({ json: { items: [], total: 0, page: 1, pageSize: 50 } });
+    return route.fulfill({ json: setup });
+  });
+  await page.goto('/platform/societies/10');
+  await page.getByRole('button', { name: /3\s*Buildings/ }).click();
+  await page.getByRole('radio', { name: 'Add multiple wings', exact: true }).check();
+  await page.getByRole('button', { name: 'Select all A-D' }).click();
+  await page.getByLabel(/^Flat numbers/).fill('101-103,201-202');
+  const preview = page.getByRole('region', { name: 'Flat preview' });
+  await expect(preview).toContainText('4 wings / 5 flats per wing / 20 flats total');
+  for (const code of ['A', 'B', 'C', 'D'])
+    await expect(preview.getByText('Wing ' + code, { exact: true })).toBeVisible();
+  await page.getByLabel('Other wing codes').fill('a');
+  await expect(page.getByText('Each wing code must be unique.', { exact: false })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add selected wings and flats' })).toBeDisabled();
+  await page.getByLabel('Other wing codes').fill('E, F');
+  await page.getByLabel(/^Flat numbers/).fill('1-100');
+  await expect(page.getByRole('alert').filter({ hasText: '500 flats' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Add selected wings and flats' })).toBeDisabled();
+  await page.getByLabel('Other wing codes').fill('');
+  await page.getByLabel(/^Flat numbers/).fill('101-103,201-202');
+  expect(posts).toHaveLength(0);
+  await page.setViewportSize({ width: 320, height: 800 });
+  for (const theme of ['light', 'dark']) {
+    await page.evaluate((theme) => {
+      document.documentElement.dataset['theme'] = theme;
+    }, theme);
+    expect(
+      (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations,
+    ).toEqual([]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+  await page.getByRole('button', { name: 'Add selected wings and flats' }).click();
+  await expect(
+    page.getByRole('alert').filter({ hasText: 'setup changed or conflicts' }),
+  ).toBeVisible();
+  await expect(page.getByLabel(/^Flat numbers/)).toHaveValue('101-103,201-202');
+  await expect(page.getByRole('checkbox', { name: 'Wing A', exact: true })).toBeChecked();
+  conflict = false;
+  await page.getByRole('button', { name: 'Add selected wings and flats' }).click();
+  await expect(
+    page.getByRole('status').filter({ hasText: '4 wings and 20 flats added.' }),
+  ).toBeVisible();
+  await expect(page.getByLabel(/^Flat numbers/)).toHaveValue('');
+  await expect(page.getByRole('checkbox', { name: 'Wing A', exact: true })).not.toBeChecked();
+  const expected = {
+    revision: '3',
+    buildings: ['A', 'B', 'C', 'D'].map((code) => ({
+      code,
+      name: 'Wing ' + code,
+      flats: ['101', '102', '103', '201', '202'].map((number) => ({ number, areaSqFt: null })),
+    })),
+  };
+  expect(posts).toEqual([expected, expected]);
 });

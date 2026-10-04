@@ -4,13 +4,13 @@
     <h1 tabindex="-1">Welcome to MR Livora</h1>
     <p>Help new communities get ready for committee-led operations.</p>
   </div>
-  <a seButton routerLink="/platform/societies">Manage societies</a>
+  <a seButton routerLink="/platform/societies">Manage societies or townships</a>
 </header>
 <se-form-notice [message]="error()" />
 @if (operations(); as data) {
   <p>
-    {{ data.totalSocieties }} societies · {{ data.pendingVerification }} awaiting committee
-    verification
+    {{ data.totalSocieties }} societies or townships · {{ data.pendingVerification }} awaiting
+    committee verification
   </p>
 }
 <section class="welcome-panel" aria-labelledby="platform-welcome">
@@ -18,17 +18,17 @@
     <p class="eyebrow">FROM FIRST STEPS TO A SHARED HOME</p>
     <h2 id="platform-welcome">A clear path to<br />a thriving community.</h2>
     <p>
-      Create a society, invite its committee and track setup. The committee reviews the details and
-      verifies activation.
+      Create a society or township, invite its committee and track setup. The committee reviews the
+      details and verifies activation.
     </p>
-    <a seButton routerLink="/platform/societies">Open society directory</a>
+    <a seButton routerLink="/platform/societies">Open society or township directory</a>
   </div>
   <div class="welcome-art">
     <img src="/assets/brand/community.svg" alt="" width="520" height="300" />
   </div>
 </section>
 @if (summary(); as counts) {
-  <section class="onboarding-stats" aria-label="Society lifecycle totals">
+  <section class="onboarding-stats" aria-label="Society or Township lifecycle totals">
     @for (count of counts; track count.status) {
       <se-card
         ><p class="eyebrow">{{ count.status.replaceAll('_', ' ') }}</p>
@@ -39,7 +39,7 @@
       <se-state
         kind="empty"
         title="Your first community starts here"
-        message="Create a draft society to begin."
+        message="Create a draft society or township to begin."
       />
     }
   </section>
@@ -47,10 +47,10 @@
   <se-state
     kind="loading"
     title="Loading platform totals"
-    message="Fetching society lifecycle metadata."
+    message="Fetching society or township lifecycle metadata."
   />
 }
 <se-card
   title="A focused platform workspace"
-  description="Society status and setup progress are available here. Private resident records and tenant financial operations are handled in committee workspaces."
+  description="Society or Township status and setup progress are available here. Private resident records and tenant financial operations are handled in committee workspaces."
 />

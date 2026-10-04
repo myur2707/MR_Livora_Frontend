@@ -13,8 +13,9 @@
           "/*.js",
           "/*.css",
           "/manifest.webmanifest",
-          "/favicon.svg",
           "/assets/brand/*.svg",
+          "/assets/brand/logo.png",
+          "/assets/brand/monogram.png",
           "/icons/*.png"
         ]
       }

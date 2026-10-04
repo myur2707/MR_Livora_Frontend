@@ -1,9 +1,9 @@
 <a class="skip-link" href="#auth-content">Skip to content</a>
 <div class="auth-frame">
   <header class="auth-header">
-    <a class="brand" routerLink="/"
-      ><img src="/favicon.svg" alt="" width="38" height="38" /><span>MR Livora</span></a
-    >
+    <a class="brand" routerLink="/" aria-label="MR Livora home"
+      ><img class="brand-logo" src="/assets/brand/logo.png" alt="" width="90" height="67"
+    /></a>
     <button
       seButton
       variant="ghost"
@@ -25,8 +25,10 @@
       <p>One thoughtful space. A stronger sense of belonging.</p>
     </section>
     <section class="auth-card" aria-labelledby="auth-title">
-      <span class="guide-icon"><se-icon [name]="mode === 'login' ? 'home' : 'shield'" /></span>
-      <h1 id="auth-title" tabindex="-1">{{ title }}</h1>
+      <div class="auth-card-heading">
+        <span class="guide-icon"><se-icon [name]="mode === 'login' ? 'home' : 'shield'" /></span>
+        <h1 id="auth-title" tabindex="-1">{{ title }}</h1>
+      </div>
       <p class="auth-subtitle">
         {{
           mode === 'login'
@@ -67,6 +69,7 @@
           }
           @if (mode !== 'forgot') {
             <se-field
+              class="auth-password-field"
               controlId="auth-password"
               label="Password"
               [required]="true"
@@ -85,6 +88,11 @@
                 maxlength="128"
                 required
               />
+              @if (mode === 'login') {
+                <a class="text-link auth-password-help" routerLink="/forgot-password"
+                  >Forgot password?</a
+                >
+              }
             </se-field>
           }
           @if (mode === 'reset') {
@@ -118,8 +126,10 @@
         </form>
       }
       @if (mode === 'login') {
-        <a class="text-link" routerLink="/forgot-password">Forgot password?</a>
-        <a class="text-link" routerLink="/register">Create a resident account</a>
+        <div class="auth-account-link">
+          <span>New here?</span>
+          <a class="text-link" routerLink="/register">Create a resident account</a>
+        </div>
       } @else {
         <a class="text-link" routerLink="/login">Back to sign in</a>
       }

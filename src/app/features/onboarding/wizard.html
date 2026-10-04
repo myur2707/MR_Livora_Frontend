@@ -1,7 +1,7 @@
 <header class="page-heading">
   <div>
     <p class="eyebrow">{{ platform ? 'PLATFORM ONBOARDING' : 'COMMITTEE SETUP' }}</p>
-    <h1 tabindex="-1">Society onboarding</h1>
+    <h1 tabindex="-1">Society or Township onboarding</h1>
     <p>{{ detail()?.name || 'A clear path to activation' }}</p>
   </div>
   <button seButton variant="secondary" type="button" [disabled]="busy()" (click)="load()">
@@ -17,8 +17,8 @@
 } @else if (detail(); as society) {
   @if (!society.revision) {
     <se-card
-      title="Existing society"
-      description="This society predates the onboarding wizard. Its existing data and lifecycle are preserved."
+      title="Existing society or township"
+      description="This society or township predates the onboarding wizard. Its existing data and lifecycle are preserved."
       ><dl class="setup-facts">
         <div>
           <dt>Code</dt>
@@ -61,7 +61,7 @@
       </ol>
     </nav>
     @if (step() === 0) {
-      <se-card title="Society"
+      <se-card title="Society or Township"
         ><dl class="setup-facts">
           <div>
             <dt>Name</dt>
@@ -96,7 +96,7 @@
                 [disabled]="busy()"
                 (click)="pendingStatus.set('SUSPENDED')"
               >
-                Suspend society
+                Suspend society or township
               </button>
             } @else {
               <button
@@ -105,7 +105,7 @@
                 [disabled]="busy()"
                 (click)="pendingStatus.set('ACTIVE')"
               >
-                Resume society
+                Resume society or township
               </button>
             }
             <button
@@ -115,7 +115,7 @@
               [disabled]="busy()"
               (click)="pendingStatus.set('DEACTIVATED')"
             >
-              Deactivate society
+              Deactivate society or township
             </button>
           </div>
         }
@@ -169,34 +169,203 @@
       </se-card>
     }
     @if (step() === 2) {
-      <se-card title="Buildings and flats">
+      <se-card [title]="rowHouses() ? 'Row houses' : 'Buildings / Wings and flats'">
         @if (editable()) {
           <form [formGroup]="buildingForm" (ngSubmit)="building()" class="onboarding-form">
-            <se-field
-              controlId="building-code"
-              label="Building code"
-              [required]="true"
-              [error]="
-                buildingForm.controls.code.touched && buildingForm.controls.code.invalid
-                  ? 'Enter a building code.'
-                  : null
-              "
-              ><input seInput formControlName="code" required maxlength="64"
-            /></se-field>
-            <se-field controlId="building-name" label="Building name" [required]="true"
-              ><input seInput formControlName="name" required maxlength="100"
-            /></se-field>
+            <fieldset class="wing-mode">
+              <legend>What would you like to add?</legend>
+              <label
+                ><input
+                  type="radio"
+                  name="property-type"
+                  [checked]="!rowHouses()"
+                  (change)="setPropertyType(false)"
+                  [disabled]="busy()"
+                />
+                Flats</label
+              >
+              <label
+                ><input
+                  type="radio"
+                  name="property-type"
+                  [checked]="rowHouses()"
+                  (change)="setPropertyType(true)"
+                  [disabled]="busy()"
+                />
+                Row houses</label
+              >
+            </fieldset>
+            @if (!rowHouses()) {
+              <fieldset class="wing-mode">
+                <legend>How would you like to add wings?</legend>
+                <label
+                  ><input
+                    type="radio"
+                    name="wing-mode"
+                    [checked]="!multipleWings()"
+                    (change)="setWingMode(false)"
+                    [disabled]="busy()"
+                  />
+                  Single wing</label
+                >
+                <label
+                  ><input
+                    type="radio"
+                    name="wing-mode"
+                    [checked]="multipleWings()"
+                    (change)="setWingMode(true)"
+                    [disabled]="busy()"
+                  />
+                  Add multiple wings</label
+                >
+              </fieldset>
+              @if (multipleWings()) {
+                <fieldset
+                  class="wing-selection"
+                  [disabled]="busy()"
+                  aria-describedby="wing-help wing-error"
+                >
+                  <legend>Select wings</legend>
+                  <p id="wing-help">Use the same flat numbers and area for every selected wing.</p>
+                  <div class="wing-checkboxes">
+                    @for (wing of wingOptions; track wing) {
+                      <label
+                        ><input
+                          type="checkbox"
+                          [checked]="selectedWings().includes(wing)"
+                          (change)="toggleWing(wing, $event)"
+                        />
+                        Wing {{ wing }}</label
+                      >
+                    }
+                  </div>
+                  <button seButton type="button" variant="secondary" (click)="selectAllWings()">
+                    Select all A-D
+                  </button>
+                  <p id="wing-error" class="wing-error" aria-live="polite">
+                    {{ wingPlan().error }}
+                  </p>
+                </fieldset>
+                <se-field
+                  controlId="custom-wing-codes"
+                  label="Other wing codes"
+                  hint="Optional. Separate custom codes with commas, for example E, F, EAST. Maximum 10 wings and 500 flats per batch."
+                >
+                  <input
+                    seInput
+                    formControlName="customCodes"
+                    maxlength="1000"
+                    (input)="previewWings()"
+                    [readonly]="busy()"
+                  />
+                </se-field>
+              } @else {
+                <se-field
+                  controlId="building-code"
+                  label="Wing code"
+                  hint="Choose A, B, C or D, or type your own wing code."
+                  [required]="true"
+                  [error]="
+                    buildingForm.controls.code.touched && buildingForm.controls.code.invalid
+                      ? 'Enter a wing code.'
+                      : null
+                  "
+                  ><input
+                    seInput
+                    formControlName="code"
+                    list="wing-options"
+                    required
+                    maxlength="64"
+                /></se-field>
+                <datalist id="wing-options">
+                  @for (wing of wingOptions; track wing) {
+                    <option [value]="wing">Wing {{ wing }}</option>
+                  }
+                </datalist>
+                <se-field
+                  controlId="building-name"
+                  label="Wing name"
+                  hint="Optional. Defaults to Wing followed by your wing code."
+                  ><input seInput formControlName="name" maxlength="100"
+                /></se-field>
+              }
+            }
             <se-field
               controlId="flat-numbers"
-              label="Flat numbers"
+              [label]="rowHouses() ? 'Row house numbers' : 'Flat numbers'"
               [required]="true"
-              hint="Separate flat numbers with commas or new lines, up to 100 per building."
+              [hint]="
+                rowHouses()
+                  ? 'Enter a range such as 1-5, or individual numbers separated by commas or new lines. Maximum ' +
+                    numberLimits().count +
+                    ' row houses per batch.'
+                  : 'Enter ranges such as 101-110, 201-210, or individual numbers separated by commas or new lines. Maximum 100 flats per wing.'
+              "
+              [error]="
+                flatPlan().error ||
+                (buildingForm.controls.numbers.touched && buildingForm.controls.numbers.invalid
+                  ? rowHouses()
+                    ? 'Enter row house numbers or a range.'
+                    : 'Enter flat numbers or a range.'
+                  : null)
+              "
             >
-              <textarea seInput formControlName="numbers" required rows="3"></textarea>
+              <textarea
+                seInput
+                formControlName="numbers"
+                required
+                rows="3"
+                [maxlength]="numberLimits().characters"
+                (input)="previewFlats()"
+              ></textarea>
             </se-field>
+            @if (flatPlan().numbers.length) {
+              <section
+                class="flat-plan-preview"
+                [attr.aria-label]="rowHouses() ? 'Row house preview' : 'Flat preview'"
+              >
+                @if (rowHouses()) {
+                  <p role="status">{{ flatPlan().numbers.length }} row houses will be added.</p>
+                  <p class="flat-number-preview">{{ flatPlan().numbers.join(', ') }}</p>
+                  <p>Review the numbers, then select Add row houses to save.</p>
+                } @else if (multipleWings()) {
+                  <p role="status">
+                    {{ wingPlan().codes.length }} wings / {{ flatPlan().numbers.length }} flats per
+                    wing / {{ wingPlan().codes.length * flatPlan().numbers.length }} flats total
+                  </p>
+                  @if (batchError()) {
+                    <p class="wing-error" role="alert">{{ batchError() }}</p>
+                  }
+                  <ul class="wing-preview-list">
+                    @for (code of wingPlan().codes; track code) {
+                      <li>
+                        <strong>Wing {{ code }}</strong
+                        ><span class="flat-number-preview">{{
+                          flatPlan().numbers.join(', ')
+                        }}</span>
+                      </li>
+                    }
+                  </ul>
+                  <p>
+                    Review every wing before saving. All selected wings are saved together; a
+                    conflict leaves the whole batch unchanged.
+                  </p>
+                } @else {
+                  <p role="status">
+                    {{ flatPlan().numbers.length }} flats will be added to wing
+                    {{ buildingForm.controls.code.value || 'you select' }}.
+                  </p>
+                  <p class="flat-number-preview">{{ flatPlan().numbers.join(', ') }}</p>
+                  <p>
+                    No flats are saved until you select Add wing and flats. The same numbers can be
+                    used in another wing.
+                  </p>
+                }
+              </section>
+            }
             <se-field
               controlId="flat-area"
-              label="Area per flat (sq ft)"
+              [label]="rowHouses() ? 'Area per row house (sq ft)' : 'Area per flat (sq ft)'"
               hint="Optional for flat-rate charges. Use two decimals, such as 900.00."
               [error]="
                 buildingForm.controls.areaSqFt.touched && buildingForm.controls.areaSqFt.invalid
@@ -205,7 +374,23 @@
               "
               ><input seInput formControlName="areaSqFt" inputmode="decimal"
             /></se-field>
-            <button seButton type="submit" [disabled]="busy()">Add building and flats</button>
+            <button
+              seButton
+              type="submit"
+              [disabled]="
+                busy() ||
+                !!flatPlan().error ||
+                (!rowHouses() && multipleWings() && (!!wingPlan().error || !!batchError()))
+              "
+            >
+              {{
+                rowHouses()
+                  ? 'Add row houses'
+                  : multipleWings()
+                    ? 'Add selected wings and flats'
+                    : 'Add wing and flats'
+              }}
+            </button>
           </form>
         }
         @if (flats().length) {
@@ -216,8 +401,8 @@
               </caption>
               <thead>
                 <tr>
-                  <th scope="col">Building</th>
-                  <th scope="col">Flat</th>
+                  <th scope="col">Building / Wing</th>
+                  <th scope="col">Flat / Row house</th>
                   <th scope="col">Area (sq ft)</th>
                 </tr>
               </thead>
@@ -235,8 +420,12 @@
         } @else {
           <se-state
             kind="empty"
-            title="No flats added"
-            message="Add a building with at least one flat."
+            [title]="rowHouses() ? 'No row houses added' : 'No flats added'"
+            [message]="
+              rowHouses()
+                ? 'Enter row house numbers or a range to get started.'
+                : 'Add a wing with at least one flat.'
+            "
           />
         }
         @if (structure(); as data) {
@@ -552,7 +741,7 @@
       </se-card>
     }
     @if (step() === 6) {
-      <se-card title="Activate society">
+      <se-card title="Activate society or township">
         @if (society.verifiedAt) {
           <p class="onboarding-feedback">
             Verified {{ displayTime(society.verifiedAt, society.timezone) }} by committee membership
@@ -566,8 +755,8 @@
           </p>
         } @else {
           <p>
-            Activation opens the society workspace for active members. Completed verification is
-            retained in the society history.
+            Activation opens the society or township workspace for active members. Completed
+            verification is retained in the society or township history.
           </p>
           <button
             seButton
@@ -601,12 +790,12 @@
   }
 }
 <se-dialog
-  title="Verify and activate this society?"
+  title="Verify and activate this society or township?"
   [open]="activationDialog()"
   (closed)="activationDialog.set(false)"
   ><p>
-    I confirm that the society setup is correct. My verification will be recorded and the committee
-    will operate the active society.
+    I confirm that the society or township setup is correct. My verification will be recorded and
+    the committee will operate the active society or township.
   </p>
   <div class="onboarding-actions">
     <button seButton variant="secondary" type="button" (click)="activationDialog.set(false)">
@@ -617,12 +806,12 @@
   </div></se-dialog
 >
 <se-dialog
-  title="Change society lifecycle?"
+  title="Change society or township lifecycle?"
   [open]="pendingStatus() !== null"
   (closed)="pendingStatus.set(null)"
   ><p>
-    Change the society to {{ pendingStatus()?.replaceAll('_', ' ') }}. Deactivation is terminal.
-    Existing records are retained.
+    Change the society or township to {{ pendingStatus()?.replaceAll('_', ' ') }}. Deactivation is
+    terminal. Existing records are retained.
   </p>
   <div class="onboarding-actions">
     <button seButton variant="secondary" type="button" (click)="pendingStatus.set(null)">

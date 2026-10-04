@@ -30,7 +30,12 @@ export const NAVIGATION: readonly { label: string; path: string; icon: IconName;
       group: 'My living',
     })),
     { label: 'Overview', path: '/platform/dashboard', icon: 'home', group: 'Workspace' },
-    { label: 'Societies', path: '/platform/societies', icon: 'building', group: 'Workspace' },
+    {
+      label: 'Societies or Townships',
+      path: '/platform/societies',
+      icon: 'building',
+      group: 'Workspace',
+    },
     { label: 'Community space', path: '/society/dashboard', icon: 'people', group: 'Workspace' },
     {
       label: 'Financial reports',

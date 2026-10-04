@@ -7,6 +7,17 @@
 .onboarding-form > button {
   justify-self: start;
 }
+.flat-plan-preview {
+  grid-column: 1 / -1;
+  padding: var(--space-4);
+  background: var(--surface-soft);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.flat-number-preview {
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
 .onboarding-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
@@ -176,4 +187,45 @@ se-onboarding-wizard .card + .card {
   align-items: start;
   gap: var(--space-3);
   margin-block: var(--space-4);
+}
+
+.wing-mode,
+.wing-selection {
+  grid-column: 1 / -1;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-4);
+  min-width: 0;
+}
+.wing-mode label,
+.wing-checkboxes label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  cursor: pointer;
+}
+.wing-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.wing-mode input,
+.wing-checkboxes input {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--brand);
+}
+.wing-error {
+  color: var(--danger);
+}
+.wing-preview-list {
+  padding-left: var(--space-4);
+}
+.wing-preview-list li {
+  padding-block: var(--space-2);
+}
+.wing-preview-list span {
+  display: block;
 }

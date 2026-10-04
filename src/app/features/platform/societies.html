@@ -1,21 +1,23 @@
 <header class="page-heading">
   <div>
     <p class="eyebrow">PLATFORM WORKSPACE</p>
-    <h1 tabindex="-1">Your societies</h1>
+    <h1 tabindex="-1">Your societies or townships</h1>
     <p>Guide new communities from first setup to committee activation.</p>
   </div>
-  <button seButton type="button" (click)="showCreate.set(!showCreate())">Create society</button>
+  <button seButton type="button" (click)="showCreate.set(!showCreate())">
+    Create society or township
+  </button>
 </header>
 <se-form-notice [message]="error()" />
 @if (showCreate()) {
   <se-card
-    title="New society"
+    title="New society or township"
     description="Create a draft. The committee will review and activate it after setup."
   >
     <form [formGroup]="form" (ngSubmit)="create()" class="onboarding-form">
       <se-field
         controlId="society-code"
-        label="Society code"
+        label="Society or Township code"
         [required]="true"
         hint="3–64 uppercase letters, numbers, underscores or hyphens."
         [error]="
@@ -27,7 +29,7 @@
       /></se-field>
       <se-field
         controlId="society-name"
-        label="Society name"
+        label="Society or Township name"
         [required]="true"
         [error]="
           form.controls.name.touched && form.controls.name.invalid
@@ -44,7 +46,7 @@
         ><input seInput formControlName="timezone" required maxlength="64"
       /></se-field>
       <button seButton type="submit" [disabled]="busy()">
-        {{ busy() ? 'Creating…' : 'Create draft society' }}
+        {{ busy() ? 'Creating…' : 'Create draft society or township' }}
       </button>
     </form>
   </se-card>
@@ -57,21 +59,32 @@
         <option [value]="status">{{ status.replaceAll('_', ' ') }}</option>
       }
     </select></se-field
-  ><button seButton variant="secondary" type="button" (click)="load()">Refresh societies</button>
+  ><button seButton variant="secondary" type="button" (click)="load()">
+    Refresh societies or townships
+  </button>
 </div>
 @if (loading()) {
-  <se-state kind="loading" title="Loading societies" message="Fetching platform metadata." />
+  <se-state
+    kind="loading"
+    title="Loading societies or townships"
+    message="Fetching platform metadata."
+  />
 } @else if (result(); as data) {
   @if (data.items.length) {
     <se-card
-      ><div class="table-scroll" tabindex="0" role="region" aria-label="Society directory">
+      ><div
+        class="table-scroll"
+        tabindex="0"
+        role="region"
+        aria-label="Society or Township directory"
+      >
         <table seTable>
           <caption class="sr-only">
-            Society directory
+            Society or Township directory
           </caption>
           <thead>
             <tr>
-              <th scope="col">Society</th>
+              <th scope="col">Society or Township</th>
               <th scope="col">Code</th>
               <th scope="col">Status</th>
               <th scope="col">Setup</th>
@@ -87,7 +100,7 @@
                 </td>
                 <td>
                   <a class="text-link" [routerLink]="['/platform/societies', society.id]"
-                    >{{ society.revision ? 'View setup' : 'View society' }}
+                    >{{ society.revision ? 'View setup' : 'View society or township' }}
                     <span class="sr-only">for {{ society.name }}</span></a
                   >
                 </td>
@@ -105,8 +118,8 @@
   } @else {
     <se-state
       kind="empty"
-      title="No societies found"
-      message="Create a draft society to begin onboarding."
+      title="No societies or townships found"
+      message="Create a draft society or township to begin onboarding."
     />
   }
 }

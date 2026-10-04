@@ -4,7 +4,7 @@ test('production CSP blocks inline scripts while application styles and navigati
 }) => {
   const response = await page.goto('/login');
   await expect(page).toHaveTitle('Sign in · MR Livora');
-  await expect(page.getByRole('link', { name: 'MR Livora', exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'MR Livora home', exact: true })).toBeVisible();
   await expect(page.locator('.auth-footer')).toHaveText('A smarter way to live together.');
   expect(response?.headers()['content-security-policy']).toContain("script-src 'self'");
   await expect(page.getByRole('heading', { name: 'Welcome home' })).toBeVisible();
@@ -74,7 +74,7 @@ test('all lazy placeholders and the unknown route render without accessibility v
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const routes = [
     ['/platform/dashboard', 'Welcome to MR Livora'],
-    ['/platform/societies', 'Your societies'],
+    ['/platform/societies', 'Your societies or townships'],
     ['/society/dashboard', 'Your community space'],
     ['/login', 'Welcome home'],
     ['/forgot-password', 'A fresh start'],
@@ -101,10 +101,20 @@ test('all lazy placeholders and the unknown route render without accessibility v
 
 test('sidebar collapse and dark theme remain usable and survive refresh', async ({ page }) => {
   await page.goto('/platform/dashboard');
+  await expect(page.locator('.desktop-sidebar .brand-logo')).toHaveAttribute(
+    'src',
+    '/assets/brand/logo.png',
+  );
   await page.getByRole('button', { name: 'Collapse sidebar' }).click();
+  await expect(page.locator('.desktop-sidebar .brand-mark')).toHaveAttribute(
+    'src',
+    '/assets/brand/monogram.png',
+  );
   await expect(page.getByRole('button', { name: 'Expand sidebar' })).toBeVisible();
-  await page.getByRole('link', { name: 'Societies', exact: true }).click();
-  await expect(page.getByRole('heading', { name: 'Your societies', level: 1 })).toBeFocused();
+  await page.getByRole('link', { name: 'Societies or Townships', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Your societies or townships', level: 1 }),
+  ).toBeFocused();
   await page.getByRole('button', { name: 'Switch to dark theme' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.reload();
@@ -160,10 +170,12 @@ test('mobile navigation works by keyboard and does not overflow at 320px', async
   await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog', { name: 'Navigation' });
   await expect(dialog).toBeVisible();
-  await dialog.getByRole('link', { name: 'Societies', exact: true }).focus();
+  await dialog.getByRole('link', { name: 'Societies or Townships', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(dialog).toBeHidden();
-  await expect(page.getByRole('heading', { name: 'Your societies', level: 1 })).toBeFocused();
+  await expect(
+    page.getByRole('heading', { name: 'Your societies or townships', level: 1 }),
+  ).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
   );
@@ -196,9 +208,9 @@ test('populated tables scroll within their container on narrow screens', async (
   );
   await page.setViewportSize({ width: 320, height: 780 });
   await page.goto('/platform/societies');
-  const table = page.getByRole('table', { name: 'Society directory' });
+  const table = page.getByRole('table', { name: 'Society or Township directory' });
   await expect(table).toBeVisible();
-  const scroll = page.getByRole('region', { name: 'Society directory' });
+  const scroll = page.getByRole('region', { name: 'Society or Township directory' });
   expect(await scroll.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await scroll.focus();
@@ -284,9 +296,18 @@ test('static shell works offline while authenticated/private responses never ent
     return urls;
   });
   for (const path of privatePaths) expect(cached).not.toContain(path);
+  expect(cached).toContain('/assets/brand/logo.png');
+  expect(cached).toContain('/assets/brand/monogram.png');
   await context.setOffline(true);
   await page.goto('/login');
   await expect(page.getByRole('heading', { name: 'Welcome home', level: 1 })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'MR Livora home' })).toBeVisible();
+  expect(
+    await page.locator('.brand-logo').evaluate(async (image: HTMLImageElement) => {
+      await image.decode();
+      return image.naturalWidth > 0;
+    }),
+  ).toBe(true);
   for (const path of privatePaths) {
     const result = await page.evaluate(async (path) => {
       try {

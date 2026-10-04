@@ -4,10 +4,12 @@
   aria-label="MR Livora home"
   (click)="navigated.emit()"
 >
-  <img src="/favicon.svg" width="38" height="38" alt="" />
-  <span class="sidebar-label"
-    >MR Livora<span class="brand-subtitle">A smarter way to live together.</span></span
-  >
+  @if (collapsed()) {
+    <img class="brand-mark" src="/assets/brand/monogram.png" width="42" height="42" alt="" />
+  } @else {
+    <img class="brand-logo" src="/assets/brand/logo.png" width="190" height="140" alt="" />
+    <span class="brand-subtitle">A smarter way to live together.</span>
+  }
 </a>
 <nav class="sidebar-nav" aria-label="Primary navigation">
   @for (group of groups(); track group) {
@@ -34,7 +36,7 @@
   <span>A little more ease, every day.</span>
 </div>
 <div class="sidebar-footer">
-  <span class="brand-monogram" aria-hidden="true">S</span>
+  <img class="brand-monogram" src="/assets/brand/monogram.png" width="34" height="34" alt="" />
   <div class="sidebar-label">
     <strong>Your community workspace</strong><span>Foundation preview</span>
   </div>

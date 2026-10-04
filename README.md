@@ -58,7 +58,7 @@ npm run pwa:check
 npm run preview
 ```
 
-Open `http://127.0.0.1:4173`. The service worker is enabled in production builds only. Installation requires HTTPS or loopback and a supported browser. The OS/browser install interaction still needs human verification. Stop the preview server with Ctrl+C. To regenerate the PNG icons from the repository's SVG mark after installing Chromium, run `node scripts/generate-icons.mjs`.
+Open `http://127.0.0.1:4173`. The service worker is enabled in production builds only. Installation requires HTTPS or loopback and a supported browser. The OS/browser install interaction still needs human verification. Stop the preview server with Ctrl+C. To regenerate the logo, favicon and PNG install icons from the supplied artwork after installing Chromium, run `node scripts/generate-icons.mjs`. See [logo assets](branding/README.md).
 
 ## Architecture and safety
 

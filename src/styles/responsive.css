@@ -33,11 +33,86 @@
   .app-footer {
     margin-inline: 24px;
   }
+}
+@media (max-width: 900px) {
   .auth-main {
-    gap: 32px;
+    grid-template-columns: minmax(0, 400px);
+    justify-content: center;
+  }
+  .auth-story {
+    display: none;
+  }
+}
+@media (max-height: 700px) {
+  .auth-header {
+    padding-block: 8px;
+  }
+  .auth-header .brand-logo {
+    width: 74px;
   }
   .auth-card {
-    padding: 28px;
+    padding: 22px;
+  }
+  .auth-card-heading .guide-icon {
+    width: 36px;
+    height: 36px;
+  }
+  .auth-card h1 {
+    font-size: 28px;
+  }
+  .auth-form {
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .auth-account-link {
+    margin-top: 12px;
+    padding-top: 12px;
+  }
+  .auth-story {
+    padding: 24px;
+  }
+  .auth-story > img {
+    max-height: 150px;
+  }
+  .auth-footer {
+    padding-block: 6px;
+  }
+}
+@media (max-height: 620px) {
+  .auth-main {
+    padding-block: 6px;
+  }
+  .auth-card {
+    padding: 20px;
+  }
+  .auth-card h1 {
+    font-size: 26px;
+  }
+  .auth-card .auth-subtitle {
+    margin-top: 8px;
+  }
+  .auth-form {
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .auth-form .field label {
+    margin-bottom: 6px;
+  }
+  .auth-account-link {
+    margin-top: 10px;
+    padding-top: 10px;
+  }
+  .auth-account-link .text-link {
+    padding-block: 4px;
+  }
+  .auth-note {
+    display: none;
+  }
+  .auth-story > img {
+    max-height: 130px;
+  }
+  .auth-footer {
+    padding-block: 4px;
   }
 }
 @media (max-width: 680px) {
@@ -129,30 +204,21 @@
     gap: 6px;
   }
   .auth-header {
-    padding: 20px;
+    padding: 10px 18px;
   }
   .auth-main {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    padding: 24px 18px;
+    padding: 8px 18px;
     width: 100%;
-  }
-  .auth-story {
-    width: 100%;
-  }
-  .auth-story h2 {
-    font-size: 36px;
-  }
-  .auth-story > img {
-    display: none;
-  }
-  .auth-story > p:last-child {
-    margin-top: 16px;
   }
   .auth-card {
     width: 100%;
-    padding: 28px;
+    padding: 22px;
+  }
+  .auth-header .brand-logo {
+    width: 74px;
+  }
+  .auth-note {
+    display: none;
   }
   .toast-region {
     bottom: 16px;

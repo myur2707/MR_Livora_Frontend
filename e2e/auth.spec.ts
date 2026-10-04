@@ -1,6 +1,75 @@
 import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 test.use({ serviceWorkers: 'block' });
+test('compact login fits laptop and mobile screens with visible validation and sign-in errors', async ({
+  page,
+}) => {
+  await page.route('**/api/v1/**', (route) => {
+    const path = new URL(route.request().url()).pathname;
+    if (path.endsWith('/csrf')) return route.fulfill({ json: { csrfToken: 'synthetic-csrf' } });
+    return route.fulfill({
+      status: 401,
+      json: { error: { code: path.endsWith('/login') ? 'INVALID_CREDENTIALS' : 'AUTH_REQUIRED' } },
+    });
+  });
+  const assertFits = async () => {
+    expect(
+      await page.evaluate(
+        () =>
+          document.documentElement.scrollHeight <= innerHeight &&
+          document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    for (const name of ['Email address', 'Password']) {
+      const bounds = await page.getByLabel(name, { exact: false }).boundingBox();
+      expect(bounds).not.toBeNull();
+      if (bounds)
+        expect(bounds.y + bounds.height).toBeLessThanOrEqual(page.viewportSize()?.height ?? 0);
+    }
+    await expect(
+      page.getByRole('link', { name: 'Forgot password?', exact: true }),
+    ).toBeInViewport();
+    await expect(
+      page.getByRole('link', { name: 'Create a resident account', exact: true }),
+    ).toBeInViewport();
+    await expect(page.getByRole('button', { name: 'Sign in', exact: true })).toBeInViewport();
+  };
+  for (const [width, height] of [
+    [1366, 768],
+    [1366, 600],
+    [1280, 600],
+    [1093, 614],
+    [1024, 576],
+    [320, 640],
+  ] as const) {
+    await page.setViewportSize({ width, height });
+    for (const theme of ['light', 'dark']) {
+      await page.goto('/login');
+      await page.evaluate((theme) => {
+        document.documentElement.dataset['theme'] = theme;
+      }, theme);
+      await page.locator('.brand-logo').evaluate((image: HTMLImageElement) => image.decode());
+      const logo = await page.locator('.auth-header .brand-logo').boundingBox();
+      expect(logo?.height).toBeLessThanOrEqual(68);
+      await assertFits();
+      await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+      await expect(page.locator('#auth-email-description')).toHaveText('Enter email address.');
+      await expect(page.locator('#auth-password-description')).toHaveText('Enter password.');
+      await assertFits();
+      await page.getByLabel('Email address').fill('synthetic@example.invalid');
+      await page.getByLabel('Password', { exact: false }).fill('Invalid synthetic password');
+      await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+      await expect(
+        page.getByRole('alert').filter({ hasText: 'Email or password is incorrect.' }),
+      ).toBeVisible();
+      await assertFits();
+    }
+  }
+  expect(
+    (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations,
+  ).toEqual([]);
+});
 test('login validation, generic failures, workspace selection and logout', async ({ page }) => {
   let signedIn = false;
   let active = false;
