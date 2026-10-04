@@ -31,6 +31,88 @@ const setup: SocietyDetail = {
   },
   events: [],
 };
+test('committee resident choice filters pages and clears the previous property before submission', async ({
+  page,
+}) => {
+  let submitted = false;
+  await page.route('**/api/v1/**', async (route) => {
+    const url = new URL(route.request().url());
+    const path = url.pathname;
+    if (path.endsWith('/session'))
+      return route.fulfill({
+        json: {
+          userId: '1',
+          email: 'committee@example.invalid',
+          platformAdmin: false,
+          memberships: [],
+          activeSociety: null,
+          setupSocieties: [{ societyId: '10', name: setup.name }],
+        },
+      });
+    if (path.endsWith('/csrf')) return route.fulfill({ json: { csrfToken: 'synthetic-csrf' } });
+    if (route.request().method() === 'POST') {
+      expect(route.request().postDataJSON()).toMatchObject({
+        flatId: '80',
+        propertyType: 'ROW_HOUSE',
+        displayName: 'House resident',
+      });
+      submitted = true;
+      return route.fulfill({ status: 201 });
+    }
+    if (path.endsWith('/structure')) {
+      const house = url.searchParams.get('propertyType') === 'ROW_HOUSE';
+      const current = Number(url.searchParams.get('page') ?? '1');
+      const searched = url.searchParams.get('search') === '2';
+      return route.fulfill({
+        json: {
+          items: [
+            {
+              id: house ? (current === 1 && !searched ? '70' : '80') : '20',
+              buildingCode: house ? 'ROW_HOUSES' : 'A',
+              buildingName: house ? 'Row houses' : 'Wing A',
+              flatNumber: house ? String(searched ? 2 : current) : '101',
+              areaSqFt: null,
+            },
+          ],
+          total: house && !searched ? 51 : 1,
+          page: current,
+          pageSize: 50,
+        },
+      });
+    }
+    if (path.endsWith('/residents') || path.endsWith('/maintenance'))
+      return route.fulfill({ json: { items: [], total: 0, page: 1, pageSize: 50 } });
+    return route.fulfill({ json: setup });
+  });
+  await page.goto('/onboarding/societies/10');
+  await page.getByRole('button', { name: /4\s*Residents/ }).click();
+  await expect(page.locator('.resident-form > :first-child')).toContainText('Resident name');
+  await expect(
+    page.getByRole('group', { name: 'What type of property does this resident live in?' }),
+  ).toBeVisible();
+  const picker = page.locator('.resident-property-picker details');
+  await picker.locator('summary').click();
+  await picker.getByRole('button', { name: 'A / 101' }).click();
+  await expect(picker.locator('summary')).toContainText('A / 101');
+  await page.getByRole('radio', { name: 'Row houses', exact: true }).check();
+  await expect(picker.locator('summary')).toContainText('Choose a row house');
+  await picker.locator('summary').click();
+  await picker.getByRole('button', { name: '1', exact: true }).click();
+  await expect(picker.locator('summary')).toContainText('1');
+  await picker.locator('summary').click();
+  await picker.getByRole('button', { name: 'Next page' }).click();
+  await expect(picker.locator('summary')).toContainText('1');
+  await picker.getByRole('searchbox', { name: 'Search by row house number' }).fill('2');
+  await expect(picker.getByText('1–1 of 1')).toBeVisible();
+  await picker.getByRole('button', { name: '2', exact: true }).click();
+  await expect(picker.locator('summary')).toContainText('2');
+  await page
+    .getByRole('textbox', { name: 'Resident name (required)', exact: true })
+    .fill('House resident');
+  await page.getByRole('button', { name: 'Add initial resident' }).click();
+  await expect(page.getByRole('status').filter({ hasText: 'Resident added' })).toBeVisible();
+  expect(submitted).toBe(true);
+});
 test('committee wizard requires review and explicit activation; stale server conflicts remain visible', async ({
   page,
 }) => {

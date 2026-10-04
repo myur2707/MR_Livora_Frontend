@@ -7,6 +7,62 @@
 .onboarding-form > button {
   justify-self: start;
 }
+.resident-form {
+  max-width: none;
+}
+.resident-form > se-field {
+  width: 100%;
+  max-width: 680px;
+}
+.resident-property-picker {
+  width: 100%;
+  max-width: 680px;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+.resident-property-picker legend {
+  margin-bottom: var(--space-2);
+  font-weight: 600;
+}
+.resident-property-picker details {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.resident-property-picker summary {
+  padding: var(--space-4);
+  cursor: pointer;
+}
+.resident-property-options {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+.resident-property-options input {
+  width: 100%;
+  padding: var(--space-3);
+}
+.resident-property-results {
+  max-height: 15rem;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+.resident-property-results button {
+  width: 100%;
+  padding: var(--space-3);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.resident-property-results button:hover,
+.resident-property-results button:focus-visible {
+  background: var(--surface-soft);
+}
 .flat-plan-preview {
   grid-column: 1 / -1;
   padding: var(--space-4);

@@ -48,3 +48,7 @@ Row houses reuse the existing building/flat storage and downstream occupancy and
 In Buildings / Wings / Flats choose **Add multiple wings**, select A/B/C/D (or **Select all A-D**) and optionally enter other comma-separated codes. Enter the shared flat ranges once. The preview shows every wing and the total flats. Choose **Add selected wings and flats** to save. For different ranges or areas, submit separate groups or use Single wing. A batch supports up to 10 wings, 100 flats per wing and 500 total flats. A duplicate or stale-revision conflict saves none of the batch and retains the form for correction.
 
 The batch API uses the existing server authorization, CSRF, setup lifecycle checks and revision lock. It validates every wing/flat, inserts them in one transaction, advances the revision once and records a `building.created` audit event per wing. No schema migration is required. Platform access remains limited to initial setup.
+
+# Resident property choice
+
+In the committee Residents step, choose Flats or Row houses, then open the property picker. Search by number or building, browse matching pages inside the picker, and select a result. The chosen property remains visible while browsing or searching; switching property type clears it. Row houses display their house number without a building prefix. The server validates the selected property's society and type; changing this choice does not create or reclassify properties.

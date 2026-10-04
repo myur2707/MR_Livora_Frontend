@@ -441,7 +441,7 @@
     @if (step() === 3) {
       <se-card
         title="Residents"
-        description="Review the initial occupants, including vacant flats. People do not need a login account."
+        description="Review the initial occupants, including vacant flats and row houses. People do not need a login account."
       >
         @if (platform) {
           <p>
@@ -450,29 +450,104 @@
           </p>
         } @else {
           @if (editable()) {
-            @if (structure(); as data) {
-              <p>Select flats from page {{ data.page }}.</p>
-              <se-pagination
-                [total]="data.total"
-                [page]="data.page"
-                [pageSize]="data.pageSize"
-                (pageSelected)="flatPage($event)"
-              />
-            }
-            <form [formGroup]="residentForm" (ngSubmit)="resident()" class="onboarding-form">
+            <form
+              [formGroup]="residentForm"
+              (ngSubmit)="resident()"
+              class="onboarding-form resident-form"
+            >
               <se-field controlId="resident-name" label="Resident name" [required]="true"
                 ><input seInput formControlName="displayName" required maxlength="160"
               /></se-field>
-              <se-field controlId="resident-flat" label="Resident flat" [required]="true"
-                ><select seSelect formControlName="flatId" required>
-                  <option value="">Choose a flat</option>
-                  @for (flat of flats(); track flat.id) {
-                    <option [value]="flat.id">
-                      {{ flat.buildingCode }} / {{ flat.flatNumber }}
-                    </option>
-                  }
-                </select></se-field
-              >
+              <fieldset class="wing-mode">
+                <legend>What type of property does this resident live in?</legend>
+                <label
+                  ><input
+                    type="radio"
+                    name="resident-property-type"
+                    [checked]="!residentRowHouses()"
+                    (change)="setResidentPropertyType(false)"
+                    [disabled]="busy()"
+                  />
+                  Flats</label
+                >
+                <label
+                  ><input
+                    type="radio"
+                    name="resident-property-type"
+                    [checked]="residentRowHouses()"
+                    (change)="setResidentPropertyType(true)"
+                    [disabled]="busy()"
+                  />
+                  Row houses</label
+                >
+              </fieldset>
+              <fieldset class="resident-property-picker">
+                <legend>
+                  Resident {{ residentRowHouses() ? 'row house' : 'flat' }}
+                  <span aria-hidden="true">*</span>
+                </legend>
+                <input type="hidden" formControlName="flatId" />
+                <details #propertyPicker>
+                  <summary>
+                    @if (residentSelectedProperty(); as selected) {
+                      {{
+                        residentRowHouses()
+                          ? selected.flatNumber
+                          : selected.buildingCode + ' / ' + selected.flatNumber
+                      }}
+                    } @else {
+                      Choose a {{ residentRowHouses() ? 'row house' : 'flat' }}
+                    }
+                  </summary>
+                  <div class="resident-property-options">
+                    <label for="resident-property-search"
+                      >Search by
+                      {{
+                        residentRowHouses() ? 'row house number' : 'flat number or building'
+                      }}</label
+                    >
+                    <input
+                      id="resident-property-search"
+                      type="search"
+                      maxlength="80"
+                      [value]="residentPropertySearch()"
+                      (input)="searchResidentProperties($event)"
+                      (keydown.enter)="$event.preventDefault()"
+                      autocomplete="off"
+                    />
+                    @if (residentPropertiesLoading()) {
+                      <p role="status">Loading properties…</p>
+                    } @else if (residentStructure(); as data) {
+                      @if (data.items.length) {
+                        <ul class="resident-property-results" aria-label="Matching properties">
+                          @for (flat of data.items; track flat.id) {
+                            <li>
+                              <button
+                                type="button"
+                                (click)="selectResidentProperty(flat, propertyPicker)"
+                              >
+                                {{
+                                  residentRowHouses()
+                                    ? flat.flatNumber
+                                    : flat.buildingCode + ' / ' + flat.flatNumber
+                                }}
+                              </button>
+                            </li>
+                          }
+                        </ul>
+                        <se-pagination
+                          [total]="data.total"
+                          [page]="data.page"
+                          [pageSize]="data.pageSize"
+                          (pageSelected)="residentFlatPage($event)"
+                        />
+                      } @else {
+                        <p>No matching {{ residentRowHouses() ? 'row houses' : 'flats' }} found.</p>
+                      }
+                    }
+                  </div>
+                </details>
+              </fieldset>
               <se-field controlId="resident-type" label="Occupancy type" [required]="true"
                 ><select seSelect formControlName="occupancyType">
                   @for (

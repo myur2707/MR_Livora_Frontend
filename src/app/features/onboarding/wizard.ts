@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import type { OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import type { AbstractControl } from '@angular/forms';
@@ -47,6 +47,7 @@ export class OnboardingWizardComponent implements OnInit {
   private readonly api = inject(OnboardingApi);
   private readonly auth = inject(AuthService);
   private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
   protected readonly displayTime = displaySocietyTime;
   protected readonly platform = this.route.snapshot.data['scope'] === 'platform';
   protected readonly id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -55,6 +56,13 @@ export class OnboardingWizardComponent implements OnInit {
   protected readonly detail = signal<SocietyDetail | null>(null);
   protected readonly flats = signal<Flat[]>([]);
   protected readonly structure = signal<Page<Flat> | null>(null);
+  protected readonly residentStructure = signal<Page<Flat> | null>(null);
+  protected readonly residentRowHouses = signal(false);
+  protected readonly residentPropertySearch = signal('');
+  protected readonly residentSelectedProperty = signal<Flat | null>(null);
+  protected readonly residentPropertiesLoading = signal(false);
+  private residentStructureRequest = 0;
+  private residentSearchTimer: ReturnType<typeof setTimeout> | null = null;
   protected readonly chargesPage = signal<Page<Configuration> | null>(null);
   protected readonly residents = signal<Page<Resident> | null>(null);
   protected readonly configurations = signal<Configuration[]>([]);
@@ -159,6 +167,9 @@ export class OnboardingWizardComponent implements OnInit {
     ],
   });
   ngOnInit(): void {
+    this.destroyRef.onDestroy(() => {
+      if (this.residentSearchTimer) clearTimeout(this.residentSearchTimer);
+    });
     void this.load();
   }
   protected async load(): Promise<void> {
@@ -170,6 +181,7 @@ export class OnboardingWizardComponent implements OnInit {
       if (!detail.revision) return;
       await this.flatPage(1);
       if (!this.platform) {
+        await this.residentFlatPage(1);
         this.residents.set(await this.api.get<Page<Resident>>(this.prefix + '/residents'));
         await this.chargePage(1);
       }
@@ -185,9 +197,55 @@ export class OnboardingWizardComponent implements OnInit {
       const data = await this.api.get<Page<Flat>>(this.prefix + '/structure?page=' + page);
       this.structure.set(data);
       this.flats.set(data.items);
-      this.residentForm.controls.flatId.reset();
     } catch (error) {
       this.error.set(onboardingError(error));
+    }
+  }
+  protected async setResidentPropertyType(rowHouses: boolean): Promise<void> {
+    if (this.residentSearchTimer) clearTimeout(this.residentSearchTimer);
+    this.residentRowHouses.set(rowHouses);
+    this.residentPropertySearch.set('');
+    this.residentSelectedProperty.set(null);
+    this.residentForm.controls.flatId.reset();
+    await this.residentFlatPage(1);
+  }
+  protected searchResidentProperties(event: Event): void {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+    this.residentPropertySearch.set(input.value);
+    if (this.residentSearchTimer) clearTimeout(this.residentSearchTimer);
+    this.residentStructureRequest++;
+    this.residentStructure.set(null);
+    this.residentPropertiesLoading.set(true);
+    this.residentSearchTimer = setTimeout(() => {
+      this.residentSearchTimer = null;
+      void this.residentFlatPage(1);
+    }, 300);
+  }
+  protected selectResidentProperty(flat: Flat, picker: HTMLDetailsElement): void {
+    this.residentSelectedProperty.set(flat);
+    this.residentForm.controls.flatId.setValue(flat.id);
+    picker.open = false;
+  }
+  protected async residentFlatPage(page: number): Promise<void> {
+    const request = ++this.residentStructureRequest;
+    this.residentPropertiesLoading.set(true);
+    this.residentStructure.set(null);
+    try {
+      const data = await this.api.get<Page<Flat>>(
+        this.prefix +
+          '/structure?page=' +
+          page +
+          '&propertyType=' +
+          (this.residentRowHouses() ? 'ROW_HOUSE' : 'FLAT') +
+          '&search=' +
+          encodeURIComponent(this.residentPropertySearch().trim()),
+      );
+      if (request === this.residentStructureRequest) this.residentStructure.set(data);
+    } catch (error) {
+      if (request === this.residentStructureRequest) this.error.set(onboardingError(error));
+    } finally {
+      if (request === this.residentStructureRequest) this.residentPropertiesLoading.set(false);
     }
   }
   protected async chargePage(page: number): Promise<void> {
@@ -348,10 +406,13 @@ export class OnboardingWizardComponent implements OnInit {
       await this.api.post(this.prefix + '/residents', {
         revision: detail.revision,
         ...value,
+        propertyType: this.residentRowHouses() ? 'ROW_HOUSE' : 'FLAT',
         endsOn: value.endsOn || null,
       });
       this.residentsAttested.set(false);
       this.residentForm.controls.displayName.reset();
+      this.residentForm.controls.flatId.reset();
+      this.residentSelectedProperty.set(null);
     }, 'Resident added without a login account. Review the list again before confirming.');
   }
   protected async maintenance(): Promise<void> {
