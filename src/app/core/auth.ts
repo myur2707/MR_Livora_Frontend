@@ -103,4 +103,8 @@ export class AuthService {
     await this.prepare();
     return firstValueFrom(this.http.patch<AccountProfile>('/api/v1/auth/profile', input));
   }
+  async changePassword(password: string): Promise<void> {
+    await this.prepare();
+    await firstValueFrom(this.http.patch<void>('/api/v1/auth/password', { password }));
+  }
 }

@@ -1,22 +1,22 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import { AuthService, authErrorMessage } from '../../core/auth';
 import { ButtonDirective } from '../../shared/button';
 import { CardComponent } from '../../shared/card';
 import { ControlDirective, FieldComponent, FormNoticeComponent } from '../../shared/field';
 import { ToastService } from '../../shared/toast';
+import { DialogComponent } from '../../shared/dialog';
 
 @Component({
   selector: 'se-account-profile',
   imports: [
     ReactiveFormsModule,
-    RouterLink,
     ButtonDirective,
     CardComponent,
     ControlDirective,
     FieldComponent,
     FormNoticeComponent,
+    DialogComponent,
   ],
   styles: `
     :host {
@@ -68,9 +68,12 @@ import { ToastService } from '../../shared/toast';
       gap: 1rem;
       margin-top: 0.75rem;
     }
-    .profile-actions a {
-      color: var(--brand);
-      font-weight: 600;
+    .password-form {
+      display: grid;
+      gap: 0.75rem;
+    }
+    .password-form se-field {
+      margin-bottom: 0;
     }
     @media (max-width: 900px) {
       .profile-grid {
@@ -141,11 +144,64 @@ import { ToastService } from '../../shared/toast';
             <button seButton type="submit" [disabled]="saving()">
               {{ saving() ? 'Saving…' : 'Save changes' }}
             </button>
-            <a routerLink="/forgot-password">Request a password reset</a>
+            <button seButton variant="secondary" type="button" (click)="openPasswordDialog()">
+              Change password
+            </button>
           </div>
         </form>
       }
     </se-card>
+    <se-dialog title="Change password" [open]="passwordDialog()" (closed)="closePasswordDialog()">
+      <p class="dialog-description">
+        Choose a new password with at least 15 characters. Other signed-in sessions will be ended.
+      </p>
+      <se-form-notice [message]="passwordError()" />
+      <form
+        class="password-form"
+        [formGroup]="passwordForm"
+        (ngSubmit)="changePassword()"
+        novalidate
+      >
+        <se-field
+          controlId="new-password"
+          label="New password"
+          [required]="true"
+          [error]="passwordFieldError('password')"
+        >
+          <input
+            seInput
+            id="new-password"
+            type="password"
+            formControlName="password"
+            autocomplete="new-password"
+            maxlength="128"
+          />
+        </se-field>
+        <se-field
+          controlId="confirm-password"
+          label="Confirm new password"
+          [required]="true"
+          [error]="passwordFieldError('confirmation')"
+        >
+          <input
+            seInput
+            id="confirm-password"
+            type="password"
+            formControlName="confirmation"
+            autocomplete="new-password"
+            maxlength="128"
+          />
+        </se-field>
+        <div class="button-row">
+          <button seButton type="submit" [disabled]="changingPassword()">
+            {{ changingPassword() ? 'Changing…' : 'Change password' }}
+          </button>
+          <button seButton variant="ghost" type="button" (click)="closePasswordDialog()">
+            Cancel
+          </button>
+        </div>
+      </form>
+    </se-dialog>
   `,
 })
 export class AccountProfilePage {
@@ -154,6 +210,9 @@ export class AccountProfilePage {
   protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly passwordError = signal<string | null>(null);
+  protected readonly passwordDialog = signal(false);
+  protected readonly changingPassword = signal(false);
   protected readonly email = signal('');
   protected readonly form = new FormGroup({
     displayName: new FormControl('', {
@@ -163,6 +222,20 @@ export class AccountProfilePage {
     contactPhone: new FormControl('', {
       nonNullable: true,
       validators: [Validators.pattern(/^\+?[0-9][0-9 ()-]{5,30}$/)],
+    }),
+  });
+  protected readonly passwordForm = new FormGroup({
+    password: new FormControl('', {
+      nonNullable: true,
+      validators: [
+        (control) => Validators.required(control),
+        Validators.minLength(15),
+        Validators.maxLength(128),
+      ],
+    }),
+    confirmation: new FormControl('', {
+      nonNullable: true,
+      validators: [(control) => Validators.required(control), Validators.maxLength(128)],
     }),
   });
 
@@ -180,6 +253,48 @@ export class AccountProfilePage {
   protected phoneError(): string | null {
     const control = this.form.controls.contactPhone;
     return control.touched && control.invalid ? 'Enter a valid contact phone number.' : null;
+  }
+
+  protected passwordFieldError(name: 'password' | 'confirmation'): string | null {
+    const control = this.passwordForm.controls[name];
+    if (!control.touched || control.valid) return null;
+    return name === 'password'
+      ? 'Enter a password between 15 and 128 characters.'
+      : 'Confirm your new password.';
+  }
+
+  protected openPasswordDialog(): void {
+    this.passwordError.set(null);
+    this.passwordDialog.set(true);
+  }
+
+  protected closePasswordDialog(): void {
+    if (this.changingPassword()) return;
+    this.passwordDialog.set(false);
+    this.passwordForm.reset();
+    this.passwordError.set(null);
+  }
+
+  protected async changePassword(): Promise<void> {
+    this.passwordError.set(null);
+    this.passwordForm.markAllAsTouched();
+    const { password, confirmation } = this.passwordForm.getRawValue();
+    if (this.passwordForm.invalid) return;
+    if (password !== confirmation) {
+      this.passwordError.set('The passwords do not match.');
+      return;
+    }
+    this.changingPassword.set(true);
+    try {
+      await this.auth.changePassword(password);
+      this.passwordDialog.set(false);
+      this.passwordForm.reset();
+      this.toast.show('Password changed successfully.', 'success');
+    } catch (error) {
+      this.passwordError.set(authErrorMessage(error));
+    } finally {
+      this.changingPassword.set(false);
+    }
   }
 
   protected async save(): Promise<void> {

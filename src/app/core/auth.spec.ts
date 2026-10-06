@@ -35,6 +35,18 @@ afterEach(() => {
   TestBed.resetTestingModule();
 });
 describe('authentication boundary', () => {
+  it('changes the signed-in password through a CSRF-protected request', async () => {
+    const { auth, requests } = setup();
+    const change = auth.changePassword('a-secure-new-password');
+    requests.expectOne('/api/v1/auth/csrf').flush({ csrfToken: 'fresh-csrf' });
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    const request = requests.expectOne('/api/v1/auth/password');
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.headers.get('X-CSRF-Token')).toBe('fresh-csrf');
+    expect(request.request.body).toEqual({ password: 'a-secure-new-password' });
+    request.flush(null);
+    await change;
+  });
   it('attaches CSRF/cookies only to same-origin API writes and bypasses third parties', async () => {
     const { state, http, requests } = setup();
     state.csrf.set('memory-only-csrf');
