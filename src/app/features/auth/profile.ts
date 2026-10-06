@@ -19,23 +19,55 @@ import { ToastService } from '../../shared/toast';
     FormNoticeComponent,
   ],
   styles: `
+    :host {
+      display: block;
+    }
+    .page-heading {
+      margin-bottom: 1rem;
+    }
+    se-card {
+      padding: 1.25rem;
+      margin-bottom: 0;
+    }
+    se-card .card-heading {
+      margin-bottom: 1rem;
+    }
     form {
-      max-width: 46rem;
+      max-width: none;
     }
     .profile-grid {
       display: grid;
-      gap: 1.25rem;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    .profile-grid se-field {
+      margin-bottom: 0;
+    }
+    .profile-grid .form-control {
+      min-height: 40px;
+      padding-block: 8px;
+    }
+    .profile-note {
+      color: var(--muted);
+      margin-top: 1rem;
     }
     .profile-actions {
       align-items: center;
       display: flex;
       gap: 1rem;
-      margin-top: 1.5rem;
+      margin-top: 1rem;
     }
-    @media (max-width: 700px) {
+    .profile-actions a {
+      color: var(--brand);
+      font-weight: 600;
+    }
+    @media (max-width: 900px) {
       .profile-grid {
         grid-template-columns: 1fr;
+      }
+      .profile-actions {
+        align-items: stretch;
+        flex-direction: column;
       }
     }
   `,
@@ -93,16 +125,16 @@ import { ToastService } from '../../shared/toast';
               />
             </se-field>
           </div>
-          <p>
+          <p class="profile-note">
             Your verified society details, roles, memberships, and occupancy are managed separately.
           </p>
           <div class="profile-actions">
             <button seButton type="submit" [disabled]="saving()">
               {{ saving() ? 'Saving…' : 'Save changes' }}
             </button>
+            <a routerLink="/forgot-password">Request a password reset</a>
           </div>
         </form>
-        <p><a routerLink="/forgot-password">Request a password reset</a></p>
       }
     </se-card>
   `,
