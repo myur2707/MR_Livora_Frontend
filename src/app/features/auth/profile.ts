@@ -23,39 +23,50 @@ import { ToastService } from '../../shared/toast';
       display: block;
     }
     .page-heading {
-      margin-bottom: 1rem;
+      margin-bottom: 0.75rem;
     }
     se-card {
-      padding: 1.25rem;
+      padding: 1rem 1.25rem 1.125rem;
       margin-bottom: 0;
     }
-    se-card .card-heading {
-      margin-bottom: 1rem;
+    .profile-card-heading {
+      align-items: baseline;
+      display: flex;
+      gap: 0.75rem;
+      justify-content: space-between;
+      margin-bottom: 0.875rem;
+    }
+    .profile-card-heading h2 {
+      white-space: nowrap;
+    }
+    .profile-card-heading p {
+      color: var(--muted);
+      text-align: right;
     }
     form {
       max-width: none;
     }
     .profile-grid {
       display: grid;
-      gap: 1rem;
+      gap: 0.875rem;
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .profile-grid se-field {
       margin-bottom: 0;
     }
     .profile-grid .form-control {
-      min-height: 40px;
-      padding-block: 8px;
+      min-height: 38px;
+      padding-block: 7px;
     }
     .profile-note {
       color: var(--muted);
-      margin-top: 1rem;
+      margin-top: 0.75rem;
     }
     .profile-actions {
       align-items: center;
       display: flex;
       gap: 1rem;
-      margin-top: 1rem;
+      margin-top: 0.75rem;
     }
     .profile-actions a {
       color: var(--brand);
@@ -64,6 +75,14 @@ import { ToastService } from '../../shared/toast';
     @media (max-width: 900px) {
       .profile-grid {
         grid-template-columns: 1fr;
+      }
+      .profile-card-heading {
+        align-items: start;
+        flex-direction: column;
+        gap: 0.25rem;
+      }
+      .profile-card-heading p {
+        text-align: left;
       }
       .profile-actions {
         align-items: stretch;
@@ -80,20 +99,17 @@ import { ToastService } from '../../shared/toast';
       </div>
     </header>
     <se-form-notice [message]="error()" />
-    <se-card
-      title="Profile details"
-      description="These details apply to your account in every workspace."
-    >
+    <se-card>
       @if (loading()) {
         <p role="status">Loading your profile…</p>
       } @else {
+        <div class="profile-card-heading">
+          <h2>Profile details</h2>
+          <p>Used for your account in every workspace.</p>
+        </div>
         <form [formGroup]="form" (ngSubmit)="save()" novalidate>
           <div class="profile-grid">
-            <se-field
-              controlId="profile-email"
-              label="Account email"
-              hint="Email changes require a separate verified process."
-            >
+            <se-field controlId="profile-email" label="Account email">
               <input seInput id="profile-email" type="email" [value]="email()" disabled />
             </se-field>
             <se-field
@@ -110,12 +126,7 @@ import { ToastService } from '../../shared/toast';
                 autocomplete="name"
               />
             </se-field>
-            <se-field
-              controlId="profile-phone"
-              label="Contact phone"
-              hint="Optional. Include the country code when appropriate."
-              [error]="phoneError()"
-            >
+            <se-field controlId="profile-phone" label="Contact phone" [error]="phoneError()">
               <input
                 seInput
                 id="profile-phone"
@@ -125,9 +136,7 @@ import { ToastService } from '../../shared/toast';
               />
             </se-field>
           </div>
-          <p class="profile-note">
-            Your verified society details, roles, memberships, and occupancy are managed separately.
-          </p>
+          <p class="profile-note">Email and verified society details are managed separately.</p>
           <div class="profile-actions">
             <button seButton type="submit" [disabled]="saving()">
               {{ saving() ? 'Saving…' : 'Save changes' }}
