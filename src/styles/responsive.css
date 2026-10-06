@@ -119,6 +119,21 @@
   }
 }
 @media (max-width: 680px) {
+  .workspace {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+  .workspace main {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+  .workspace .app-footer {
+    position: static;
+    bottom: auto;
+    z-index: auto;
+    box-shadow: none;
+  }
   .app-header {
     min-height: 54px;
     flex-wrap: wrap;
