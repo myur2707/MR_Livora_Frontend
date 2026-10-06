@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import type { OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -11,6 +11,7 @@ import { ButtonDirective } from '../../shared/button';
 import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../shared/field';
 import { TableDirective } from '../../shared/table';
 import { PaginationComponent } from '../../shared/pagination';
+import { ToastService } from '../../shared/toast';
 @Component({
   selector: 'se-billing-configuration',
   imports: [
@@ -33,6 +34,7 @@ export class BillingConfigurationPage implements OnInit {
   protected readonly periodPage = signal<Page<BillingChoice> | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly message = signal('');
+  private readonly toast = inject(ToastService);
   protected readonly busy = signal(false);
   protected readonly loading = signal(false);
   protected form: 'type' | 'configuration' | 'period' | null = null;
@@ -55,6 +57,12 @@ export class BillingConfigurationPage implements OnInit {
   protected dueOn = '';
   protected q = '';
   private sequence = 0;
+  constructor() {
+    effect(() => {
+      const message = this.message();
+      if (message) this.toast.show(message, 'success');
+    });
+  }
   protected canConfigure(): boolean {
     return !!this.auth.identity()?.activeSociety?.permissions.includes('society.finance.configure');
   }

@@ -13,7 +13,7 @@
           [attr.aria-expanded]="!collapsed()"
           (click)="collapsed.set(!collapsed())"
         >
-          <se-icon name="collapse" />
+          <se-icon [name]="collapsed() ? 'expand' : 'collapse'" />
         </button>
         <button
           seButton
@@ -26,6 +26,9 @@
         >
           <se-icon name="menu" />
         </button>
+        <div class="header-brand-lockup" aria-label="MR Livora workspace">
+          <span class="header-brand-name">MR Livora</span>
+        </div>
         <se-breadcrumbs />
       </div>
       <div class="header-actions">
@@ -44,15 +47,17 @@
         </button>
         <span class="header-divider" aria-hidden="true"></span>
         @if (auth.state.identity()) {
-          <a seButton variant="ghost" routerLink="/workspace">Workspace</a>
           <button
             seButton
             variant="ghost"
+            class="icon-button"
             type="button"
+            aria-label="Sign out"
+            title="Sign out"
             [disabled]="signingOut()"
             (click)="logout()"
           >
-            Sign out
+            <se-icon name="logout" />
           </button>
         } @else {
           <a seButton variant="ghost" routerLink="/login">Sign in <se-icon name="arrow" /></a>
@@ -61,7 +66,7 @@
     </header>
     <main id="main-content" tabindex="-1"><router-outlet (activate)="focusPage()" /></main>
     <footer class="app-footer">
-      <span>A smarter way to live together.</span
+      <span>Live in a Better Aura</span
       ><span>MR Livora <span aria-hidden="true">·</span> Foundation preview</span>
     </footer>
   </div>

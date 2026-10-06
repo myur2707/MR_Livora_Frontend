@@ -1,5 +1,6 @@
 import type { Routes } from '@angular/router';
 export const PLATFORM_ROUTES: Routes = [
+  { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   {
     path: 'dashboard',
     title: 'Platform overview · MR Livora',
@@ -8,13 +9,13 @@ export const PLATFORM_ROUTES: Routes = [
   },
   {
     path: 'societies',
-    title: 'Societies or Townships · MR Livora',
-    data: { breadcrumb: 'Societies or Townships' },
+    title: 'Societies or Flats or Townships · MR Livora',
+    data: { breadcrumb: 'Societies or Flats or Townships' },
     loadComponent: () => import('./societies').then((m) => m.SocietiesComponent),
   },
   {
     path: 'societies/:id',
-    title: 'Society or Township onboarding · MR Livora',
+    title: 'Society or Flat or Township onboarding · MR Livora',
     data: { breadcrumb: 'Onboarding', scope: 'platform' },
     loadComponent: () => import('../onboarding/wizard').then((m) => m.OnboardingWizardComponent),
   },

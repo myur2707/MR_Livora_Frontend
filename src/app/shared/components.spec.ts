@@ -33,12 +33,16 @@ describe('accessible shared components', () => {
     await fixture.whenStable();
     expect(input?.hasAttribute('aria-invalid')).toBe(false);
   });
-  it('renders server feedback as text with an alert, never HTML', async () => {
+  it('moves server feedback to a safe error toast instead of the page layout', async () => {
     const fixture = TestBed.createComponent(FieldsHostComponent);
     fixture.componentInstance.notice.set('<img src=x onerror=alert(1)>');
     await fixture.whenStable();
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('se-form-notice [role="alert"]')?.textContent).toContain('<img');
+    expect(TestBed.inject(ToastService).toasts().at(-1)).toMatchObject({
+      message: '<img src=x onerror=alert(1)>',
+      tone: 'error',
+    });
+    expect(element.querySelector('se-form-notice')?.textContent).toBe('');
     expect(element.querySelector('img')).toBeNull();
   });
   it('disables pagination controls at both boundaries', async () => {
@@ -51,10 +55,12 @@ describe('accessible shared components', () => {
   it('bounds notifications and dismisses only the chosen item', () => {
     const service = TestBed.inject(ToastService);
     for (const message of ['First', 'Second', 'Third', 'Fourth']) service.show(message);
-    expect(service.toasts().map((toast) => toast.message)).toEqual(['Second', 'Third', 'Fourth']);
-    const toast = service.toasts()[1];
+    expect(service.toasts().map((toast) => toast.message)).toEqual(['Fourth']);
+    service.show('Saved', 'success');
+    service.show('Try again', 'error');
+    const toast = service.toasts()[0];
     expect(toast).toBeDefined();
     if (toast) service.dismiss(toast.id);
-    expect(service.toasts().map((item) => item.message)).toEqual(['Second', 'Fourth']);
+    expect(service.toasts()).toEqual([]);
   });
 });

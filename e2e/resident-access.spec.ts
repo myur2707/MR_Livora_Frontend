@@ -151,6 +151,11 @@ test('pending user can request another society and cancel; committee routes rema
     'PENDING',
   );
   await page.goto('/join-society');
+  await expect(page.getByRole('dialog', { name: 'Request membership' })).toBeHidden();
+  await expect(page.getByRole('heading', { name: 'Your requests' })).toBeVisible();
+  await page.getByRole('button', { name: 'Add request' }).click();
+  await expect(page.getByRole('dialog', { name: 'Request membership' })).toBeVisible();
+  await expect(page.getByLabel('Requested occupancy')).toHaveValue('OWNER');
   await page.getByLabel('Your name').fill('Applicant');
   await page.getByLabel('Society code').fill('COMMUNITY');
   await page.getByLabel('Building code').fill('A');

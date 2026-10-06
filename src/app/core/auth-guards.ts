@@ -85,6 +85,17 @@ export const platformGuard = async (): Promise<boolean | UrlTree> => {
     return router.createUrlTree(['/login']);
   }
 };
+export const workspaceGuard = async (): Promise<boolean | UrlTree> => {
+  const auth = inject(AuthService);
+  const router = inject(Router);
+  try {
+    const identity = await auth.refresh();
+    if (!identity) return router.createUrlTree(['/login']);
+    return true;
+  } catch {
+    return router.createUrlTree(['/login']);
+  }
+};
 export const societyGuard = async (): Promise<boolean | UrlTree> => {
   const auth = inject(AuthService);
   const router = inject(Router);

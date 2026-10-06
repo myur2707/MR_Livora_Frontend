@@ -26,6 +26,32 @@ describe('onboarding client boundary', () => {
       onboardingError(new HttpErrorResponse({ error: { error: { message: 'SELECT secret' } } })),
     ).not.toContain('SELECT');
   });
+  it('loads five societies per page by default', async () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    const api = TestBed.inject(OnboardingApi);
+    const requests = TestBed.inject(HttpTestingController);
+    const result = api.societies();
+    const request = requests.expectOne('/api/v1/platform/societies?page=1&pageSize=5');
+    request.flush({ items: [], total: 0, page: 1, pageSize: 5 });
+    await result;
+    requests.verify();
+  });
+  it('encodes society status and search filters', async () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    const api = TestBed.inject(OnboardingApi);
+    const requests = TestBed.inject(HttpTestingController);
+    const result = api.societies(2, 'ACTIVE', 'Varada Heights');
+    const request = requests.expectOne(
+      '/api/v1/platform/societies?page=2&pageSize=5&status=ACTIVE&search=Varada%20Heights',
+    );
+    request.flush({ items: [], total: 0, page: 2, pageSize: 5 });
+    await result;
+    requests.verify();
+  });
   it('writes use same-origin CSRF and leave authorization to the server', async () => {
     TestBed.configureTestingModule({
       providers: [

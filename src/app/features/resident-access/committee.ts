@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import type { OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
@@ -15,6 +15,7 @@ import { PaginationComponent } from '../../shared/pagination';
 import { TableDirective } from '../../shared/table';
 import { DialogComponent } from '../../shared/dialog';
 import { StateComponent } from '../../shared/state';
+import { ToastService } from '../../shared/toast';
 type ReviewPage = Page<RegistrationRequest> & { today: string };
 type Confirmation =
   | { action: 'resend' | 'revoke'; invitation: ResidentInvitation }
@@ -46,6 +47,7 @@ export class ResidentAccessCommittee implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly formError = signal<string | null>(null);
   protected readonly message = signal('');
+  private readonly toast = inject(ToastService);
   protected readonly loading = signal(false);
   protected readonly busy = signal(false);
   protected readonly inviting = signal(false);
@@ -63,6 +65,12 @@ export class ResidentAccessCommittee implements OnInit {
   protected occupancyType = 'TENANT';
   protected startsOn = '';
   protected endsOn = '';
+  constructor() {
+    effect(() => {
+      const message = this.message();
+      if (message) this.toast.show(message, 'success');
+    });
+  }
   protected reuseOccupancy = false;
   protected existingOccupancyId = '';
   protected verificationNote = '';

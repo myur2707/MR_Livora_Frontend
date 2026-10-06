@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { Component, DestroyRef, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import type { OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -14,6 +14,7 @@ import { ButtonDirective } from '../../shared/button';
 import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../shared/field';
 import { PaginationComponent } from '../../shared/pagination';
 import { TableDirective } from '../../shared/table';
+import { ToastService } from '../../shared/toast';
 @Component({
   selector: 'se-payment-history',
   imports: [
@@ -44,6 +45,7 @@ export class PaymentHistoryPage implements OnInit {
   protected readonly detail = signal<Payment | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
+  private readonly toast = inject(ToastService);
   protected readonly loading = signal(false);
   protected readonly saving = signal(false);
   protected q = '';
@@ -60,6 +62,12 @@ export class PaymentHistoryPage implements OnInit {
   protected allocations: Record<string, string> = {};
   private key = '';
   private sequence = 0;
+  constructor() {
+    effect(() => {
+      const message = this.message();
+      if (message) this.toast.show(message, 'success');
+    });
+  }
   ngOnInit(): void {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroy)).subscribe((params) => {
       this.id = params.get('id');

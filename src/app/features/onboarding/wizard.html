@@ -1,7 +1,7 @@
 <header class="page-heading">
   <div>
     <p class="eyebrow">{{ platform ? 'PLATFORM ONBOARDING' : 'COMMITTEE SETUP' }}</p>
-    <h1 tabindex="-1">Society or Township onboarding</h1>
+    <h1 tabindex="-1">Society or Flat or Township onboarding</h1>
     <p>{{ detail()?.name || 'A clear path to activation' }}</p>
   </div>
   <button seButton variant="secondary" type="button" [disabled]="busy()" (click)="load()">
@@ -9,16 +9,13 @@
   </button>
 </header>
 <se-form-notice [message]="error()" />
-@if (message()) {
-  <p class="onboarding-feedback" role="status">{{ message() }}</p>
-}
 @if (loading()) {
   <se-state kind="loading" title="Loading setup" message="Fetching current onboarding progress." />
 } @else if (detail(); as society) {
   @if (!society.revision) {
     <se-card
-      title="Existing society or township"
-      description="This society or township predates the onboarding wizard. Its existing data and lifecycle are preserved."
+      title="Existing society or flat or township"
+      description="This society or flat or township predates the onboarding wizard. Its existing data and lifecycle are preserved."
       ><dl class="setup-facts">
         <div>
           <dt>Code</dt>
@@ -61,7 +58,7 @@
       </ol>
     </nav>
     @if (step() === 0) {
-      <se-card title="Society or Township"
+      <se-card title="Society or Flat or Township"
         ><dl class="setup-facts">
           <div>
             <dt>Name</dt>
@@ -96,7 +93,7 @@
                 [disabled]="busy()"
                 (click)="pendingStatus.set('SUSPENDED')"
               >
-                Suspend society or township
+                Suspend society or flat or township
               </button>
             } @else {
               <button
@@ -105,7 +102,7 @@
                 [disabled]="busy()"
                 (click)="pendingStatus.set('ACTIVE')"
               >
-                Resume society or township
+                Resume society or flat or township
               </button>
             }
             <button
@@ -115,7 +112,7 @@
               [disabled]="busy()"
               (click)="pendingStatus.set('DEACTIVATED')"
             >
-              Deactivate society or township
+              Deactivate society or flat or township
             </button>
           </div>
         }
@@ -458,28 +455,34 @@
               <se-field controlId="resident-name" label="Resident name" [required]="true"
                 ><input seInput formControlName="displayName" required maxlength="160"
               /></se-field>
-              <fieldset class="wing-mode">
+              <fieldset class="wing-mode resident-property-type">
                 <legend>What type of property does this resident live in?</legend>
-                <label
-                  ><input
-                    type="radio"
-                    name="resident-property-type"
-                    [checked]="!residentRowHouses()"
-                    (change)="setResidentPropertyType(false)"
-                    [disabled]="busy()"
-                  />
-                  Flats</label
-                >
-                <label
-                  ><input
-                    type="radio"
-                    name="resident-property-type"
-                    [checked]="residentRowHouses()"
-                    (change)="setResidentPropertyType(true)"
-                    [disabled]="busy()"
-                  />
-                  Row houses</label
-                >
+                <div class="resident-property-type-options">
+                  <label
+                    class="resident-property-type-option"
+                    [class.is-selected]="!residentRowHouses()"
+                    ><input
+                      type="radio"
+                      name="resident-property-type"
+                      [checked]="!residentRowHouses()"
+                      (change)="setResidentPropertyType(false)"
+                      [disabled]="busy()"
+                    />
+                    Flats</label
+                  >
+                  <label
+                    class="resident-property-type-option"
+                    [class.is-selected]="residentRowHouses()"
+                    ><input
+                      type="radio"
+                      name="resident-property-type"
+                      [checked]="residentRowHouses()"
+                      (change)="setResidentPropertyType(true)"
+                      [disabled]="busy()"
+                    />
+                    Row houses</label
+                  >
+                </div>
               </fieldset>
               <fieldset class="resident-property-picker">
                 <legend>
@@ -515,11 +518,13 @@
                       (keydown.enter)="$event.preventDefault()"
                       autocomplete="off"
                     />
-                    @if (residentPropertiesLoading()) {
-                      <p role="status">Loading properties…</p>
-                    } @else if (residentStructure(); as data) {
+                    @if (residentStructure(); as data) {
                       @if (data.items.length) {
-                        <ul class="resident-property-results" aria-label="Matching properties">
+                        <ul
+                          class="resident-property-results"
+                          aria-label="Matching properties"
+                          (scroll)="onResidentPropertyScroll($event)"
+                        >
                           @for (flat of data.items; track flat.id) {
                             <li>
                               <button
@@ -535,15 +540,24 @@
                             </li>
                           }
                         </ul>
-                        <se-pagination
-                          [total]="data.total"
-                          [page]="data.page"
-                          [pageSize]="data.pageSize"
-                          (pageSelected)="residentFlatPage($event)"
-                        />
+                        @if (residentPropertiesLoading()) {
+                          <p class="resident-property-hint" role="status">
+                            Loading more properties…
+                          </p>
+                        } @else if (data.total > data.items.length) {
+                          <p class="resident-property-hint">
+                            Scroll to load more. {{ data.items.length }} of {{ data.total }} loaded.
+                          </p>
+                        } @else {
+                          <p class="resident-property-hint">
+                            {{ data.total }} {{ data.total === 1 ? 'match' : 'matches' }} found.
+                          </p>
+                        }
                       } @else {
                         <p>No matching {{ residentRowHouses() ? 'row houses' : 'flats' }} found.</p>
                       }
+                    } @else if (residentPropertiesLoading()) {
+                      <p role="status">Loading properties…</p>
                     }
                   </div>
                 </details>
@@ -643,21 +657,26 @@
                 controlId="charge-code"
                 label="Charge code"
                 [required]="true"
-                hint="Uppercase letters, numbers, underscores or hyphens."
-                ><input seInput formControlName="code" required
+                hint="Examples: MONTHLY_MAINTENANCE, WATER_CHARGE or PARKING-01. Use uppercase letters, numbers, underscores or hyphens."
+                ><input
+                  seInput
+                  formControlName="code"
+                  placeholder="e.g. MONTHLY_MAINTENANCE"
+                  maxlength="64"
+                  required
               /></se-field>
               <se-field controlId="charge-name" label="Charge name" [required]="true"
                 ><input seInput formControlName="name" required maxlength="100"
               /></se-field>
-              <se-field controlId="charge-method" label="Calculation method" [required]="true"
+              <se-field controlId="charge-method" label="Charge Type" [required]="true"
                 ><select seSelect formControlName="method">
-                  <option value="FLAT_RATE">Flat rate</option>
+                  <option value="FLAT_RATE">Fixed Amount</option>
                   <option value="PER_SQ_FT">Per square foot</option>
                 </select></se-field
               >
               <se-field
                 controlId="charge-rate"
-                label="Rate"
+                label="Amount"
                 [required]="true"
                 hint="Use two decimals, such as 1000.00."
                 [error]="
@@ -689,8 +708,8 @@
                 <thead>
                   <tr>
                     <th scope="col">Charge</th>
-                    <th scope="col">Method</th>
-                    <th scope="col">Rate</th>
+                    <th scope="col">Charge Type</th>
+                    <th scope="col">Amount</th>
                     <th scope="col">Effective from</th>
                   </tr>
                 </thead>
@@ -816,7 +835,7 @@
       </se-card>
     }
     @if (step() === 6) {
-      <se-card title="Activate society or township">
+      <se-card title="Activate society or flat or township">
         @if (society.verifiedAt) {
           <p class="onboarding-feedback">
             Verified {{ displayTime(society.verifiedAt, society.timezone) }} by committee membership
@@ -830,8 +849,8 @@
           </p>
         } @else {
           <p>
-            Activation opens the society or township workspace for active members. Completed
-            verification is retained in the society or township history.
+            Activation opens the society or flat or township workspace for active members. Completed
+            verification is retained in the society or flat or township history.
           </p>
           <button
             seButton
@@ -865,12 +884,12 @@
   }
 }
 <se-dialog
-  title="Verify and activate this society or township?"
+  title="Verify and activate this society or flat or township?"
   [open]="activationDialog()"
   (closed)="activationDialog.set(false)"
   ><p>
-    I confirm that the society or township setup is correct. My verification will be recorded and
-    the committee will operate the active society or township.
+    I confirm that the society or flat or township setup is correct. My verification will be
+    recorded and the committee will operate the active society or flat or township.
   </p>
   <div class="onboarding-actions">
     <button seButton variant="secondary" type="button" (click)="activationDialog.set(false)">
@@ -881,12 +900,12 @@
   </div></se-dialog
 >
 <se-dialog
-  title="Change society or township lifecycle?"
+  title="Change society or flat or township lifecycle?"
   [open]="pendingStatus() !== null"
   (closed)="pendingStatus.set(null)"
   ><p>
-    Change the society or township to {{ pendingStatus()?.replaceAll('_', ' ') }}. Deactivation is
-    terminal. Existing records are retained.
+    Change the society or flat or township to {{ pendingStatus()?.replaceAll('_', ' ') }}.
+    Deactivation is terminal. Existing records are retained.
   </p>
   <div class="onboarding-actions">
     <button seButton variant="secondary" type="button" (click)="pendingStatus.set(null)">

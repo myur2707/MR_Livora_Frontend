@@ -1,5 +1,5 @@
 import type { Routes } from '@angular/router';
-import { authGuard, platformGuard, societyGuard } from './core/auth-guards';
+import { authGuard, platformGuard, societyGuard, workspaceGuard } from './core/auth-guards';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'workspace' },
@@ -45,10 +45,17 @@ export const routes: Routes = [
         loadComponent: () => import('./features/resident-access/link').then((m) => m.ResidentLink),
       },
       {
-        path: 'join-society',
-        title: 'Join a society · MR Livora',
+        path: 'profile',
+        title: 'My profile · MR Livora',
         canActivate: [authGuard],
-        data: { breadcrumb: 'Join a society' },
+        data: { breadcrumb: 'My profile' },
+        loadComponent: () => import('./features/auth/profile').then((m) => m.AccountProfilePage),
+      },
+      {
+        path: 'join-society',
+        title: 'Membership requests · MR Livora',
+        canActivate: [authGuard],
+        data: { breadcrumb: 'Membership requests' },
         loadComponent: () => import('./features/resident-access/join').then((m) => m.ResidentJoin),
       },
       {
@@ -70,7 +77,7 @@ export const routes: Routes = [
         path: 'workspace',
         title: 'Choose workspace · MR Livora',
         data: { breadcrumb: 'Workspace' },
-        canActivate: [authGuard],
+        canActivate: [workspaceGuard],
         loadComponent: () => import('./features/auth/workspace').then((m) => m.WorkspaceComponent),
       },
       {

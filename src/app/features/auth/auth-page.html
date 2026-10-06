@@ -39,9 +39,6 @@
         }}
       </p>
       <se-form-notice [message]="error()" />
-      @if (success()) {
-        <p role="status">{{ success() }}</p>
-      }
       @if (!success() || mode === 'forgot') {
         <form
           class="auth-form"
@@ -139,5 +136,5 @@
       <div class="auth-note"><se-icon name="shield" /><span>Your community, with care.</span></div>
     </section>
   </main>
-  <footer class="auth-footer">A smarter way to live together.</footer>
+  <footer class="auth-footer">Live in a Better Aura</footer>
 </div>

@@ -14,7 +14,9 @@ export class ToastService {
   private readonly items = signal<Toast[]>([]);
   readonly toasts = this.items.asReadonly();
   show(message: string, tone: Toast['tone'] = 'info'): void {
-    this.items.update((items) => [...items.slice(-2), { id: ++this.sequence, message, tone }]);
+    const id = ++this.sequence;
+    this.items.set([{ id, message, tone }]);
+    setTimeout(() => this.dismiss(id), tone === 'error' ? 7000 : 4500);
   }
   dismiss(id: number): void {
     this.items.update((items) => items.filter((item) => item.id !== id));
@@ -24,9 +26,13 @@ export class ToastService {
 @Component({
   selector: 'se-toast-region',
   imports: [ButtonDirective, IconComponent],
-  template: `<div class="toast-region" role="status" aria-live="polite" aria-atomic="false">
+  template: `<div class="toast-region" aria-live="polite" aria-atomic="false">
     @for (toast of service.toasts(); track toast.id) {
-      <div class="toast" [attr.data-tone]="toast.tone">
+      <div
+        class="toast"
+        [attr.data-tone]="toast.tone"
+        [attr.role]="toast.tone === 'error' ? 'alert' : 'status'"
+      >
         <se-icon [name]="toast.tone === 'success' ? 'check' : 'info'" />
         <p>{{ toast.message }}</p>
         <button

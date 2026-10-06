@@ -142,7 +142,7 @@ for (const path of [
   assert.equal(navigation(path), false, path + ' must bypass shell navigation');
 assert.equal(manifest.name, 'MR Livora');
 assert.equal(manifest.short_name, 'MR Livora');
-assert.equal(manifest.description, 'A smarter way to live together.');
+assert.equal(manifest.description, 'Live in a Better Aura');
 assert.equal(manifest.display, 'standalone');
 assert.equal(manifest.start_url, '/');
 assert.equal(manifest.scope, '/');

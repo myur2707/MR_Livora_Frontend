@@ -27,8 +27,11 @@
   .app-header {
     padding-inline: 20px;
   }
+  .header-brand-lockup {
+    display: none;
+  }
   .workspace main {
-    padding: 28px 24px;
+    padding: 22px 24px 16px;
   }
   .app-footer {
     margin-inline: 24px;
@@ -117,10 +120,13 @@
 }
 @media (max-width: 680px) {
   .app-header {
-    min-height: 68px;
+    min-height: 54px;
     flex-wrap: wrap;
     padding-inline: 12px;
     gap: 8px;
+  }
+  .app-header::after {
+    inset-inline: 12px;
   }
   .header-start {
     gap: 6px;
@@ -135,7 +141,7 @@
   .header-actions > .button:last-child {
     padding-inline: 10px;
   }
-  .header-actions > .button:last-child .icon {
+  .header-actions > .button:last-child:not(.icon-button) .icon {
     display: none;
   }
   .breadcrumbs {
@@ -146,13 +152,35 @@
     gap: 4px;
   }
   .workspace main {
-    padding: 24px 18px;
+    padding: 18px 18px 12px;
   }
   .page-heading {
     align-items: start;
     margin-bottom: 24px;
     flex-direction: column;
     gap: 12px;
+  }
+  .page-heading-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .page-heading-filter {
+    flex: 1 1 180px;
+  }
+  .page-heading-search {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+  .lifecycle-select {
+    width: 100%;
+    min-width: 0;
+  }
+  .join-request-form {
+    grid-template-columns: 1fr;
+  }
+  .join-request-note,
+  .join-request-form > button {
+    grid-column: auto;
   }
   .welcome-panel {
     grid-template-columns: 1fr;

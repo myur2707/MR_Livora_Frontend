@@ -125,9 +125,10 @@ export class OnboardingApi {
     await this.auth.prepare();
     return firstValueFrom(this.http.post<T>('/api/v1' + path, body));
   }
-  async societies(page = 1, status = ''): Promise<Page<SocietySummary>> {
-    let params = new HttpParams().set('page', page).set('pageSize', 20);
+  async societies(page = 1, status = '', search = ''): Promise<Page<SocietySummary>> {
+    let params = new HttpParams().set('page', page).set('pageSize', 5);
     if (status) params = params.set('status', status);
+    if (search) params = params.set('search', search);
     return firstValueFrom(
       this.http.get<Page<SocietySummary>>('/api/v1/platform/societies', { params }),
     );

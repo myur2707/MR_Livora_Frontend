@@ -7,9 +7,6 @@
   </p>
 </div>
 <se-form-notice [message]="error()" />
-@if (message()) {
-  <p class="form-success" role="status">{{ message() }}</p>
-}
 @if (canConfigure()) {
   <div class="property-actions">
     @if (periods) {

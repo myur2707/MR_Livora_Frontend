@@ -10,9 +10,6 @@
   <button seButton type="button" (click)="openInvite()">Invite existing resident</button>
 </header>
 <se-form-notice [message]="error()" />
-@if (message()) {
-  <p role="status">{{ message() }}</p>
-}
 <div class="property-actions" role="group" aria-label="Resident access lists">
   <button
     seButton

@@ -1,6 +1,6 @@
 # MR Livora frontend
 
-A smarter way to live together.
+Live in a Better Aura
 
 Step 10 adds [committee notice management and complaint assignment/status history](docs/STEP_10_COMMUNITY.md), plus categorized resident complaints and own status history. Select an ACTIVE society with the relevant committee permissions to open the Community navigation.
 

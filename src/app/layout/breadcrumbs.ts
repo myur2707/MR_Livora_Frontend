@@ -36,7 +36,9 @@ export class BreadcrumbsComponent {
           route = route.firstChild;
           url += '/' + route.url.map((segment) => segment.path).join('/');
           const label: unknown = route.data['breadcrumb'];
-          if (typeof label === 'string') result.push({ label, url: url.replace(/\/+/g, '/') });
+          if (typeof label === 'string' && label !== 'Platform') {
+            result.push({ label, url: url.replace(/\/+/g, '/') });
+          }
         }
         return result;
       }),

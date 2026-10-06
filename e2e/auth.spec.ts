@@ -143,6 +143,7 @@ test('login validation, generic failures, workspace selection and logout', async
   await expect(page.getByRole('heading', { name: 'Your community space' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Societies', exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
+  await expect(page.getByRole('button', { name: 'Sign out' }).locator('svg')).toBeVisible();
   await page.getByRole('button', { name: 'Sign out' }).click();
   await expect(page.getByRole('heading', { name: 'Welcome home' })).toBeVisible();
 });

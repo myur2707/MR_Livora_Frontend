@@ -5,7 +5,7 @@ test('production CSP blocks inline scripts while application styles and navigati
   const response = await page.goto('/login');
   await expect(page).toHaveTitle('Sign in · MR Livora');
   await expect(page.getByRole('link', { name: 'MR Livora home', exact: true })).toBeVisible();
-  await expect(page.locator('.auth-footer')).toHaveText('A smarter way to live together.');
+  await expect(page.locator('.auth-footer')).toHaveText('Live in a Better Aura');
   expect(response?.headers()['content-security-policy']).toContain("script-src 'self'");
   await expect(page.getByRole('heading', { name: 'Welcome home' })).toBeVisible();
   expect(
@@ -74,7 +74,7 @@ test('all lazy placeholders and the unknown route render without accessibility v
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const routes = [
     ['/platform/dashboard', 'Welcome to MR Livora'],
-    ['/platform/societies', 'Your societies or townships'],
+    ['/platform/societies', 'Your societies or flats or townships'],
     ['/society/dashboard', 'Your community space'],
     ['/login', 'Welcome home'],
     ['/forgot-password', 'A fresh start'],
@@ -100,25 +100,54 @@ test('all lazy placeholders and the unknown route render without accessibility v
 });
 
 test('sidebar collapse and dark theme remain usable and survive refresh', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 900 });
   await page.goto('/platform/dashboard');
   await expect(page.locator('.desktop-sidebar .brand-logo')).toHaveAttribute(
     'src',
     '/assets/brand/logo.png',
   );
+  await expect(page.locator('.desktop-sidebar .brand')).toHaveCSS('align-items', 'center');
+  await expect(page.locator('.desktop-sidebar .brand-subtitle')).toHaveCSS('text-align', 'center');
+  await expect(
+    page.getByRole('button', { name: 'Collapse sidebar' }).locator('path'),
+  ).toHaveAttribute('d', 'M3 3h18v18H3zM8 3v18m8-13-4 4 4 4');
   await page.getByRole('button', { name: 'Collapse sidebar' }).click();
   await expect(page.locator('.desktop-sidebar .brand-mark')).toHaveAttribute(
     'src',
     '/assets/brand/monogram.png',
   );
   await expect(page.getByRole('button', { name: 'Expand sidebar' })).toBeVisible();
-  await page.getByRole('link', { name: 'Societies or Townships', exact: true }).click();
   await expect(
-    page.getByRole('heading', { name: 'Your societies or townships', level: 1 }),
+    page.getByRole('button', { name: 'Expand sidebar' }).locator('path'),
+  ).toHaveAttribute('d', 'M3 3h18v18H3zM16 3v18M8 8l4 4-4 4');
+  await page.getByRole('link', { name: 'Societies or Flats or Townships', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Your societies or flats or townships', level: 1 }),
   ).toBeFocused();
+  await expect(page.getByRole('button', { name: 'Add society' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Refresh societies/i })).toHaveCount(0);
+  expect(
+    await page.locator('main').evaluate((main) => main.scrollHeight <= main.clientHeight),
+  ).toBe(true);
+  await page.getByRole('button', { name: 'Add society' }).click();
+  const createDialog = page.getByRole('dialog', { name: 'New society or flat or township' });
+  await expect(createDialog).toBeVisible();
+  await expect(createDialog.getByLabel('Society or Flat or Township code')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(createDialog).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Add society' })).toBeFocused();
   await page.getByRole('button', { name: 'Switch to dark theme' }).click();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
+  const pageHeading = page.getByRole('heading', {
+    name: 'Your societies or flats or townships',
+    level: 1,
+  });
+  await expect(pageHeading).toBeFocused();
+  expect(await pageHeading.evaluate((heading) => getComputedStyle(heading).outlineStyle)).toBe(
+    'none',
+  );
   expect(
     (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations,
   ).toEqual([]);
@@ -170,11 +199,11 @@ test('mobile navigation works by keyboard and does not overflow at 320px', async
   await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog', { name: 'Navigation' });
   await expect(dialog).toBeVisible();
-  await dialog.getByRole('link', { name: 'Societies or Townships', exact: true }).focus();
+  await dialog.getByRole('link', { name: 'Societies or Flats or Townships', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(dialog).toBeHidden();
   await expect(
-    page.getByRole('heading', { name: 'Your societies or townships', level: 1 }),
+    page.getByRole('heading', { name: 'Your societies or flats or townships', level: 1 }),
   ).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
@@ -208,9 +237,9 @@ test('populated tables scroll within their container on narrow screens', async (
   );
   await page.setViewportSize({ width: 320, height: 780 });
   await page.goto('/platform/societies');
-  const table = page.getByRole('table', { name: 'Society or Township directory' });
+  const table = page.getByRole('table', { name: 'Society or Flat or Township directory' });
   await expect(table).toBeVisible();
-  const scroll = page.getByRole('region', { name: 'Society or Township directory' });
+  const scroll = page.getByRole('region', { name: 'Society or Flat or Township directory' });
   expect(await scroll.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await scroll.focus();

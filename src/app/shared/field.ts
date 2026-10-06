@@ -1,4 +1,5 @@
-import { Component, Directive, computed, inject, input } from '@angular/core';
+import { Component, Directive, computed, effect, inject, input } from '@angular/core';
+import { ToastService } from './toast';
 
 @Component({
   selector: 'se-field',
@@ -41,10 +42,19 @@ export class ControlDirective {
 
 @Component({
   selector: 'se-form-notice',
-  template:
-    '@if (message()) { <div class="form-notice" role="alert"><strong>{{ title() }}</strong><p>{{ message() }}</p></div> }',
+  template: '',
 })
 export class FormNoticeComponent {
   readonly title = input('Please check your request');
   readonly message = input<string | null>(null);
+  private readonly toast = inject(ToastService);
+  private previous: string | null = null;
+
+  constructor() {
+    effect(() => {
+      const message = this.message();
+      if (message && message !== this.previous) this.toast.show(message, 'error');
+      this.previous = message;
+    });
+  }
 }

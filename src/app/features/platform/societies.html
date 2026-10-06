@@ -1,90 +1,60 @@
-<header class="page-heading">
+<header class="page-heading platform-directory-heading">
   <div>
     <p class="eyebrow">PLATFORM WORKSPACE</p>
-    <h1 tabindex="-1">Your societies or townships</h1>
+    <h1 tabindex="-1">Your societies or flats or townships</h1>
     <p>Guide new communities from first setup to committee activation.</p>
   </div>
-  <button seButton type="button" (click)="showCreate.set(!showCreate())">
-    Create society or township
-  </button>
+  <div class="page-heading-actions">
+    <se-field class="page-heading-search" controlId="societies-search" label="Search"
+      ><input
+        seInput
+        type="search"
+        [formControl]="searchControl"
+        maxlength="80"
+        autocomplete="off"
+        placeholder="Name or code"
+    /></se-field>
+    <se-field class="page-heading-filter" controlId="societies-filter" label="Lifecycle status"
+      ><select
+        class="lifecycle-select"
+        seSelect
+        #filterSelect
+        (change)="filter(filterSelect.value)"
+      >
+        <option value="">All statuses</option>
+        @for (status of statuses; track status) {
+          <option [value]="status">{{ status.replaceAll('_', ' ') }}</option>
+        }
+      </select></se-field
+    >
+    <button class="compact-action" seButton type="button" (click)="openCreate()">
+      Add society
+    </button>
+  </div>
 </header>
 <se-form-notice [message]="error()" />
-@if (showCreate()) {
-  <se-card
-    title="New society or township"
-    description="Create a draft. The committee will review and activate it after setup."
-  >
-    <form [formGroup]="form" (ngSubmit)="create()" class="onboarding-form">
-      <se-field
-        controlId="society-code"
-        label="Society or Township code"
-        [required]="true"
-        hint="3–64 uppercase letters, numbers, underscores or hyphens."
-        [error]="
-          form.controls.code.touched && form.controls.code.invalid
-            ? 'Enter a valid, unique society code.'
-            : null
-        "
-        ><input seInput formControlName="code" required maxlength="64"
-      /></se-field>
-      <se-field
-        controlId="society-name"
-        label="Society or Township name"
-        [required]="true"
-        [error]="
-          form.controls.name.touched && form.controls.name.invalid
-            ? 'Enter the society name.'
-            : null
-        "
-        ><input seInput formControlName="name" required maxlength="200"
-      /></se-field>
-      <se-field
-        controlId="society-timezone"
-        label="Time zone"
-        [required]="true"
-        hint="For example, Asia/Kolkata."
-        ><input seInput formControlName="timezone" required maxlength="64"
-      /></se-field>
-      <button seButton type="submit" [disabled]="busy()">
-        {{ busy() ? 'Creating…' : 'Create draft society or township' }}
-      </button>
-    </form>
-  </se-card>
-}
-<div class="section-heading">
-  <se-field controlId="societies-filter" label="Lifecycle status"
-    ><select seSelect #filterSelect (change)="filter(filterSelect.value)">
-      <option value="">All statuses</option>
-      @for (status of statuses; track status) {
-        <option [value]="status">{{ status.replaceAll('_', ' ') }}</option>
-      }
-    </select></se-field
-  ><button seButton variant="secondary" type="button" (click)="load()">
-    Refresh societies or townships
-  </button>
-</div>
 @if (loading()) {
   <se-state
     kind="loading"
-    title="Loading societies or townships"
+    title="Loading societies or flats or townships"
     message="Fetching platform metadata."
   />
 } @else if (result(); as data) {
   @if (data.items.length) {
-    <se-card
+    <se-card class="platform-directory-card"
       ><div
-        class="table-scroll"
+        class="table-scroll platform-directory-table"
         tabindex="0"
         role="region"
-        aria-label="Society or Township directory"
+        aria-label="Society or Flat or Township directory"
       >
         <table seTable>
           <caption class="sr-only">
-            Society or Township directory
+            Society or Flat or Township directory
           </caption>
           <thead>
             <tr>
-              <th scope="col">Society or Township</th>
+              <th scope="col">Society or Flat or Township</th>
               <th scope="col">Code</th>
               <th scope="col">Status</th>
               <th scope="col">Setup</th>
@@ -100,7 +70,7 @@
                 </td>
                 <td>
                   <a class="text-link" [routerLink]="['/platform/societies', society.id]"
-                    >{{ society.revision ? 'View setup' : 'View society or township' }}
+                    >{{ society.revision ? 'View setup' : 'View society or flat or township' }}
                     <span class="sr-only">for {{ society.name }}</span></a
                   >
                 </td>
@@ -118,8 +88,60 @@
   } @else {
     <se-state
       kind="empty"
-      title="No societies or townships found"
-      message="Create a draft society or township to begin onboarding."
+      title="No societies or flats or townships found"
+      [message]="
+        searchControl.value.trim() || status
+          ? 'Try a different search or lifecycle status.'
+          : 'Create a draft society or flat or township to begin onboarding.'
+      "
     />
   }
 }
+<se-dialog
+  class="compact-dialog"
+  [open]="showCreate()"
+  title="New society or flat or township"
+  (closed)="closeCreate()"
+>
+  @if (showCreate()) {
+    <p class="dialog-description">
+      Create a draft. The committee will review and activate it after setup.
+    </p>
+    <se-form-notice [message]="createError()" />
+    <form [formGroup]="form" (ngSubmit)="create()" class="onboarding-form">
+      <se-field
+        controlId="society-code"
+        label="Society or Flat or Township code"
+        [required]="true"
+        hint="3–64 uppercase letters, numbers, underscores or hyphens."
+        [error]="
+          form.controls.code.touched && form.controls.code.invalid
+            ? 'Enter a valid, unique society code.'
+            : null
+        "
+        ><input seInput formControlName="code" required maxlength="64"
+      /></se-field>
+      <se-field
+        controlId="society-name"
+        label="Society or Flat or Township name"
+        [required]="true"
+        [error]="
+          form.controls.name.touched && form.controls.name.invalid
+            ? 'Enter the society name.'
+            : null
+        "
+        ><input seInput formControlName="name" required maxlength="200"
+      /></se-field>
+      <se-field
+        controlId="society-timezone"
+        label="Time zone"
+        [required]="true"
+        hint="For example, Asia/Kolkata."
+        ><input seInput formControlName="timezone" required maxlength="64"
+      /></se-field>
+      <button seButton type="submit" [disabled]="busy()">
+        {{ busy() ? 'Creating…' : 'Create draft' }}
+      </button>
+    </form>
+  }
+</se-dialog>

@@ -18,9 +18,6 @@
 </div>
 <div class="payment-screen">
   <se-form-notice [message]="error()" />
-  @if (message()) {
-    <p role="status">{{ message() }}</p>
-  }
   @if (loading()) {
     <p role="status">Loading payments…</p>
   }

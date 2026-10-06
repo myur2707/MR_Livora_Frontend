@@ -1,4 +1,4 @@
-import { Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import type { OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import type { AbstractControl } from '@angular/forms';
@@ -24,6 +24,7 @@ import { PaginationComponent } from '../../shared/pagination';
 import { DialogComponent } from '../../shared/dialog';
 import { parseFlatNumbers, propertyNumberLimits, type FlatNumberPlan } from './flat-numbers';
 import { parseWingCodes, type WingPlan } from './wing-codes';
+import { ToastService } from '../../shared/toast';
 @Component({
   selector: 'se-onboarding-wizard',
   imports: [
@@ -68,6 +69,7 @@ export class OnboardingWizardComponent implements OnInit {
   protected readonly configurations = signal<Configuration[]>([]);
   protected readonly error = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
+  private readonly toast = inject(ToastService);
   protected readonly busy = signal(false);
   protected readonly wingOptions = ['A', 'B', 'C', 'D'];
   protected readonly multipleWings = signal(false);
@@ -83,10 +85,16 @@ export class OnboardingWizardComponent implements OnInit {
       : null,
   );
   protected readonly flatPlan = signal<FlatNumberPlan>({ numbers: [], error: null });
+  constructor() {
+    effect(() => {
+      const message = this.message();
+      if (message) this.toast.show(message, 'success');
+    });
+  }
   protected readonly loading = signal(true);
   protected readonly step = signal(0);
   protected readonly steps = [
-    'Society or Township',
+    'Society or Flat or Township',
     'Committee Admin',
     'Buildings / Wings / Flats',
     'Residents',
@@ -230,7 +238,7 @@ export class OnboardingWizardComponent implements OnInit {
   protected async residentFlatPage(page: number): Promise<void> {
     const request = ++this.residentStructureRequest;
     this.residentPropertiesLoading.set(true);
-    this.residentStructure.set(null);
+    if (page === 1) this.residentStructure.set(null);
     try {
       const data = await this.api.get<Page<Flat>>(
         this.prefix +
@@ -241,12 +249,30 @@ export class OnboardingWizardComponent implements OnInit {
           '&search=' +
           encodeURIComponent(this.residentPropertySearch().trim()),
       );
-      if (request === this.residentStructureRequest) this.residentStructure.set(data);
+      if (request === this.residentStructureRequest) {
+        const current = this.residentStructure();
+        this.residentStructure.set(
+          page === 1 || !current ? data : { ...data, items: [...current.items, ...data.items] },
+        );
+      }
     } catch (error) {
       if (request === this.residentStructureRequest) this.error.set(onboardingError(error));
     } finally {
       if (request === this.residentStructureRequest) this.residentPropertiesLoading.set(false);
     }
+  }
+  protected onResidentPropertyScroll(event: Event): void {
+    const list = event.target;
+    const data = this.residentStructure();
+    if (
+      !(list instanceof HTMLElement) ||
+      !data ||
+      this.residentPropertiesLoading() ||
+      data.items.length >= data.total ||
+      list.scrollTop + list.clientHeight < list.scrollHeight - 48
+    )
+      return;
+    void this.residentFlatPage(data.page + 1);
   }
   protected async chargePage(page: number): Promise<void> {
     try {

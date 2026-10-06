@@ -51,4 +51,4 @@ The batch API uses the existing server authorization, CSRF, setup lifecycle chec
 
 # Resident property choice
 
-In the committee Residents step, choose Flats or Row houses, then open the property picker. Search by number or building, browse matching pages inside the picker, and select a result. The chosen property remains visible while browsing or searching; switching property type clears it. Row houses display their house number without a building prefix. The server validates the selected property's society and type; changing this choice does not create or reclassify properties.
+In the committee Residents step, choose Flats or Row houses, then open the property picker. Search by number or building and select a result. More matching properties load as the user scrolls the result list, without page controls. The chosen property remains visible while searching; switching property type clears it. Row houses display their house number without a building prefix. The server validates the selected property's society and type; changing this choice does not create or reclassify properties.

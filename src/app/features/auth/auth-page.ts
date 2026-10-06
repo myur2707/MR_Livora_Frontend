@@ -8,6 +8,7 @@ import { ButtonDirective } from '../../shared/button';
 import { IconComponent } from '../../shared/icon';
 import { ControlDirective, FieldComponent, FormNoticeComponent } from '../../shared/field';
 import { fieldError } from '../../shared/form-errors';
+import { ToastService } from '../../shared/toast';
 
 @Component({
   selector: 'se-auth-page',
@@ -27,6 +28,7 @@ export class AuthPageComponent {
   private readonly router = inject(Router);
   private readonly auth = inject(AuthService);
   private readonly document = inject(DOCUMENT);
+  private readonly toast = inject(ToastService);
   protected readonly theme = inject(ThemeService);
   protected readonly mode: string = String(this.route.snapshot.data['mode']);
   protected readonly title =
@@ -105,16 +107,20 @@ export class AuthPageComponent {
         await this.auth.login(email, password);
         this.form.controls.password.reset();
         await this.router.navigateByUrl(
-          safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
+          this.auth.state.identity()?.platformAdmin
+            ? '/platform/dashboard'
+            : safeReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
         );
       } else if (this.mode === 'forgot') {
         await this.auth.forgot(email);
         this.success.set('If this account is eligible, a reset link will be sent.');
+        this.toast.show(this.success() ?? '', 'success');
       } else {
         await this.auth.reset(this.token, password);
         this.token = '';
         this.form.reset();
         this.success.set('Password updated. Sign in with your new password.');
+        this.toast.show(this.success() ?? '', 'success');
       }
     } catch (error) {
       this.error.set(authErrorMessage(error));

@@ -4,6 +4,12 @@ import { firstValueFrom } from 'rxjs';
 import { AuthState } from './auth-state';
 import type { SessionIdentity } from './auth-state';
 
+export interface AccountProfile {
+  email: string;
+  displayName: string;
+  contactPhone: string | null;
+}
+
 export function authErrorMessage(error: unknown): string {
   if (!(error instanceof HttpErrorResponse)) return 'Unable to connect. Please try again.';
   const payload: unknown = error.error;
@@ -86,5 +92,15 @@ export class AuthService {
     await this.prepare();
     await firstValueFrom(this.http.post<void>('/api/v1/auth/society-context', { societyId }));
     await this.refresh();
+  }
+  async profile(): Promise<AccountProfile> {
+    return firstValueFrom(this.http.get<AccountProfile>('/api/v1/auth/profile'));
+  }
+  async updateProfile(input: {
+    displayName: string;
+    contactPhone: string | null;
+  }): Promise<AccountProfile> {
+    await this.prepare();
+    return firstValueFrom(this.http.patch<AccountProfile>('/api/v1/auth/profile', input));
   }
 }

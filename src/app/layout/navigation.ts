@@ -3,16 +3,7 @@ import type { IconName } from '../shared/icon';
 export const NAVIGATION: readonly { label: string; path: string; icon: IconName; group: string }[] =
   [
     ...(
-      [
-        'dashboard',
-        'flats',
-        'bills',
-        'payments',
-        'receipts',
-        'notices',
-        'complaints',
-        'profile',
-      ] as const
+      ['dashboard', 'flats', 'bills', 'payments', 'receipts', 'notices', 'complaints'] as const
     ).map((path, index) => ({
       path: '/society/resident/' + path,
       label:
@@ -24,14 +15,14 @@ export const NAVIGATION: readonly { label: string; path: string; icon: IconName;
           'My Receipts',
           'Notices',
           'My Complaints',
-          'My Profile',
         ][index] ?? path,
       icon: 'home' as const,
       group: 'My living',
     })),
+    { label: 'Workspace', path: '/workspace', icon: 'home', group: 'Workspace' },
     { label: 'Overview', path: '/platform/dashboard', icon: 'home', group: 'Workspace' },
     {
-      label: 'Societies or Townships',
+      label: 'Societies or Flats or Townships',
       path: '/platform/societies',
       icon: 'building',
       group: 'Workspace',
@@ -71,7 +62,8 @@ export const NAVIGATION: readonly { label: string; path: string; icon: IconName;
       icon: 'people',
       group: 'Community',
     },
-    { label: 'Join a society', path: '/join-society', icon: 'people', group: 'Workspace' },
+    { label: 'Membership requests', path: '/join-society', icon: 'people', group: 'Workspace' },
+    { label: 'My profile', path: '/profile', icon: 'people', group: 'Workspace' },
     {
       label: 'Charge configuration',
       path: '/society/billing/configuration',

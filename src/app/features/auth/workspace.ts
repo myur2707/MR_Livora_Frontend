@@ -22,7 +22,7 @@ import { StateComponent } from '../../shared/state';
         <p>Access is based on your current membership.</p>
       </div>
     </header>
-    <p>
+    <p class="workspace-membership-action">
       <a seButton variant="secondary" routerLink="/join-society"
         >Request another society membership</a
       >
@@ -30,7 +30,21 @@ import { StateComponent } from '../../shared/state';
     <se-form-notice [message]="error()" />
     @if (auth.state.identity(); as identity) {
       @if (identity.platformAdmin) {
-        <p><a seButton routerLink="/platform/dashboard">Open platform workspace</a></p>
+        <section class="card platform-workspace" aria-labelledby="platform-workspace-title">
+          <div>
+            <p class="eyebrow">PLATFORM ADMIN</p>
+            <h2 id="platform-workspace-title">Platform workspace</h2>
+            <p>
+              Manage societies or flats or townships, review onboarding, and track setup progress.
+            </p>
+          </div>
+          <div class="platform-workspace-actions">
+            <a seButton routerLink="/platform/dashboard">Open platform workspace</a>
+            <a seButton variant="secondary" routerLink="/platform/societies"
+              >View societies or flats or townships</a
+            >
+          </div>
+        </section>
       }
       @if (identity.setupSocieties?.length) {
         <section aria-label="Communities awaiting setup">
@@ -54,7 +68,7 @@ import { StateComponent } from '../../shared/state';
               <option value="">Choose a community</option>
               @for (membership of identity.memberships; track membership.societyId) {
                 <option [value]="membership.societyId">
-                  {{ membership.name }} · {{ membership.roles.join(', ') }}
+                  {{ membership.name }} · {{ roleNames(membership.roles) }}
                 </option>
               }
             </select>
@@ -63,7 +77,7 @@ import { StateComponent } from '../../shared/state';
             {{ busy() ? 'Opening…' : 'Open community workspace' }}
           </button>
         </form>
-      } @else {
+      } @else if (!identity.platformAdmin) {
         <se-state
           kind="empty"
           title="No active community access"
@@ -77,6 +91,16 @@ export class WorkspaceComponent {
   private readonly router = inject(Router);
   protected readonly error = signal<string | null>(null);
   protected readonly busy = signal(false);
+  protected roleNames(roles: readonly string[]): string {
+    return roles
+      .map((role) =>
+        role
+          .split('_')
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+          .join(' '),
+      )
+      .join(', ');
+  }
   protected async select(event: Event, societyId: string): Promise<void> {
     event.preventDefault();
     if (!societyId || this.busy()) return;

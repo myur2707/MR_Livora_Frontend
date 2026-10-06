@@ -8,6 +8,7 @@ const paths = {
   grid: 'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z',
   menu: 'M4 6h16M4 12h16M4 18h16',
   close: 'm6 6 12 12M6 18 18 6',
+  refresh: 'M20 11a8 8 0 1 0 1 4M20 5v6h-6',
   left: 'm14 6-6 6 6 6',
   right: 'm10 6 6 6-6 6',
   arrow: 'M4 12h16m-6-6 6 6-6 6',
@@ -17,6 +18,9 @@ const paths = {
   shield: 'M12 3 3 7v5c0 5 9 10 9 10s9-5 9-10V7zM8 12l3 3 5-6',
   sparkle: 'm12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z',
   info: 'M12 11v6M12 7v.01M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0',
+  logout:
+    'M10 17l5-5-5-5M15 12H3M21 19V5a2 2 0 0 0-2-2h-6a2 2 0 0 0-2 2v2M11 17v2a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2',
+  expand: 'M3 3h18v18H3zM16 3v18M8 8l4 4-4 4',
   collapse: 'M3 3h18v18H3zM8 3v18m8-13-4 4 4 4',
 } as const;
 export type IconName = keyof typeof paths;

@@ -16,40 +16,44 @@ export class SidebarComponent {
   private readonly auth = inject(AuthState);
   protected readonly navigation = computed(() =>
     NAVIGATION.filter((item) =>
-      item.path.startsWith('/platform')
-        ? this.auth.identity()?.platformAdmin
-        : item.path.startsWith('/society/reports/')
-          ? !!this.auth
-              .identity()
-              ?.activeSociety?.permissions.includes(
-                item.path.endsWith('residents') ? 'society.members.manage' : 'society.finance.read',
-              )
-          : item.path.startsWith('/society/community/')
+      item.path === '/workspace'
+        ? !this.auth.identity()?.platformAdmin
+        : item.path.startsWith('/platform')
+          ? this.auth.identity()?.platformAdmin
+          : item.path.startsWith('/society/reports/')
             ? !!this.auth
                 .identity()
                 ?.activeSociety?.permissions.includes(
-                  item.path.endsWith('notices')
-                    ? 'society.notices.manage'
-                    : 'society.complaints.manage',
+                  item.path.endsWith('residents')
+                    ? 'society.members.manage'
+                    : 'society.finance.read',
                 )
-            : item.path.startsWith('/society/resident/')
+            : item.path.startsWith('/society/community/')
               ? !!this.auth
                   .identity()
-                  ?.activeSociety?.permissions.includes('society.dashboard.read')
-              : item.path.startsWith('/society/billing')
+                  ?.activeSociety?.permissions.includes(
+                    item.path.endsWith('notices')
+                      ? 'society.notices.manage'
+                      : 'society.complaints.manage',
+                  )
+              : item.path.startsWith('/society/resident/')
                 ? !!this.auth
                     .identity()
-                    ?.activeSociety?.permissions.includes('society.finance.read')
-                : item.path.startsWith('/society')
-                  ? !!this.auth.identity()?.activeSociety &&
-                    (item.path === '/society/dashboard' ||
-                      !!(
-                        this.auth.identity()?.activeSociety?.roles.includes('COMMITTEE_ADMIN') &&
-                        this.auth
-                          .identity()
-                          ?.activeSociety?.permissions.includes('society.members.manage')
-                      ))
-                  : true,
+                    ?.activeSociety?.permissions.includes('society.dashboard.read')
+                : item.path.startsWith('/society/billing')
+                  ? !!this.auth
+                      .identity()
+                      ?.activeSociety?.permissions.includes('society.finance.read')
+                  : item.path.startsWith('/society')
+                    ? !!this.auth.identity()?.activeSociety &&
+                      (item.path === '/society/dashboard' ||
+                        !!(
+                          this.auth.identity()?.activeSociety?.roles.includes('COMMITTEE_ADMIN') &&
+                          this.auth
+                            .identity()
+                            ?.activeSociety?.permissions.includes('society.members.manage')
+                        ))
+                    : true,
     ),
   );
   protected readonly groups = computed(() => [

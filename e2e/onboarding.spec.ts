@@ -100,10 +100,21 @@ test('committee resident choice filters pages and clears the previous property b
   await picker.getByRole('button', { name: '1', exact: true }).click();
   await expect(picker.locator('summary')).toContainText('1');
   await picker.locator('summary').click();
-  await picker.getByRole('button', { name: 'Next page' }).click();
-  await expect(picker.locator('summary')).toContainText('1');
+  await expect(picker.getByText('Scroll to load more. 1 of 51 loaded.')).toBeVisible();
+  await expect(picker.getByRole('button', { name: 'Next page' })).toHaveCount(0);
+  const results = picker.getByRole('list', { name: 'Matching properties' });
+  await results.evaluate((list) => {
+    Object.defineProperties(list, {
+      clientHeight: { configurable: true, value: 100 },
+      scrollHeight: { configurable: true, value: 200 },
+      scrollTop: { configurable: true, value: 100 },
+    });
+    list.dispatchEvent(new Event('scroll'));
+  });
+  await expect(results.getByRole('button', { name: '2', exact: true })).toBeVisible();
+  await expect.poll(() => results.evaluate((list) => list.scrollTop)).toBe(100);
   await picker.getByRole('searchbox', { name: 'Search by row house number' }).fill('2');
-  await expect(picker.getByText('1–1 of 1')).toBeVisible();
+  await expect(picker.getByText('1 match found.')).toBeVisible();
   await picker.getByRole('button', { name: '2', exact: true }).click();
   await expect(picker.locator('summary')).toContainText('2');
   await page
@@ -190,7 +201,7 @@ test('committee wizard requires review and explicit activation; stale server con
   });
   await page.goto('/onboarding/societies/10');
   await expect(
-    page.getByRole('heading', { name: 'Society or Township onboarding', exact: true }),
+    page.getByRole('heading', { name: 'Society or Flat or Township onboarding', exact: true }),
   ).toBeVisible();
   for (const button of await page.locator('.wizard-steps button').all()) {
     await button.click();
@@ -339,7 +350,7 @@ test('wing range preview creates separate flat lists and rejects invalid plans',
   });
   await page.goto('/platform/societies/10');
   await expect(
-    page.getByRole('heading', { name: 'Society or Township onboarding', exact: true }),
+    page.getByRole('heading', { name: 'Society or Flat or Township onboarding', exact: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: /3\s*Buildings/ }).click();
   await expect(page.locator('#wing-options option')).toHaveCount(4);
