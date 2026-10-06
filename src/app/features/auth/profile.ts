@@ -55,7 +55,7 @@ import { DialogComponent } from '../../shared/dialog';
       margin-bottom: 0;
     }
     .profile-grid .form-control {
-      min-height: 38px;
+      min-height: var(--control-height);
       padding-block: 7px;
     }
     .profile-note {
@@ -98,7 +98,7 @@ import { DialogComponent } from '../../shared/dialog';
       <div>
         <p class="eyebrow">MY ACCOUNT</p>
         <h1 tabindex="-1">My profile</h1>
-        <p>Update the contact details used for your MR Livora account.</p>
+        <p>Update the contact details used for your Mr. Livora account.</p>
       </div>
     </header>
     <se-form-notice [message]="error()" />

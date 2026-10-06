@@ -7,7 +7,7 @@ Local application: **http://127.0.0.1:4200**. Start/status commands and test-acc
 The actual Chrome PWA was installed into an isolated local profile and opened in standalone mode. While services are running, reopen that preserved installation from this frontend directory:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .local-tools/Open-MR Livora-PWA.ps1
+powershell -NoProfile -ExecutionPolicy Bypass -File .local-tools/Open-Mr. Livora-PWA.ps1
 ```
 
 The launcher/profile are ignored local artifacts. A fresh machine can install from Chrome/Edge's browser menu after the production worker activates.

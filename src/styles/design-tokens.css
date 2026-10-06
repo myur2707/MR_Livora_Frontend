@@ -1,24 +1,28 @@
 :root {
   color-scheme: light;
-  --canvas: #f6f6f0;
+  --canvas: #f7f7f8;
   --surface: #ffffff;
-  --surface-soft: #f0f3ea;
-  --text: #263c32;
-  --muted: #617066;
-  --brand: #214d3d;
+  --surface-soft: #f2f2f3;
+  --text: #18181b;
+  --muted: #626269;
+  --brand: #b91c1c;
+  --brand-solid: #b91c1c;
   --on-brand: #ffffff;
-  --border: #e0e6dc;
-  --control-border: #829084;
-  --focus: #3d6d4e;
-  --danger: #a13234;
-  --danger-soft: #fff0ee;
+  --border: #e2e2e5;
+  --control-border: #8b8b91;
+  --focus: #dc2626;
+  --danger: #b42318;
+  --danger-soft: #fff1f2;
   --warning: #78531c;
   --warning-soft: #faf0d9;
-  --hero: #e9efdd;
-  --hero-text: #284a37;
+  --hero: #fff1f2;
+  --hero-text: #271719;
+  --accent: #dc2626;
+  --background: #f7f7f8;
   --radius-sm: 8px;
   --radius: 14px;
   --radius-lg: 20px;
+  --control-height: 44px;
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -29,27 +33,30 @@
   --space-10: 40px;
   --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
   --font-display: Georgia, 'Times New Roman', serif;
-  --shadow: 0 8px 30px rgb(22 48 32 / 5%);
+  --shadow: 0 8px 30px rgb(24 24 27 / 8%);
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --canvas: #101c18;
-  --surface: #172720;
-  --surface-soft: #22372c;
-  --text: #edf2e9;
-  --muted: #b5c3b7;
-  --brand: #bad3aa;
-  --on-brand: #172720;
-  --border: #344d41;
-  --control-border: #7b9583;
-  --focus: #cce4b7;
-  --danger: #ffb4b2;
-  --danger-soft: #452d2d;
+  --canvas: #080808;
+  --surface: #121212;
+  --surface-soft: #1d1d1f;
+  --text: #f5f5f5;
+  --muted: #b6b6ba;
+  --brand: #f05252;
+  --brand-solid: #b91c1c;
+  --on-brand: #ffffff;
+  --border: #303034;
+  --control-border: #717178;
+  --focus: #ff6b6b;
+  --danger: #ff7474;
+  --danger-soft: #3a1518;
   --warning: #f1d49a;
   --warning-soft: #3b3323;
-  --hero: #243e2d;
-  --hero-text: #e2edd6;
-  --shadow: 0 8px 30px rgb(0 0 0 / 10%);
+  --hero: #211113;
+  --hero-text: #fff4f4;
+  --accent: #ef4444;
+  --background: #080808;
+  --shadow: 0 8px 30px rgb(0 0 0 / 42%);
 }
 @theme inline {
   --color-brand: var(--brand);
@@ -74,10 +81,46 @@ body::-webkit-scrollbar,
   height: 0;
 }
 body {
+  --watermark-left: 0px;
+  position: relative;
   margin: 0;
-  background: var(--canvas);
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--brand) 12%, transparent),
+      transparent 28rem
+    ),
+    var(--canvas);
   color: var(--text);
-  font: 16px/1.6 var(--font-body);
+  font: 14px/1.5 var(--font-body);
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
+}
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0 0 0 var(--watermark-left);
+  z-index: 0;
+  pointer-events: none;
+  background: url('/assets/brand/logo.png') center 55% / min(42vw, 520px) auto no-repeat;
+  opacity: 0.045;
+  transition: left 180ms ease;
+}
+body:has(.app-frame) {
+  --watermark-left: 250px;
+}
+body:has(.app-frame.nav-collapsed) {
+  --watermark-left: 82px;
+}
+:root[data-theme='dark'] body::before {
+  opacity: 0.075;
+  filter: grayscale(0.35);
+}
+se-root {
+  display: block;
+  position: relative;
+  z-index: 1;
 }
 h1,
 h2,
@@ -86,18 +129,18 @@ p {
   margin: 0;
 }
 h1 {
-  font-size: clamp(25px, 2.4vw, 32px);
+  font-size: clamp(22px, 2.2vw, 28px);
   font-weight: 600;
   letter-spacing: -1px;
   line-height: 1.25;
 }
 h2 {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.4px;
 }
 h3 {
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 600;
 }
 a {

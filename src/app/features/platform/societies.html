@@ -63,12 +63,12 @@
           <tbody>
             @for (society of data.items; track society.id) {
               <tr>
-                <th scope="row">{{ society.name }}</th>
-                <td>{{ society.code }}</td>
-                <td>
+                <th scope="row" data-label="Community">{{ society.name }}</th>
+                <td data-label="Code">{{ society.code }}</td>
+                <td data-label="Status">
                   <se-badge>{{ society.status.replaceAll('_', ' ') }}</se-badge>
                 </td>
-                <td>
+                <td data-label="Setup">
                   <a class="text-link" [routerLink]="['/platform/societies', society.id]"
                     >{{ society.revision ? 'View setup' : 'View society or flat or township' }}
                     <span class="sr-only">for {{ society.name }}</span></a

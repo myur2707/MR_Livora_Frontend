@@ -5,10 +5,9 @@ import { OnboardingApi, onboardingError } from '../../core/onboarding';
 import { ButtonDirective } from '../../shared/button';
 import { CardComponent } from '../../shared/card';
 import { FormNoticeComponent } from '../../shared/field';
-import { StateComponent } from '../../shared/state';
 @Component({
   selector: 'se-overview',
-  imports: [RouterLink, ButtonDirective, CardComponent, FormNoticeComponent, StateComponent],
+  imports: [RouterLink, ButtonDirective, CardComponent, FormNoticeComponent],
   templateUrl: './overview.html',
 })
 export class OverviewComponent implements OnInit {
@@ -22,6 +21,9 @@ export class OverviewComponent implements OnInit {
   } | null>(null);
   ngOnInit(): void {
     void this.load();
+  }
+  protected lifecycleTotal(status: 'ACTIVE' | 'DRAFT'): number {
+    return this.summary()?.find((row) => row.status === status)?.total ?? 0;
   }
   protected async load(): Promise<void> {
     this.error.set(null);

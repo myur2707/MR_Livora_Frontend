@@ -140,8 +140,8 @@ for (const path of [
   '/login/private',
 ])
   assert.equal(navigation(path), false, path + ' must bypass shell navigation');
-assert.equal(manifest.name, 'MR Livora');
-assert.equal(manifest.short_name, 'MR Livora');
+assert.equal(manifest.name, 'Mr. Livora');
+assert.equal(manifest.short_name, 'Mr. Livora');
 assert.equal(manifest.description, 'Live in a Better Aura');
 assert.equal(manifest.display, 'standalone');
 assert.equal(manifest.start_url, '/');

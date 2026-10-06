@@ -62,7 +62,7 @@
 }
 .society-switcher select {
   max-width: 10rem;
-  min-height: 2.5rem;
+  height: var(--control-height);
   border: 1px solid var(--control-border);
   border-radius: var(--radius);
   background: var(--surface);

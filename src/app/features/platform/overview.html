@@ -1,7 +1,7 @@
-<header class="page-heading">
+<header class="page-heading platform-overview-heading">
   <div>
     <p class="eyebrow">PLATFORM WORKSPACE</p>
-    <h1 tabindex="-1">Welcome to MR Livora</h1>
+    <h1 tabindex="-1">Welcome to Mr. Livora</h1>
     <p>Help new communities get ready for committee-led operations.</p>
   </div>
   <a seButton routerLink="/platform/societies">Manage society or flat or township</a>
@@ -19,6 +19,14 @@
       <p class="stat-value">{{ data.pendingVerification }}</p>
       <p>Pending committee verification</p>
     </se-card>
+    <se-card>
+      <p class="eyebrow">ACTIVE</p>
+      <p class="stat-value">{{ lifecycleTotal('ACTIVE') }}</p>
+    </se-card>
+    <se-card>
+      <p class="eyebrow">DRAFT</p>
+      <p class="stat-value">{{ lifecycleTotal('DRAFT') }}</p>
+    </se-card>
   </section>
 }
 <section class="welcome-panel platform-overview-welcome" aria-labelledby="platform-welcome">
@@ -29,36 +37,8 @@
       Create a society or flat or township, invite its committee and track setup. The committee
       reviews the details and verifies activation.
     </p>
-    <a seButton routerLink="/platform/societies">Open society or flat or township directory</a>
   </div>
   <div class="welcome-art">
     <img src="/assets/brand/community.svg" alt="" width="520" height="300" />
   </div>
 </section>
-@if (summary(); as counts) {
-  <section class="onboarding-stats" aria-label="Society or Flat or Township lifecycle totals">
-    @for (count of counts; track count.status) {
-      <se-card
-        ><p class="eyebrow">{{ count.status.replaceAll('_', ' ') }}</p>
-        <p class="stat-value">{{ count.total }}</p></se-card
-      >
-    }
-    @if (!counts.length) {
-      <se-state
-        kind="empty"
-        title="Your first community starts here"
-        message="Create a draft society or flat or township to begin."
-      />
-    }
-  </section>
-} @else if (!error()) {
-  <se-state
-    kind="loading"
-    title="Loading platform totals"
-    message="Fetching society or flat or township lifecycle metadata."
-  />
-}
-<se-card
-  title="A focused platform workspace"
-  description="Society or Flat or Township status and setup progress are available here. Private resident records and tenant financial operations are handled in committee workspaces."
-/>

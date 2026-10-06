@@ -3,8 +3,8 @@ test('production CSP blocks inline scripts while application styles and navigati
   page,
 }) => {
   const response = await page.goto('/login');
-  await expect(page).toHaveTitle('Sign in · MR Livora');
-  await expect(page.getByRole('link', { name: 'MR Livora home', exact: true })).toBeVisible();
+  await expect(page).toHaveTitle('Sign in · Mr. Livora');
+  await expect(page.getByRole('link', { name: 'Mr. Livora home', exact: true })).toBeVisible();
   await expect(page.locator('.auth-footer')).toHaveText('Live in a Better Aura');
   expect(response?.headers()['content-security-policy']).toContain("script-src 'self'");
   await expect(page.getByRole('heading', { name: 'Welcome home' })).toBeVisible();
@@ -73,7 +73,7 @@ test('all lazy placeholders and the unknown route render without accessibility v
   test.setTimeout(90000);
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const routes = [
-    ['/platform/dashboard', 'Welcome to MR Livora'],
+    ['/platform/dashboard', 'Welcome to Mr. Livora'],
     ['/platform/societies', 'Your societies or flats or townships'],
     ['/society/dashboard', 'Your community space'],
     ['/login', 'Welcome home'],
@@ -108,6 +108,9 @@ test('sidebar collapse and dark theme remain usable and survive refresh', async 
   );
   await expect(page.locator('.desktop-sidebar .brand')).toHaveCSS('align-items', 'center');
   await expect(page.locator('.desktop-sidebar .brand-subtitle')).toHaveCSS('text-align', 'center');
+  await expect
+    .poll(() => page.evaluate(() => getComputedStyle(document.body, '::before').left))
+    .toBe('250px');
   await expect(
     page.getByRole('button', { name: 'Collapse sidebar' }).locator('path'),
   ).toHaveAttribute('d', 'M3 3h18v18H3zM8 3v18m8-13-4 4 4 4');
@@ -117,6 +120,9 @@ test('sidebar collapse and dark theme remain usable and survive refresh', async 
     '/assets/brand/monogram.png',
   );
   await expect(page.getByRole('button', { name: 'Expand sidebar' })).toBeVisible();
+  await expect
+    .poll(() => page.evaluate(() => getComputedStyle(document.body, '::before').left))
+    .toBe('82px');
   await expect(
     page.getByRole('button', { name: 'Expand sidebar' }).locator('path'),
   ).toHaveAttribute('d', 'M3 3h18v18H3zM16 3v18M8 8l4 4-4 4');
@@ -213,10 +219,7 @@ test('mobile navigation works by keyboard and does not overflow at 320px', async
   await expect(dialog).toBeHidden();
 });
 
-test('populated tables scroll within their container on narrow screens', async ({
-  page,
-  context,
-}) => {
+test('society records become readable cards on narrow screens', async ({ page, context }) => {
   await context.route('**/api/v1/platform/societies?**', (route) =>
     route.fulfill({
       json: {
@@ -240,16 +243,17 @@ test('populated tables scroll within their container on narrow screens', async (
   const table = page.getByRole('table', { name: 'Society or Flat or Township directory' });
   await expect(table).toBeVisible();
   const scroll = page.getByRole('region', { name: 'Society or Flat or Township directory' });
-  expect(await scroll.evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
+  expect(await scroll.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await scroll.focus();
-  await expect(scroll).toBeFocused();
-  await page.keyboard.press('ArrowRight');
-  await expect.poll(() => scroll.evaluate((element) => element.scrollLeft)).toBeGreaterThan(0);
-  await page.keyboard.press('Tab');
+  const record = table.getByRole('row').filter({ hasText: 'Synthetic community with a long name' });
+  const cells = record.locator('th, td');
+  await expect(cells).toHaveCount(4);
+  for (const [index, label] of ['Community', 'Code', 'Status', 'Setup'].entries()) {
+    await expect(cells.nth(index)).toHaveAttribute('data-label', label);
+    await expect(cells.nth(index)).toHaveCSS('display', 'grid');
+  }
   await table.getByRole('link', { name: /View setup/ }).focus();
   await expect(table.getByRole('link', { name: /View setup/ })).toBeFocused();
-  expect(await scroll.evaluate((element) => element.scrollLeft > 0)).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(
     (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa']).analyze())
@@ -330,7 +334,7 @@ test('static shell works offline while authenticated/private responses never ent
   await context.setOffline(true);
   await page.goto('/login');
   await expect(page.getByRole('heading', { name: 'Welcome home', level: 1 })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'MR Livora home' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Mr. Livora home' })).toBeVisible();
   expect(
     await page.locator('.brand-logo').evaluate(async (image: HTMLImageElement) => {
       await image.decode();

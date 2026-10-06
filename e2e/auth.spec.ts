@@ -208,7 +208,7 @@ test('platform roles do not bypass society guards, and expired/offline sessions 
   await page.goto('/society/dashboard');
   await expect(page.getByRole('heading', { name: 'Choose your workspace' })).toBeVisible();
   await page.goto('/platform/dashboard');
-  await expect(page.getByRole('heading', { name: 'Welcome to MR Livora' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Welcome to Mr. Livora' })).toBeVisible();
   expired = true;
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Welcome home' })).toBeVisible();

@@ -113,17 +113,17 @@
   height: 44px;
   width: 44px;
   border-radius: 12px;
-  color: #365939;
-  background: #edf1e5;
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 10%, var(--surface));
   margin-bottom: 20px;
 }
 .guide-icon.peach {
-  color: #805536;
-  background: #f6ece1;
+  color: var(--brand);
+  background: color-mix(in srgb, var(--brand) 15%, var(--surface));
 }
 .guide-icon.lavender {
-  color: #65557e;
-  background: #efecf6;
+  color: var(--text);
+  background: var(--surface-soft);
 }
 .guide-card p {
   color: var(--muted);
@@ -481,20 +481,32 @@
 }
 .platform-overview-totals {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: var(--space-4);
-  margin-bottom: var(--space-5);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+.platform-overview-heading {
+  margin-bottom: var(--space-4);
+}
+.platform-overview-totals .card {
+  min-height: 108px;
+  margin-bottom: 0;
+  padding: var(--space-4) 18px;
 }
 .platform-overview-totals .stat-value {
-  margin-block: var(--space-2);
+  margin-block: var(--space-1);
+  font-size: 26px;
 }
 .welcome-panel.platform-overview-welcome {
   min-height: 0;
-  margin-bottom: var(--space-5);
+  margin-bottom: var(--space-4);
+}
+.platform-overview-welcome .welcome-copy {
+  padding: var(--space-5) var(--space-6);
 }
 .welcome-panel.platform-overview-welcome h2 {
   font-family: var(--font-body);
-  font-size: clamp(24px, 3vw, 36px);
+  font-size: clamp(20px, 2.4vw, 28px);
   font-weight: 600;
   letter-spacing: -0.5px;
   line-height: 1.2;
@@ -503,6 +515,6 @@
   justify-content: center;
 }
 .platform-overview-welcome .welcome-art img {
-  max-width: 420px;
+  max-width: 320px;
   height: auto;
 }

@@ -129,6 +129,27 @@ test('pending user can request another society and cancel; committee routes rema
   await mock(
     page,
     async (route, path) => {
+      if (path === '/resident-access/join-options/societies')
+        return route.fulfill({ json: { items: [{ code: 'COMMUNITY', name: 'Alpha Community' }] } });
+      if (path === '/resident-access/join-options/properties')
+        return route.fulfill({
+          json: {
+            items: [
+              {
+                buildingCode: 'A',
+                buildingName: 'Building A',
+                flatNumber: '101',
+                propertyType: 'FLAT',
+              },
+              {
+                buildingCode: 'ROW_HOUSES',
+                buildingName: 'Row houses',
+                flatNumber: 'R1',
+                propertyType: 'ROW_HOUSE',
+              },
+            ],
+          },
+        });
       if (path === '/resident-access/requests') {
         if (route.request().method() === 'POST') {
           const body: unknown = route.request().postDataJSON();
@@ -155,11 +176,22 @@ test('pending user can request another society and cancel; committee routes rema
   await expect(page.getByRole('heading', { name: 'Your requests' })).toBeVisible();
   await page.getByRole('button', { name: 'Add request' }).click();
   await expect(page.getByRole('dialog', { name: 'Request membership' })).toBeVisible();
+  await expect(page.getByLabel('Find a community', { exact: true })).toHaveCount(0);
+  await expect(page.getByLabel('Find a flat or row house', { exact: true })).toHaveCount(0);
   await expect(page.getByLabel('Requested occupancy')).toHaveValue('OWNER');
   await page.getByLabel('Your name').fill('Applicant');
-  await page.getByLabel('Society code').fill('COMMUNITY');
-  await page.getByLabel('Building code').fill('A');
-  await page.getByLabel('Flat number').fill('101');
+  await page
+    .getByRole('combobox', { name: /^Community/ })
+    .selectOption({ label: 'Alpha Community' });
+  await expect(page.getByLabel(/^Property type/).locator('option')).toHaveText([
+    'Select a property type',
+    'Flat',
+    'Row house',
+  ]);
+  await page.getByLabel(/^Property type/).selectOption('FLAT');
+  await page
+    .getByRole('combobox', { name: /^Flat or row house/ })
+    .selectOption({ label: 'Building A · Flat 101' });
   await page.getByRole('button', { name: 'Submit join request' }).click();
   await expect(
     page.getByRole('status').filter({ hasText: 'No society or flat access' }),

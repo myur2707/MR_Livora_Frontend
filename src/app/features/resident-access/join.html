@@ -127,45 +127,69 @@
       /></se-field>
       <se-field
         controlId="join-society"
-        label="Society code"
+        label="Community"
         [required]="true"
-        [error]="
-          society.touched && society.invalid ? 'Enter the society code from your committee.' : null
-        "
-        ><input
-          seInput
+        [error]="society.touched && society.invalid ? 'Select a community.' : null"
+        ><select
+          seSelect
           name="societyCode"
           #society="ngModel"
-          [(ngModel)]="societyCode"
+          [ngModel]="societyCode"
+          (ngModelChange)="selectSociety($event)"
           required
-          maxlength="64"
-      /></se-field>
+        >
+          <option value="">
+            {{ loadingSocieties() ? 'Loading communities…' : 'Select a community' }}
+          </option>
+          @for (option of societyOptions(); track option.code) {
+            <option [value]="option.code">{{ option.name }}</option>
+          }
+        </select></se-field
+      >
       <se-field
-        controlId="join-building"
-        label="Building code"
+        controlId="join-property-type"
+        label="Property type"
         [required]="true"
-        [error]="building.touched && building.invalid ? 'Enter the building code.' : null"
-        ><input
-          seInput
-          name="buildingCode"
-          #building="ngModel"
-          [(ngModel)]="buildingCode"
+        [error]="propertyType.touched && propertyType.invalid ? 'Select a property type.' : null"
+        ><select
+          seSelect
+          name="propertyType"
+          #propertyType="ngModel"
+          [ngModel]="selectedPropertyType"
+          (ngModelChange)="selectPropertyType($event)"
+          [disabled]="!societyCode || loadingProperties()"
           required
-          maxlength="64"
-      /></se-field>
+        >
+          <option value="">
+            {{ loadingProperties() ? 'Loading property types…' : 'Select a property type' }}
+          </option>
+          @for (type of propertyTypes(); track type) {
+            <option [value]="type">{{ propertyTypeLabel(type) }}</option>
+          }
+        </select></se-field
+      >
       <se-field
-        controlId="join-flat"
-        label="Flat number"
+        controlId="join-property"
+        label="Flat or row house"
         [required]="true"
-        [error]="flat.touched && flat.invalid ? 'Enter a flat number.' : null"
-        ><input
-          seInput
-          name="flatNumber"
-          #flat="ngModel"
-          [(ngModel)]="flatNumber"
+        [error]="property.touched && property.invalid ? 'Select a flat or row house.' : null"
+        ><select
+          seSelect
+          name="property"
+          #property="ngModel"
+          [ngModel]="selectedPropertyKey"
+          (ngModelChange)="selectProperty($event)"
+          [disabled]="!selectedPropertyType"
           required
-          maxlength="32"
-      /></se-field>
+        >
+          <option value="">
+            {{ loadingProperties() ? 'Loading addresses…' : 'Select a flat or row house' }}
+          </option>
+          @for (option of filteredPropertyOptions(); track propertyKey(option)) {
+            <option [value]="propertyKey(option)">{{ propertyLabel(option) }}</option>
+          }
+        </select></se-field
+      >
       <se-field controlId="join-type" label="Requested occupancy"
         ><select seSelect name="occupancyType" [(ngModel)]="occupancyType">
           @for (type of types; track type) {

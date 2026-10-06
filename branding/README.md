@@ -1,6 +1,6 @@
-# MR Livora logo
+# Mr. Livora logo
 
-`logo-source.png` is the supplied green-and-gold MR Livora artwork. Keep this original outside the public bundle. The web UI uses the complete logo; the collapsed sidebar, sidebar footer, browser tab and installed app use its MR monogram.
+`logo-source.png` is the supplied green-and-gold Mr. Livora artwork. Keep this original outside the public bundle. The web UI uses the complete logo; the collapsed sidebar, sidebar footer, browser tab and installed app use its MR monogram.
 
 Run `node scripts/generate-icons.mjs` with the existing Playwright Chromium installation to regenerate the committed public PNG assets. The script renders crops of the original artwork, preserves its colors and cream background, and scales them without stretching. Crop coordinates are tied to the supplied 1264 × 1264 source; update them if the source artwork changes. The maskable icon places the entire mark inside the central 40% radius safe zone.
 

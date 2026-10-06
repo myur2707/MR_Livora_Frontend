@@ -1,4 +1,4 @@
-# MR Livora frontend
+# Mr. Livora frontend
 
 Live in a Better Aura
 

@@ -16,6 +16,17 @@ import { TableDirective } from '../../shared/table';
 import { DialogComponent } from '../../shared/dialog';
 import { StateComponent } from '../../shared/state';
 import { ToastService } from '../../shared/toast';
+interface JoinSocietyOption {
+  code: string;
+  name: string;
+}
+type JoinPropertyType = 'FLAT' | 'ROW_HOUSE';
+interface JoinPropertyOption {
+  buildingCode: string;
+  buildingName: string;
+  flatNumber: string;
+  propertyType: JoinPropertyType;
+}
 @Component({
   selector: 'se-resident-join',
   imports: [
@@ -51,12 +62,20 @@ export class ResidentJoin implements OnInit {
   protected societyCode = '';
   protected buildingCode = '';
   protected flatNumber = '';
+  protected selectedPropertyType: JoinPropertyType | '' = '';
+  protected selectedPropertyKey = '';
+  protected readonly societyOptions = signal<JoinSocietyOption[]>([]);
+  protected readonly propertyOptions = signal<JoinPropertyOption[]>([]);
+  protected readonly loadingSocieties = signal(false);
+  protected readonly loadingProperties = signal(false);
   protected displayName = '';
   protected contactPhone = '';
   protected note = '';
   protected occupancyType = 'OWNER';
   protected status = 'all';
   private sequence = 0;
+  private societyOptionSequence = 0;
+  private propertyOptionSequence = 0;
   constructor() {
     effect(() => {
       const message = this.message();
@@ -102,6 +121,7 @@ export class ResidentJoin implements OnInit {
   protected openRequest(): void {
     this.requestError.set(null);
     this.showRequest.set(true);
+    void this.loadSocietyOptions();
   }
   protected closeRequest(): void {
     if (this.busy()) return;
@@ -110,7 +130,7 @@ export class ResidentJoin implements OnInit {
   }
   protected async submit(valid: boolean | null): Promise<void> {
     if (!valid) {
-      this.requestError.set('Enter your name, society code, building code and flat number.');
+      this.requestError.set('Enter your name, then select a community and an address.');
       return;
     }
     if (this.busy()) return;
@@ -135,6 +155,83 @@ export class ResidentJoin implements OnInit {
       this.requestError.set(residentAccessError(e));
     } finally {
       this.busy.set(false);
+    }
+  }
+  protected selectSociety(code: string): void {
+    this.propertyOptionSequence++;
+    this.societyCode = code;
+    this.buildingCode = '';
+    this.flatNumber = '';
+    this.selectedPropertyType = '';
+    this.selectedPropertyKey = '';
+    this.propertyOptions.set([]);
+    if (code) void this.loadPropertyOptions();
+  }
+  protected selectPropertyType(type: JoinPropertyType | ''): void {
+    this.selectedPropertyType = type;
+    this.buildingCode = '';
+    this.flatNumber = '';
+    this.selectedPropertyKey = '';
+  }
+  protected selectProperty(key: string): void {
+    this.selectedPropertyKey = key;
+    const selected = this.propertyOptions().find((option) => this.propertyKey(option) === key);
+    this.buildingCode = selected?.buildingCode ?? '';
+    this.flatNumber = selected?.flatNumber ?? '';
+  }
+  protected propertyKey(option: JoinPropertyOption): string {
+    return encodeURIComponent(option.buildingCode) + ':' + encodeURIComponent(option.flatNumber);
+  }
+  protected propertyLabel(option: JoinPropertyOption): string {
+    return option.propertyType === 'ROW_HOUSE'
+      ? 'Row house ' + option.flatNumber
+      : option.buildingName + ' · Flat ' + option.flatNumber;
+  }
+  protected propertyTypes(): JoinPropertyType[] {
+    return [...new Set(this.propertyOptions().map((option) => option.propertyType))];
+  }
+  protected filteredPropertyOptions(): JoinPropertyOption[] {
+    return this.propertyOptions().filter(
+      (option) => option.propertyType === this.selectedPropertyType,
+    );
+  }
+  protected propertyTypeLabel(type: JoinPropertyType): string {
+    return type === 'FLAT' ? 'Flat' : 'Row house';
+  }
+  private async loadSocietyOptions(): Promise<void> {
+    const sequence = ++this.societyOptionSequence;
+    this.loadingSocieties.set(true);
+    try {
+      const options = await this.api.get<{ items: JoinSocietyOption[] }>(
+        '/resident-access/join-options/societies',
+      );
+      if (sequence === this.societyOptionSequence) this.societyOptions.set(options.items);
+    } catch (error) {
+      if (sequence === this.societyOptionSequence)
+        this.requestError.set(residentAccessError(error));
+    } finally {
+      if (sequence === this.societyOptionSequence) this.loadingSocieties.set(false);
+    }
+  }
+  private async loadPropertyOptions(): Promise<void> {
+    if (!this.societyCode) return;
+    const sequence = ++this.propertyOptionSequence;
+    this.loadingProperties.set(true);
+    try {
+      const options = await this.api.get<{ items: JoinPropertyOption[] }>(
+        '/resident-access/join-options/properties?societyCode=' +
+          encodeURIComponent(this.societyCode),
+      );
+      if (sequence === this.propertyOptionSequence) {
+        this.propertyOptions.set(options.items);
+        const types = [...new Set(options.items.map((option) => option.propertyType))];
+        this.selectedPropertyType = types.length === 1 ? (types[0] ?? '') : '';
+      }
+    } catch (error) {
+      if (sequence === this.propertyOptionSequence)
+        this.requestError.set(residentAccessError(error));
+    } finally {
+      if (sequence === this.propertyOptionSequence) this.loadingProperties.set(false);
     }
   }
   protected async cancel(): Promise<void> {
