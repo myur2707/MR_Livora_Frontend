@@ -20,6 +20,7 @@ import { SidebarComponent } from './sidebar';
 import { AuthService, authErrorMessage } from '../core/auth';
 import { ToastService } from '../shared/toast';
 import { SocietySwitcher } from './society-switcher';
+import { BottomNavComponent } from './bottom-nav';
 
 @Component({
   selector: 'se-app-shell',
@@ -33,6 +34,7 @@ import { SocietySwitcher } from './society-switcher';
     BreadcrumbsComponent,
     SidebarComponent,
     SocietySwitcher,
+    BottomNavComponent,
   ],
   templateUrl: './app-shell.html',
 })

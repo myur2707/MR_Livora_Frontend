@@ -9,6 +9,8 @@
 .billing-preview {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
   padding: var(--space-5);
   margin-block: var(--space-5);
   min-width: 0;
@@ -29,6 +31,12 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-3);
+  background: var(--surface);
+  cursor: pointer;
+}
+.billing-flat-choice:has(input:checked) {
+  border-color: var(--brand);
+  background: var(--brand-soft);
 }
 .billing-flat-preview {
   border-block-end: 1px solid var(--border);
@@ -42,6 +50,7 @@
 }
 .billing-totals dd {
   margin: 0;
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .billing-form details > summary {

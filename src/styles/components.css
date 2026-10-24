@@ -14,25 +14,36 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  padding: 10px 18px;
+  padding: 10px 20px;
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  font-weight: 600;
+  border-radius: 12px;
+  font-weight: 650;
   font-size: 13px;
   line-height: 1.3;
+  letter-spacing: 0.01em;
   transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
     filter 150ms ease,
     transform 150ms ease,
     box-shadow 150ms ease;
 }
 .button[data-variant='primary'] {
-  background: var(--brand-solid);
+  background: var(--gradient-brand);
+  background-color: var(--brand-solid);
   color: var(--on-brand);
+  box-shadow: var(--shadow-brand);
 }
 .button[data-variant='secondary'] {
   background: var(--surface);
   color: var(--text);
   border-color: var(--control-border);
+  box-shadow: var(--shadow-sm);
+}
+.button[data-variant='secondary']:not(:disabled):hover {
+  border-color: var(--text);
+  filter: none;
 }
 .button[data-variant='ghost'] {
   background: transparent;
@@ -44,19 +55,25 @@
   border-color: var(--danger);
 }
 .button:not(:disabled):hover {
-  filter: brightness(0.94);
+  filter: brightness(0.95);
   transform: translateY(-1px);
+}
+.button[data-variant='primary']:not(:disabled):hover {
+  filter: brightness(1.06);
+  box-shadow: 0 14px 30px rgb(200 16 46 / 32%);
 }
 .button:not(:disabled):active {
   transform: translateY(0) scale(0.98);
 }
 .button[data-variant='ghost']:hover {
   background: var(--surface-soft);
+  color: var(--text);
   filter: none;
 }
 .icon-button {
   padding: 10px;
   width: 44px;
+  border-radius: 12px;
 }
 .button-row {
   @apply flex flex-wrap items-center;
@@ -69,7 +86,7 @@
   gap: var(--space-2);
   font-size: 13px;
   color: var(--brand);
-  font-weight: 600;
+  font-weight: 650;
   padding-block: var(--space-2);
 }
 .text-link:hover {
@@ -81,19 +98,23 @@
   align-items: center;
   gap: 7px;
   white-space: nowrap;
-  padding: 5px 10px;
-  border-radius: 6px;
+  padding: 4px 11px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
   background: var(--surface-soft);
   color: var(--muted);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 650;
+  letter-spacing: 0.01em;
 }
 .badge[data-tone='success'] {
   color: var(--brand);
-  background: var(--surface-soft);
+  border-color: color-mix(in srgb, var(--brand) 24%, transparent);
+  background: var(--brand-soft);
 }
 .badge[data-tone='warning'] {
   color: var(--warning);
+  border-color: color-mix(in srgb, var(--warning) 22%, transparent);
   background: var(--warning-soft);
 }
 .status-dot {
@@ -104,8 +125,9 @@
 }
 .card {
   display: block;
+  position: relative;
   padding: var(--space-6);
-  background: color-mix(in srgb, var(--surface) 32%, transparent);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -113,13 +135,28 @@
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
-    background-color 180ms ease;
+    background-color 180ms ease,
+    transform 180ms ease;
+}
+.card > h2:first-child,
+.card > h3:first-child {
+  margin-bottom: var(--space-2);
+}
+.card a:not(.button, .text-link) {
+  color: var(--brand);
+  font-weight: 650;
+}
+.card a:not(.button, .text-link):hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .card-heading {
-  margin-bottom: var(--space-6);
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--border);
 }
 .card-heading h2 {
-  font-size: 16px;
+  font-size: 17px;
 }
 .card-heading p {
   color: var(--muted);
@@ -133,8 +170,9 @@
 .field label {
   display: block;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 650;
   margin-bottom: var(--space-2);
+  color: var(--text);
 }
 .field label > span {
   color: var(--danger);
@@ -143,13 +181,14 @@
   width: 100%;
   min-height: var(--control-height);
   border: 1px solid var(--control-border);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  background: color-mix(in srgb, var(--surface) 28%, transparent);
+  border-radius: 12px;
+  padding: 10px 14px;
+  background: var(--surface);
   color: var(--text);
   font-family: inherit;
   font-size: 13px;
   line-height: 1.4;
+  box-shadow: var(--shadow-sm);
   transition:
     background-color 150ms ease,
     border-color 150ms ease,
@@ -159,14 +198,21 @@ input.form-control,
 select.form-control {
   height: var(--control-height);
 }
+.form-control:hover:not(:disabled, :focus-visible) {
+  border-color: var(--text);
+}
 .form-control[aria-invalid='true'] {
   border-color: var(--danger);
 }
 .form-control:focus-visible {
   outline: none;
-  border-color: var(--control-border);
-  background: color-mix(in srgb, var(--surface) 36%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 14%, transparent);
+  border-color: var(--brand);
+  background: var(--surface);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 16%, transparent);
+}
+.form-control:disabled {
+  background: var(--surface-soft);
+  cursor: not-allowed;
 }
 @supports (appearance: base-select) {
   select.form-control,
@@ -175,12 +221,12 @@ select.form-control {
   }
   select.form-control::picker(select) {
     margin-block: 4px;
-    padding: 4px;
-    border: 1px solid var(--control-border);
+    padding: 6px;
+    border: 1px solid var(--border);
     border-radius: var(--radius);
     background: var(--surface);
     color: var(--text);
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-lg);
   }
   select.form-control option {
     padding: 10px 12px;
@@ -188,7 +234,7 @@ select.form-control {
   }
   select.form-control option:hover,
   select.form-control option:checked {
-    background: var(--surface-soft);
+    background: var(--brand-soft);
     color: var(--text);
   }
 }
@@ -200,10 +246,11 @@ select.form-control {
 }
 .field-error {
   color: var(--danger);
+  font-weight: 550;
 }
 .form-notice {
-  border-left: 3px solid var(--danger);
-  padding: var(--space-3);
+  border-left: 4px solid var(--danger);
+  padding: var(--space-3) var(--space-4);
   background: var(--danger-soft);
   color: var(--danger);
   border-radius: var(--radius-sm);
@@ -214,12 +261,8 @@ select.form-control {
   position: relative;
   overflow-x: auto;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: transparent;
-}
-.card:has(.table-scroll),
-.card:has(.data-table) {
-  background: color-mix(in srgb, var(--surface) 26%, transparent);
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 .data-table {
   width: 100%;
@@ -240,8 +283,14 @@ select.form-control {
   white-space: nowrap;
 }
 .data-table thead {
-  background: color-mix(in srgb, var(--surface-soft) 58%, transparent);
-  font-size: 12px;
+  background: var(--surface-soft);
+}
+.data-table thead th {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .data-table tbody,
 .data-table tbody tr,
@@ -249,8 +298,14 @@ select.form-control {
 .data-table tbody td {
   background: transparent;
 }
+.data-table tbody tr {
+  transition: background-color 120ms ease;
+}
+.data-table tbody tr:hover {
+  background: color-mix(in srgb, var(--brand) 4%, transparent);
+}
 .data-table tbody th {
-  font-weight: 500;
+  font-weight: 600;
 }
 .data-table tbody tr:last-child > * {
   border-bottom: 0;
@@ -284,7 +339,10 @@ dialog {
   overflow: auto;
   color: var(--text);
   background: var(--surface);
-  box-shadow: 0 30px 80px rgb(0 0 0 / 20%);
+  box-shadow: var(--shadow-lg);
+}
+dialog:not(.drawer) {
+  border-top: 4px solid var(--brand-solid);
 }
 dialog[open] {
   animation: dialog-in 180ms ease-out;
@@ -300,8 +358,8 @@ dialog[open] {
   }
 }
 dialog::backdrop {
-  background: rgb(0 0 0 / 62%);
-  backdrop-filter: blur(3px);
+  background: rgb(8 8 10 / 64%);
+  backdrop-filter: blur(4px);
 }
 .dialog-heading {
   display: flex;
@@ -312,7 +370,8 @@ dialog::backdrop {
   border-bottom: 1px solid var(--border);
 }
 .dialog-heading h2 {
-  font-size: 18px;
+  font-size: 19px;
+  font-weight: 800;
 }
 .dialog-content {
   padding: var(--space-6);
@@ -336,16 +395,17 @@ dialog::backdrop {
   padding: var(--space-4);
   border: 1px solid color-mix(in srgb, var(--danger) 22%, var(--border));
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--danger-soft) 48%, transparent);
+  background: color-mix(in srgb, var(--danger-soft) 60%, transparent);
 }
 .confirmation-icon {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 46px;
+  height: 46px;
   border-radius: 14px;
-  background: var(--danger-soft);
-  color: var(--danger);
+  background: var(--gradient-brand);
+  color: var(--on-brand);
+  box-shadow: var(--shadow-brand);
 }
 .confirmation-icon .icon {
   width: 22px;
@@ -408,30 +468,52 @@ dialog::backdrop {
   padding-block: 8px;
 }
 dialog.drawer {
-  width: min(390px, 90vw);
+  width: min(320px, 88vw);
   height: 100dvh;
   max-height: 100dvh;
+  border: 0;
   border-radius: 0;
   margin-right: 0;
-  background: color-mix(in srgb, var(--brand) 7%, var(--surface));
+  background: var(--ink);
+  color: var(--on-ink);
 }
 dialog.drawer[data-placement='start'] {
   margin-left: 0;
   margin-right: auto;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+}
+dialog.drawer .dialog-heading {
+  border-bottom-color: rgb(255 255 255 / 10%);
+}
+dialog.drawer .dialog-heading h2 {
+  color: var(--on-ink);
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+dialog.drawer .dialog-heading .button {
+  color: var(--on-ink-muted);
+}
+dialog.drawer .dialog-heading .button:hover {
+  background: rgb(255 255 255 / 8%);
+  color: var(--on-ink);
+}
+dialog.drawer .dialog-content {
+  padding: var(--space-4) var(--space-4) var(--space-6);
 }
 dialog.drawer .sidebar {
   min-height: calc(100dvh - 110px);
   padding: 0;
 }
 dialog.drawer .sidebar-note {
-  margin-top: var(--space-8);
+  margin-top: var(--space-6);
 }
 .state {
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 50px 16px;
+  padding: 52px 16px;
   gap: var(--space-3);
 }
 .state h2 {
@@ -445,10 +527,11 @@ dialog.drawer .sidebar-note {
 .state-icon {
   display: grid;
   place-items: center;
-  width: 58px;
-  height: 58px;
-  border-radius: 16px;
-  background: var(--surface-soft);
+  width: 62px;
+  height: 62px;
+  border: 1px solid color-mix(in srgb, var(--brand) 18%, var(--border));
+  border-radius: 18px;
+  background: var(--brand-soft);
   color: var(--brand);
   margin-bottom: var(--space-3);
 }
@@ -460,12 +543,12 @@ dialog.drawer .sidebar-note {
   margin-top: var(--space-3);
 }
 .spinner {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border: 3px solid var(--border);
   border-top-color: var(--brand);
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spin 0.9s linear infinite;
   margin-bottom: var(--space-3);
 }
 @keyframes spin {
@@ -478,7 +561,7 @@ dialog.drawer .sidebar-note {
   top: var(--space-4);
   left: 50%;
   z-index: 100;
-  width: min(390px, calc(100vw - 32px));
+  width: min(400px, calc(100vw - 32px));
   display: grid;
   gap: var(--space-3);
   pointer-events: none;
@@ -489,23 +572,23 @@ dialog.drawer .sidebar-note {
   align-items: center;
   gap: var(--space-3);
   padding: 12px 12px 12px 16px;
-  border: 1px solid var(--control-border);
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--brand);
   border-radius: var(--radius);
   background: var(--surface);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lg);
   color: var(--text);
   animation: toast-in 180ms ease-out;
-  border-left: 4px solid var(--brand);
   pointer-events: none;
 }
 .toast > .icon {
   color: var(--brand);
 }
 .toast[data-tone='error'] {
-  border-color: var(--danger);
+  border-left-color: var(--danger);
 }
 .toast[data-tone='success'] {
-  border-color: var(--brand);
+  border-left-color: var(--brand);
 }
 .toast[data-tone='error'] > .icon {
   color: var(--danger);

@@ -1,27 +1,37 @@
 :root {
   color-scheme: light;
-  --canvas: #f7f7f8;
+  --canvas: #f5f5f7;
   --surface: #ffffff;
-  --surface-soft: #f2f2f3;
-  --text: #18181b;
-  --muted: #626269;
-  --brand: #b91c1c;
-  --brand-solid: #b91c1c;
+  --surface-soft: #f1f1f4;
+  --surface-raised: #ffffff;
+  --text: #111113;
+  --muted: #5d5d66;
+  --brand: #c8102e;
+  --brand-solid: #c8102e;
+  --brand-strong: #9e0b22;
+  --brand-soft: #fdecee;
   --on-brand: #ffffff;
-  --border: #e2e2e5;
-  --control-border: #8b8b91;
-  --focus: #dc2626;
+  --ink: #0e0e10;
+  --ink-soft: #1b1b1f;
+  --on-ink: #f6f6f7;
+  --on-ink-muted: #a3a3ab;
+  --border: #e4e4e9;
+  --control-border: #8a8a93;
+  --focus: #c8102e;
   --danger: #b42318;
   --danger-soft: #fff1f2;
-  --warning: #78531c;
-  --warning-soft: #faf0d9;
-  --hero: #fff1f2;
-  --hero-text: #271719;
-  --accent: #dc2626;
-  --background: #f7f7f8;
-  --radius-sm: 8px;
-  --radius: 14px;
-  --radius-lg: 20px;
+  --warning: #7a5212;
+  --warning-soft: #fbf0d8;
+  --success: #166534;
+  --success-soft: #e9f7ee;
+  --hero: #fff4f5;
+  --hero-text: #1d1214;
+  --accent: #e3122d;
+  --background: #f5f5f7;
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
   --control-height: 44px;
   --space-1: 4px;
   --space-2: 8px;
@@ -31,32 +41,55 @@
   --space-6: 24px;
   --space-8: 32px;
   --space-10: 40px;
-  --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-display: Georgia, 'Times New Roman', serif;
-  --shadow: 0 8px 30px rgb(24 24 27 / 8%);
+  --font-body:
+    'Segoe UI Variable Text', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial,
+    sans-serif;
+  --font-display:
+    'Segoe UI Variable Display', 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial,
+    sans-serif;
+  --shadow-sm: 0 1px 2px rgb(17 17 19 / 6%);
+  --shadow: 0 1px 2px rgb(17 17 19 / 5%), 0 10px 30px rgb(17 17 19 / 7%);
+  --shadow-lg: 0 2px 6px rgb(17 17 19 / 6%), 0 28px 60px rgb(17 17 19 / 14%);
+  --shadow-brand: 0 10px 24px rgb(200 16 46 / 26%);
+  --gradient-brand: linear-gradient(135deg, #e3122d 0%, #c8102e 55%, #9e0b22 100%);
+  --sidebar-width: 250px;
+  --sidebar-collapsed-width: 82px;
+  --bottom-nav-height: 64px;
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --canvas: #080808;
-  --surface: #121212;
-  --surface-soft: #1d1d1f;
-  --text: #f5f5f5;
-  --muted: #b6b6ba;
-  --brand: #f05252;
-  --brand-solid: #b91c1c;
+  --canvas: #09090b;
+  --surface: #141417;
+  --surface-soft: #1e1e23;
+  --surface-raised: #1a1a1e;
+  --text: #f5f5f6;
+  --muted: #b3b3bb;
+  --brand: #ff5c61;
+  --brand-solid: #c8102e;
+  --brand-strong: #ff8084;
+  --brand-soft: #34151a;
   --on-brand: #ffffff;
-  --border: #303034;
-  --control-border: #717178;
-  --focus: #ff6b6b;
+  --ink: #050506;
+  --ink-soft: #141417;
+  --on-ink: #f6f6f7;
+  --on-ink-muted: #a3a3ab;
+  --border: #2c2c33;
+  --control-border: #74747e;
+  --focus: #ff5c61;
   --danger: #ff7474;
   --danger-soft: #3a1518;
   --warning: #f1d49a;
   --warning-soft: #3b3323;
-  --hero: #211113;
+  --success: #7ddc9c;
+  --success-soft: #15291d;
+  --hero: #1d1013;
   --hero-text: #fff4f4;
   --accent: #ef4444;
-  --background: #080808;
-  --shadow: 0 8px 30px rgb(0 0 0 / 42%);
+  --background: #09090b;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 30px rgb(0 0 0 / 38%);
+  --shadow-lg: 0 2px 6px rgb(0 0 0 / 40%), 0 28px 60px rgb(0 0 0 / 55%);
+  --shadow-brand: 0 10px 24px rgb(200 16 46 / 32%);
 }
 @theme inline {
   --color-brand: var(--brand);
@@ -87,12 +120,20 @@ body {
   background:
     radial-gradient(
       circle at 100% 0%,
-      color-mix(in srgb, var(--brand) 12%, transparent),
-      transparent 28rem
+      color-mix(in srgb, var(--brand) 9%, transparent),
+      transparent 30rem
+    ),
+    radial-gradient(
+      circle at 0% 100%,
+      color-mix(in srgb, var(--brand) 5%, transparent),
+      transparent 26rem
     ),
     var(--canvas);
   color: var(--text);
-  font: 14px/1.5 var(--font-body);
+  font: 14px/1.55 var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   transition:
     background-color 180ms ease,
     color 180ms ease;
@@ -103,22 +144,24 @@ body::before {
   inset: 0 0 0 var(--watermark-left);
   z-index: 0;
   pointer-events: none;
-  background: url('/assets/brand/logo.png') center 55% / min(42vw, 520px) auto no-repeat;
-  opacity: 0.045;
+  background: url('/assets/brand/logo.png') center 55% / min(40vw, 500px) auto no-repeat;
+  opacity: 0.035;
   transition: left 180ms ease;
 }
 body:has(.app-frame) {
-  --watermark-left: 250px;
+  --watermark-left: var(--sidebar-width);
 }
 body:has(.app-frame.nav-collapsed) {
-  --watermark-left: 82px;
+  --watermark-left: var(--sidebar-collapsed-width);
 }
 :root[data-theme='dark'] body::before {
-  opacity: 0.075;
-  filter: invert(1) hue-rotate(180deg);
+  opacity: 0.05;
 }
 :root[data-theme='dark'] .auth-login .auth-header .brand-logo {
   filter: drop-shadow(0 8px 18px rgb(0 0 0 / 28%));
+}
+::selection {
+  background: color-mix(in srgb, var(--brand) 22%, transparent);
 }
 se-root {
   display: block;
@@ -131,20 +174,27 @@ h3,
 p {
   margin: 0;
 }
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  color: var(--text);
+}
 h1 {
-  font-size: clamp(22px, 2.2vw, 28px);
-  font-weight: 600;
-  letter-spacing: -1px;
-  line-height: 1.25;
+  font-size: clamp(24px, 2.4vw, 30px);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
 }
 h2 {
   font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.4px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 h3 {
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 a {
   color: inherit;
@@ -164,7 +214,7 @@ textarea {
   -webkit-tap-highlight-color: transparent;
 }
 :focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--control-border) 72%, transparent);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 button {
@@ -176,4 +226,8 @@ button:disabled {
 }
 img {
   max-width: 100%;
+}
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--brand-solid);
 }

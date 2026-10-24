@@ -75,6 +75,7 @@
       <span class="footer-tagline">Live in a Better Aura</span>
       <span class="copyright-label">© 2026 Mr. Livora</span>
     </footer>
+    <se-bottom-nav [moreOpen]="mobileOpen()" (moreRequested)="mobileOpen.set(true)" />
   </div>
 </div>
 <se-drawer title="Navigation" side="start" [open]="mobileOpen()" (closed)="mobileOpen.set(false)"

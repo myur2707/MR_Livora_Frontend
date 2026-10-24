@@ -35,6 +35,6 @@ export class ThemeService {
     this.document.documentElement.dataset['theme'] = theme;
     this.document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute('content', theme === 'dark' ? '#162923' : '#214d3d');
+      ?.setAttribute('content', theme === 'dark' ? '#050506' : '#0e0e10');
   }
 }

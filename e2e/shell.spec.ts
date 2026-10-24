@@ -102,12 +102,12 @@ test('all lazy placeholders and the unknown route render without accessibility v
 test('sidebar collapse and dark theme remain usable and survive refresh', async ({ page }) => {
   await page.setViewportSize({ width: 1920, height: 900 });
   await page.goto('/platform/dashboard');
-  await expect(page.locator('.desktop-sidebar .brand-logo')).toHaveAttribute(
-    'src',
-    '/assets/brand/logo.png',
+  await expect(
+    page.locator('.desktop-sidebar').getByRole('link', { name: 'Mr. Livora home' }),
+  ).toBeVisible();
+  await expect(page.locator('.desktop-sidebar .brand-subtitle')).toHaveText(
+    'Live in a Better Aura',
   );
-  await expect(page.locator('.desktop-sidebar .brand')).toHaveCSS('align-items', 'center');
-  await expect(page.locator('.desktop-sidebar .brand-subtitle')).toHaveCSS('text-align', 'center');
   await expect
     .poll(() => page.evaluate(() => getComputedStyle(document.body, '::before').left))
     .toBe('250px');
@@ -115,10 +115,7 @@ test('sidebar collapse and dark theme remain usable and survive refresh', async 
     page.getByRole('button', { name: 'Collapse sidebar' }).locator('path'),
   ).toHaveAttribute('d', 'M3 3h18v18H3zM8 3v18m8-13-4 4 4 4');
   await page.getByRole('button', { name: 'Collapse sidebar' }).click();
-  await expect(page.locator('.desktop-sidebar .brand-mark')).toHaveAttribute(
-    'src',
-    '/assets/brand/monogram.png',
-  );
+  await expect(page.locator('.desktop-sidebar .brand-subtitle')).toBeHidden();
   await expect(page.getByRole('button', { name: 'Expand sidebar' })).toBeVisible();
   await expect
     .poll(() => page.evaluate(() => getComputedStyle(document.body, '::before').left))

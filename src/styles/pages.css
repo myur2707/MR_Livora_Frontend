@@ -6,24 +6,43 @@
   margin-bottom: var(--space-8);
 }
 .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 1.8px;
-  color: var(--muted);
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--brand);
   margin-bottom: var(--space-2);
 }
+.page-heading .eyebrow::before {
+  content: '';
+  width: 18px;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-brand);
+}
 .page-heading p:last-child {
-  margin-top: 10px;
+  margin-top: 8px;
   font-size: 13px;
   color: var(--muted);
 }
 .welcome-panel {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
-  background: color-mix(in srgb, var(--hero) 34%, transparent);
+  position: relative;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--brand) 12%, transparent),
+      transparent 22rem
+    ),
+    var(--surface);
   color: var(--hero-text);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
   overflow: hidden;
   margin-bottom: 40px;
   min-height: 325px;
@@ -35,9 +54,13 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--brand-soft);
+  color: var(--brand);
   font-size: 9px;
-  letter-spacing: 1.7px;
-  font-weight: 650;
+  letter-spacing: 0.14em;
+  font-weight: 750;
 }
 .hero-tag .icon {
   width: 16px;
@@ -45,19 +68,21 @@
 }
 .welcome-copy h2 {
   font-family: var(--font-display);
-  font-size: clamp(36px, 4vw, 52px);
-  font-weight: 400;
-  letter-spacing: -1.5px;
-  line-height: 1.08;
+  font-size: clamp(34px, 3.8vw, 50px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1.05;
   margin: 18px 0;
 }
 .welcome-copy h2 em {
-  font-style: italic;
+  font-style: normal;
+  color: var(--brand);
 }
 .welcome-copy p {
-  max-width: 355px;
+  max-width: 380px;
+  color: var(--muted);
   font-size: 13px;
-  line-height: 1.8;
+  line-height: 1.75;
   margin-bottom: 24px;
 }
 .welcome-art {
@@ -72,9 +97,9 @@
   object-fit: contain;
 }
 .art-caption {
-  font-family: var(--font-display);
-  font-style: italic;
+  color: var(--muted);
   font-size: 13px;
+  font-weight: 600;
   text-align: center;
 }
 .section-heading {
@@ -82,10 +107,15 @@
   align-items: end;
   justify-content: space-between;
   gap: var(--space-4);
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 .section-heading h2 {
   font-size: 20px;
+  font-weight: 800;
+}
+.section-heading a:not(.button) {
+  color: var(--brand);
+  font-weight: 650;
 }
 .section-heading .eyebrow {
   font-size: 9px;
@@ -103,32 +133,41 @@
   padding: 24px;
   background: var(--surface);
   box-shadow: var(--shadow);
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 .guide-card:hover {
-  border-color: var(--control-border);
+  border-color: color-mix(in srgb, var(--brand) 35%, var(--border));
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
 }
 .guide-icon {
   display: inline-grid;
   place-items: center;
-  height: 44px;
-  width: 44px;
-  border-radius: 12px;
+  height: 46px;
+  width: 46px;
+  border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--border));
+  border-radius: 14px;
   color: var(--brand);
-  background: color-mix(in srgb, var(--brand) 10%, var(--surface));
+  background: var(--brand-soft);
   margin-bottom: 20px;
 }
 .guide-icon.peach {
-  color: var(--brand);
-  background: color-mix(in srgb, var(--brand) 15%, var(--surface));
+  color: var(--on-brand);
+  border-color: transparent;
+  background: var(--gradient-brand);
 }
 .guide-icon.lavender {
-  color: var(--text);
-  background: var(--surface-soft);
+  color: var(--on-ink);
+  border-color: transparent;
+  background: var(--ink);
 }
 .guide-card p {
   color: var(--muted);
   font-size: 12px;
-  line-height: 1.8;
+  line-height: 1.75;
   margin-top: 9px;
 }
 .guide-link {
@@ -137,7 +176,7 @@
   justify-content: space-between;
   color: var(--brand);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 650;
   margin-top: 25px;
 }
 .guide-link .icon {
@@ -151,7 +190,7 @@
 }
 .note-icon {
   color: var(--brand);
-  background: var(--surface-soft);
+  background: var(--brand-soft);
   padding: 12px;
   border-radius: 50%;
 }
@@ -250,21 +289,31 @@
   margin: auto;
   padding: 12px 24px;
 }
+/* Story panels echo the banner's black band in both themes, so they use fixed ink tokens. */
 .auth-story {
   padding: 30px;
-  background: var(--hero);
-  border: 1px solid var(--border);
+  background:
+    radial-gradient(circle at 100% 0%, rgb(200 16 46 / 45%), transparent 20rem),
+    radial-gradient(circle at 0% 100%, rgb(200 16 46 / 20%), transparent 16rem),
+    linear-gradient(160deg, var(--ink-soft), var(--ink));
+  color: var(--on-ink);
+  border: 1px solid rgb(255 255 255 / 8%);
   border-radius: var(--radius-lg);
+}
+.auth-story .eyebrow {
+  color: #ff5c61;
 }
 .auth-story h2 {
   font-family: var(--font-display);
   font-size: clamp(30px, 3.4vw, 44px);
-  font-weight: 400;
-  line-height: 1.14;
-  letter-spacing: -1.5px;
+  font-weight: 800;
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+  color: #ffffff;
 }
 .auth-story h2 em {
-  color: var(--brand);
+  font-style: normal;
+  color: #ff5c61;
 }
 .auth-story > img {
   display: block;
@@ -275,7 +324,7 @@
   margin: 18px auto 12px;
 }
 .auth-story > p {
-  color: var(--text);
+  color: #d4d4d9;
 }
 .auth-story > p:last-child {
   font-size: 12px;
@@ -285,7 +334,7 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 26px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-lg);
 }
 .auth-card-heading {
   display: flex;
@@ -301,7 +350,7 @@
 .auth-card h1 {
   font-family: var(--font-display);
   font-size: 30px;
-  font-weight: 400;
+  font-weight: 800;
 }
 .auth-card p {
   color: var(--muted);
@@ -462,15 +511,9 @@
 .auth-login .auth-story {
   position: relative;
   overflow: hidden;
-  min-height: 500px;
-  padding: clamp(34px, 4vw, 52px);
-  border-color: color-mix(in srgb, var(--brand) 18%, var(--border));
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--hero) 90%, transparent),
-    var(--hero)
-  );
-  box-shadow: 0 28px 70px rgb(36 20 20 / 12%);
+  min-height: 0;
+  padding: clamp(30px, 3.4vw, 44px);
+  box-shadow: 0 28px 70px rgb(14 14 16 / 28%);
 }
 .auth-login .auth-story::after {
   content: '';
@@ -480,12 +523,11 @@
   right: -70px;
   top: -85px;
   border-radius: 50%;
-  border: 36px solid color-mix(in srgb, var(--brand) 8%, transparent);
+  border: 36px solid rgb(255 255 255 / 5%);
 }
 .auth-login .auth-story .eyebrow {
   position: relative;
   z-index: 1;
-  color: var(--brand);
   letter-spacing: 0.18em;
 }
 .auth-login .auth-story h2 {
@@ -497,7 +539,7 @@
   line-height: 1.05;
 }
 .auth-login .auth-story > img {
-  max-height: 210px;
+  max-height: 180px;
   margin-block: 24px 16px;
   filter: drop-shadow(0 18px 22px rgb(0 0 0 / 10%));
 }
@@ -512,10 +554,10 @@
   align-items: center;
   gap: 7px;
   padding: 8px 11px;
-  border: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border));
+  border: 1px solid rgb(255 255 255 / 12%);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--surface) 62%, transparent);
-  color: var(--muted);
+  background: rgb(255 255 255 / 6%);
+  color: #e4e4e8;
   font-size: 11px;
   font-weight: 600;
   backdrop-filter: blur(10px);
@@ -523,7 +565,7 @@
 .auth-story-highlights .icon {
   width: 14px;
   height: 14px;
-  color: var(--brand);
+  color: #ff5c61;
 }
 .auth-login .auth-card {
   --light-border-angle: 0deg;
@@ -597,13 +639,13 @@
 }
 .auth-login .auth-card .form-control {
   min-height: 52px;
-  border-color: color-mix(in srgb, var(--border) 82%, var(--brand));
-  background: color-mix(in srgb, var(--surface) 42%, transparent);
+  border-color: var(--control-border);
+  background: var(--surface);
   box-shadow: 0 1px 0 rgb(255 255 255 / 38%) inset;
 }
 .auth-login .auth-card .form-control:focus {
-  border-color: var(--control-border);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--text) 10%, transparent);
+  border-color: var(--brand);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 16%, transparent);
 }
 .auth-login .auth-form > .button {
   min-height: 52px;
@@ -662,7 +704,7 @@
   z-index: 1;
   max-width: 48ch;
   margin-top: 12px;
-  color: var(--muted);
+  color: var(--on-ink-muted);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -678,9 +720,9 @@
   grid-template-columns: auto minmax(0, 1fr);
   gap: 11px;
   padding: 12px 14px;
-  border: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border));
+  border: 1px solid rgb(255 255 255 / 10%);
   border-radius: var(--radius);
-  background: color-mix(in srgb, var(--surface) 54%, transparent);
+  background: rgb(255 255 255 / 5%);
   backdrop-filter: blur(10px);
 }
 .registration-role-icon {
@@ -689,8 +731,8 @@
   width: 32px;
   height: 32px;
   border-radius: 11px;
-  background: color-mix(in srgb, var(--brand) 10%, transparent);
-  color: var(--brand);
+  background: var(--gradient-brand);
+  color: #ffffff;
 }
 .registration-role-icon .icon {
   width: 16px;
@@ -698,13 +740,14 @@
 }
 .registration-role h3 {
   font-size: 13px;
+  color: #ffffff;
 }
 .registration-role ul {
   display: grid;
   gap: 4px;
   margin: 7px 0 0;
   padding: 0;
-  color: var(--muted);
+  color: var(--on-ink-muted);
   font-size: 11px;
   line-height: 1.35;
   list-style: none;
@@ -717,7 +760,7 @@
   content: '✓';
   position: absolute;
   left: 0;
-  color: var(--brand);
+  color: #ff5c61;
   font-weight: 700;
 }
 .registration-assurance {
@@ -727,13 +770,13 @@
   align-items: center;
   gap: 8px;
   margin-top: 12px;
-  color: var(--muted);
+  color: var(--on-ink-muted);
   font-size: 11px;
 }
 .registration-assurance .icon {
   width: 16px;
   height: 16px;
-  color: var(--brand);
+  color: #ff5c61;
 }
 .auth-login .registration-card {
   padding: clamp(24px, 2.6vw, 32px);
@@ -766,8 +809,8 @@
   height: 46px;
   margin-bottom: 16px;
   border-radius: 50%;
-  background: var(--brand);
-  color: white;
+  background: var(--gradient-brand);
+  color: #ffffff;
   box-shadow: 0 10px 24px color-mix(in srgb, var(--brand) 26%, transparent);
 }
 .registration-success-icon .icon {
@@ -1010,7 +1053,7 @@
   gap: var(--space-5);
   max-width: 760px;
   margin-block: var(--space-5);
-  border-top: 3px solid var(--brand);
+  border-top: 4px solid var(--brand-solid);
 }
 .platform-workspace h2 {
   margin-block: var(--space-2);
@@ -1043,7 +1086,7 @@
   min-height: 108px;
   margin-bottom: 0;
   padding: var(--space-4) 18px;
-  box-shadow: none;
+  box-shadow: var(--shadow);
 }
 .platform-overview-totals .card::before,
 .welcome-panel.platform-overview-welcome::before {
@@ -1079,7 +1122,7 @@
 }
 .platform-overview-totals .stat-value {
   margin-block: var(--space-1);
-  font-size: 22px;
+  font-size: 30px;
 }
 .welcome-panel.platform-overview-welcome {
   --light-border-angle: 0deg;
@@ -1088,12 +1131,14 @@
   min-height: 280px;
   align-items: center;
   margin-bottom: var(--space-4);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--hero) 32%, transparent),
-    color-mix(in srgb, var(--brand) 6%, transparent)
-  );
-  box-shadow: none;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, var(--brand) 12%, transparent),
+      transparent 22rem
+    ),
+    var(--surface);
+  box-shadow: var(--shadow);
 }
 .platform-overview-welcome .welcome-copy {
   padding: var(--space-6);
@@ -1101,7 +1146,7 @@
 .welcome-panel.platform-overview-welcome h2 {
   font-family: var(--font-body);
   font-size: clamp(18px, 2vw, 22px);
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.5px;
   line-height: 1.2;
 }

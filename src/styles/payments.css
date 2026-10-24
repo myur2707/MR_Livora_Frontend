@@ -1,6 +1,8 @@
 .payment-form {
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow);
   padding: var(--space-5);
   margin-block: var(--space-5);
   display: grid;
@@ -24,6 +26,8 @@
 .payment-receipt {
   padding: var(--space-5);
   border: 1px solid var(--border);
+  border-top: 4px solid var(--brand-solid);
+  box-shadow: var(--shadow);
   border-radius: var(--radius-lg);
   background: var(--surface);
   overflow-wrap: anywhere;
@@ -41,6 +45,7 @@
   .desktop-sidebar,
   .app-header,
   .app-footer,
+  .bottom-nav,
   .skip-link,
   se-drawer,
   .payment-screen {
@@ -59,6 +64,7 @@
     color: #111;
     background: #fff;
     border: 0;
+    box-shadow: none;
     padding: 0;
   }
   .payment-receipt .table-scroll {
