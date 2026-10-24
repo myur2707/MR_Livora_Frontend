@@ -81,6 +81,7 @@ test('session loss during an unrelated request removes already visible private b
     route.fulfill({ status: 401, json: { error: { code: 'AUTH_REQUIRED' } } }),
   );
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
+  await page.getByRole('button', { name: 'Log out', exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole('table', { name: 'Issued bill items' })).toHaveCount(0);
   await expect(page.locator('body')).not.toContainText('Maintenance snapshot');

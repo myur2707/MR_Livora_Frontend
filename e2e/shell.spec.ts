@@ -139,6 +139,7 @@ test('sidebar collapse and dark theme remain usable and survive refresh', async 
   const createDialog = page.getByRole('dialog', { name: 'New society or flat or township' });
   await expect(createDialog).toBeVisible();
   await expect(createDialog.getByLabel('Society or Flat or Township code')).toBeVisible();
+  await expect(createDialog.getByLabel('Time zone')).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(createDialog).toBeHidden();
   await expect(page.getByRole('button', { name: 'Add society' })).toBeFocused();
@@ -248,9 +249,13 @@ test('society records become readable cards on narrow screens', async ({ page, c
   const record = table.getByRole('row').filter({ hasText: 'Synthetic community with a long name' });
   const cells = record.locator('th, td');
   await expect(cells).toHaveCount(4);
+  await expect(record).toHaveCSS('display', 'grid');
   for (const [index, label] of ['Community', 'Code', 'Status', 'Setup'].entries()) {
     await expect(cells.nth(index)).toHaveAttribute('data-label', label);
-    await expect(cells.nth(index)).toHaveCSS('display', 'grid');
+    await expect(cells.nth(index)).toHaveCSS('display', 'flex');
+    expect(
+      await cells.nth(index).evaluate((cell) => cell.getBoundingClientRect().width),
+    ).toBeGreaterThan(100);
   }
   await table.getByRole('link', { name: /View setup/ }).focus();
   await expect(table.getByRole('link', { name: /View setup/ })).toBeFocused();

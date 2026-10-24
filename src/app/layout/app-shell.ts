@@ -13,6 +13,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ThemeService } from '../core/theme';
 import { ButtonDirective } from '../shared/button';
 import { DrawerComponent } from '../shared/drawer';
+import { DialogComponent } from '../shared/dialog';
 import { IconComponent } from '../shared/icon';
 import { BreadcrumbsComponent } from './breadcrumbs';
 import { SidebarComponent } from './sidebar';
@@ -27,6 +28,7 @@ import { SocietySwitcher } from './society-switcher';
     RouterOutlet,
     ButtonDirective,
     DrawerComponent,
+    DialogComponent,
     IconComponent,
     BreadcrumbsComponent,
     SidebarComponent,
@@ -37,6 +39,7 @@ import { SocietySwitcher } from './society-switcher';
 export class AppShellComponent {
   protected readonly auth = inject(AuthService);
   protected readonly signingOut = signal(false);
+  protected readonly logoutConfirmationOpen = signal(false);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
   protected readonly collapsed = signal(false);
@@ -72,11 +75,18 @@ export class AppShellComponent {
       { injector: this.injector },
     );
   }
+  protected requestLogout(): void {
+    if (!this.signingOut()) this.logoutConfirmationOpen.set(true);
+  }
+  protected cancelLogout(): void {
+    if (!this.signingOut()) this.logoutConfirmationOpen.set(false);
+  }
   protected async logout(): Promise<void> {
     if (this.signingOut()) return;
     this.signingOut.set(true);
     try {
       await this.auth.logout();
+      this.logoutConfirmationOpen.set(false);
       await this.router.navigateByUrl('/login');
     } catch (error) {
       this.toast.show(authErrorMessage(error));

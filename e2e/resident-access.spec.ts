@@ -104,6 +104,15 @@ test('signup shows associated validation and generic email instructions without 
     'PENDING',
   );
   await page.goto('/register');
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(
+    true,
+  );
+  await expect(page.getByRole('navigation', { name: 'Primary navigation' })).toHaveCount(0);
+  await expect(
+    page.getByRole('heading', { name: 'Everything your community needs.' }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'For residents' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'For committee admins' })).toBeVisible();
   await page.getByLabel('Your name').fill('New Resident');
   await page.getByLabel('Email address').fill('invalid');
   await page.getByLabel(/^Password/).fill('short');
@@ -115,7 +124,65 @@ test('signup shows associated validation and generic email instructions without 
   await page.getByLabel(/^Password/).fill('Synthetic password length');
   await page.getByLabel('Confirm password').fill('Synthetic password length');
   await page.getByRole('button', { name: 'Send verification email' }).click();
-  await expect(page.getByRole('status').filter({ hasText: 'If eligible' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Check your inbox' })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText(
+    'For your privacy, this message is the same for new and existing accounts.',
+  );
+  await expect(page.getByRole('status')).toContainText(
+    'Never share your password or verification link.',
+  );
+  expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(
+    true,
+  );
+  const viewportHeight = page.viewportSize()?.height ?? 0;
+  for (const selector of [
+    '.registration-features',
+    '.registration-card',
+    '.registration-security-note',
+    '.auth-account-link',
+    '.auth-footer',
+  ]) {
+    const bounds = await page.locator(selector).boundingBox();
+    expect(bounds, selector).not.toBeNull();
+    if (bounds) expect(bounds.y + bounds.height, selector).toBeLessThanOrEqual(viewportHeight);
+  }
+  const mobileRegistrationPage = page.locator('.registration-page');
+  for (const [width, height] of [
+    [768, 1024],
+    [390, 844],
+    [320, 640],
+  ] as const) {
+    await page.setViewportSize({ width, height });
+    const accountCard = await page.locator('.registration-card').boundingBox();
+    const featureCard = await page.locator('.registration-features').boundingBox();
+    expect(accountCard).not.toBeNull();
+    expect(featureCard).not.toBeNull();
+    if (accountCard && featureCard) expect(accountCard.y).toBeLessThan(featureCard.y);
+    expect(
+      await page.evaluate(() => {
+        const registrationPage = document.querySelector('.registration-page');
+        return (
+          document.documentElement.scrollWidth <= innerWidth &&
+          registrationPage !== null &&
+          getComputedStyle(registrationPage).overflowX === 'hidden'
+        );
+      }),
+    ).toBe(true);
+    await expect
+      .poll(() =>
+        mobileRegistrationPage.evaluate((element) => element.scrollHeight > element.clientHeight),
+      )
+      .toBe(true);
+    await mobileRegistrationPage.evaluate((element) => {
+      element.scrollTop = 500;
+    });
+    await expect
+      .poll(() => mobileRegistrationPage.evaluate((element) => element.scrollTop))
+      .toBeGreaterThan(0);
+    await mobileRegistrationPage.evaluate((element) => {
+      element.scrollTop = 0;
+    });
+  }
   expect(submissions).toBe(1);
   expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
   expect(
@@ -179,6 +246,12 @@ test('pending user can request another society and cancel; committee routes rema
   await expect(page.getByLabel('Find a community', { exact: true })).toHaveCount(0);
   await expect(page.getByLabel('Find a flat or row house', { exact: true })).toHaveCount(0);
   await expect(page.getByLabel('Requested occupancy')).toHaveValue('OWNER');
+  await expect(page.getByLabel('Requested occupancy').locator('option')).toHaveText([
+    'Owner',
+    'Tenant',
+    'Family member',
+    'Authorized occupant',
+  ]);
   await page.getByLabel('Your name').fill('Applicant');
   await page
     .getByRole('combobox', { name: /^Community/ })

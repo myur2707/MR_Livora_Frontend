@@ -22,16 +22,15 @@ export const routes: Routes = [
     data: { mode: 'reset' },
   },
   {
+    path: 'register',
+    title: 'Create account · Mr. Livora',
+    loadComponent: () =>
+      import('./features/resident-access/register').then((m) => m.ResidentRegister),
+  },
+  {
     path: '',
     loadComponent: () => import('./layout/app-shell').then((m) => m.AppShellComponent),
     children: [
-      {
-        path: 'register',
-        title: 'Create account · Mr. Livora',
-        data: { breadcrumb: 'Create account' },
-        loadComponent: () =>
-          import('./features/resident-access/register').then((m) => m.ResidentRegister),
-      },
       {
         path: 'verify-resident-email',
         title: 'Verify email · Mr. Livora',

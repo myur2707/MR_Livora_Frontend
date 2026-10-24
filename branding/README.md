@@ -1,8 +1,8 @@
 # Mr. Livora logo
 
-`logo-source.png` is the supplied green-and-gold Mr. Livora artwork. Keep this original outside the public bundle. The web UI uses the complete logo; the collapsed sidebar, sidebar footer, browser tab and installed app use its MR monogram.
+`logo-source-luxury.png` is the approved transparent red, black and ivory Mr. Livora circular emblem. Keep this source outside the public bundle. The web UI uses the complete seal at larger sizes and a compact rendering of the same seal for collapsed navigation, browser tabs and installed app icons.
 
-Run `node scripts/generate-icons.mjs` with the existing Playwright Chromium installation to regenerate the committed public PNG assets. The script renders crops of the original artwork, preserves its colors and cream background, and scales them without stretching. Crop coordinates are tied to the supplied 1264 × 1264 source; update them if the source artwork changes. The maskable icon places the entire mark inside the central 40% radius safe zone.
+Run `node scripts/generate-icons.mjs` with the existing Playwright Chromium installation to regenerate the committed public PNG assets. The script preserves the approved artwork's colors and alpha channel and scales it into square canvases without stretching. The maskable icon places the entire seal inside the central safe area.
 
 Public outputs are `assets/brand/logo.png`, `assets/brand/monogram.png`, `icons/favicon-32.png`, `icons/icon-192.png`, `icons/icon-512.png` and `icons/maskable-512.png`. The PWA prefetches only these static assets plus its existing shell. Authenticated data remains network-only.
 

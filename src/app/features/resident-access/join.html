@@ -57,7 +57,7 @@
             @for (row of data.items; track row.id) {
               <tr>
                 <th scope="row">{{ row.societyName }}</th>
-                <td>{{ row.buildingCode }} / {{ row.flatNumber }}</td>
+                <td>{{ requestPropertyLabel(row) }}</td>
                 <td>
                   <se-badge>{{ row.status }}</se-badge>
                 </td>
@@ -193,7 +193,7 @@
       <se-field controlId="join-type" label="Requested occupancy"
         ><select seSelect name="occupancyType" [(ngModel)]="occupancyType">
           @for (type of types; track type) {
-            <option [value]="type">{{ type }}</option>
+            <option [value]="type">{{ occupancyTypeLabel(type) }}</option>
           }
         </select></se-field
       >
@@ -213,14 +213,35 @@
   }
 </se-dialog>
 <se-dialog
+  class="confirmation-dialog"
   title="Cancel membership request"
   [open]="!!cancelling()"
   (closed)="cancelling.set(null)"
 >
   @if (cancelling(); as row) {
-    <p>Cancel your request for {{ row.societyName }}?</p>
-    <button seButton type="button" (click)="cancel()" [disabled]="busy()">
-      Confirm cancellation
-    </button>
+    <div class="confirmation-message">
+      <span class="confirmation-icon" aria-hidden="true"><se-icon name="alert" /></span>
+      <div>
+        <p class="confirmation-eyebrow">Membership request</p>
+        <h3>Cancel request for {{ row.societyName }}?</h3>
+        <p class="confirmation-description">
+          The committee will no longer review this request. You can submit a new request later.
+        </p>
+      </div>
+    </div>
+    <div class="confirmation-actions">
+      <button
+        seButton
+        variant="secondary"
+        type="button"
+        (click)="cancelling.set(null)"
+        [disabled]="busy()"
+      >
+        Keep request
+      </button>
+      <button seButton variant="danger" type="button" (click)="cancel()" [disabled]="busy()">
+        {{ busy() ? 'Cancelling...' : 'Confirm cancellation' }}
+      </button>
+    </div>
   }
 </se-dialog>

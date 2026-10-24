@@ -1,8 +1,8 @@
 <a class="skip-link" href="#auth-content">Skip to content</a>
-<div class="auth-frame">
+<div class="auth-frame" [class.auth-login]="mode === 'login' || mode === 'forgot'">
   <header class="auth-header">
     <a class="brand" routerLink="/" aria-label="Mr. Livora home"
-      ><img class="brand-logo" src="/assets/brand/logo.png" alt="" width="90" height="67"
+      ><img class="brand-logo" src="/assets/brand/logo.png" alt="" width="90" height="90"
     /></a>
     <button
       seButton
@@ -19,10 +19,16 @@
   </header>
   <main id="auth-content" tabindex="-1" class="auth-main">
     <section class="auth-story" aria-labelledby="auth-story-title">
-      <p class="eyebrow">MR LIVORA</p>
+      <p class="eyebrow">Mr. Livora</p>
       <h2 id="auth-story-title">A smarter way<br />to live <em>together.</em></h2>
       <img src="/assets/brand/community.svg" alt="" width="520" height="300" />
       <p>One thoughtful space. A stronger sense of belonging.</p>
+      @if (mode === 'login') {
+        <div class="auth-story-highlights" aria-label="Platform benefits">
+          <span><se-icon name="shield" /> Secure access</span>
+          <span><se-icon name="home" /> One community</span>
+        </div>
+      }
     </section>
     <section class="auth-card" aria-labelledby="auth-title">
       <div class="auth-card-heading">

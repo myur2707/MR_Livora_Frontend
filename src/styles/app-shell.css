@@ -55,8 +55,8 @@
   text-align: center;
 }
 .sidebar > .brand .brand-logo {
-  width: 168px;
-  height: 112px;
+  width: 142px;
+  height: 142px;
 }
 .brand-mark {
   border-radius: var(--radius-sm);
@@ -89,7 +89,7 @@
   padding: 8px 14px;
   border-radius: var(--radius-sm);
   color: var(--muted);
-  font-size: 12px;
+  font-size: 11px;
   margin-bottom: 3px;
   transition:
     background-color 160ms ease,
@@ -111,8 +111,38 @@
 .sidebar-nav a.active:hover {
   color: var(--on-brand);
 }
-.sidebar-note {
+.sidebar-logout {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  min-height: 40px;
   margin-top: auto;
+  padding: 8px 14px;
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 11px;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+.sidebar-logout:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--brand) 28%, var(--border));
+  background: color-mix(in srgb, var(--brand) 9%, transparent);
+  color: var(--brand);
+}
+.sidebar-logout:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+.sidebar-note {
+  margin-top: var(--space-3);
   padding: 18px 16px;
   border-radius: var(--radius);
   background: var(--surface-soft);
@@ -172,6 +202,13 @@
   min-width: 20px;
   margin-inline: auto;
 }
+.is-collapsed .sidebar-logout {
+  justify-content: center;
+  padding-inline: 0;
+}
+.is-collapsed .sidebar-logout .icon {
+  margin-inline: auto;
+}
 .is-collapsed .sidebar-footer {
   justify-content: center;
   margin-top: auto;
@@ -193,8 +230,8 @@
   border-bottom: 1px solid color-mix(in srgb, var(--brand) 14%, var(--border));
   background: linear-gradient(
     105deg,
-    var(--surface) 0%,
-    color-mix(in srgb, var(--surface-soft) 55%, var(--surface)) 100%
+    color-mix(in srgb, var(--brand) 7%, var(--surface)) 0%,
+    color-mix(in srgb, var(--accent) 5%, var(--surface)) 100%
   );
   box-shadow: 0 8px 24px rgb(0 0 0 / 7%);
   position: relative;
@@ -203,7 +240,7 @@
 .app-header::after {
   content: '';
   position: absolute;
-  inset: auto 36px -1px;
+  inset: auto 0 -1px;
   height: 2px;
   background: linear-gradient(90deg, var(--accent), transparent 42%);
   opacity: 0.7;
@@ -310,6 +347,9 @@ main {
   position: sticky;
   bottom: 0;
   z-index: 5;
+  min-height: 44px;
+  margin: 0;
+  padding: 12px 40px;
   background: var(--background);
   box-shadow: 0 -4px 14px rgb(0 0 0 / 8%);
 }

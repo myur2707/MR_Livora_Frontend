@@ -51,7 +51,7 @@ test('compact login fits laptop and mobile screens with visible validation and s
       }, theme);
       await page.locator('.brand-logo').evaluate((image: HTMLImageElement) => image.decode());
       const logo = await page.locator('.auth-header .brand-logo').boundingBox();
-      expect(logo?.height).toBeLessThanOrEqual(68);
+      expect(logo?.height).toBeLessThanOrEqual(92);
       await assertFits();
       await page.getByRole('button', { name: 'Sign in', exact: true }).click();
       await expect(page.locator('#auth-email-description')).toHaveText('Enter email address.');
@@ -73,6 +73,7 @@ test('compact login fits laptop and mobile screens with visible validation and s
 test('login validation, generic failures, workspace selection and logout', async ({ page }) => {
   let signedIn = false;
   let active = false;
+  let logoutRequests = 0;
   await page.route('**/api/v1/**', async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
@@ -94,6 +95,7 @@ test('login validation, generic failures, workspace selection and logout', async
       return route.fulfill({ json: { csrfToken: 'synthetic-csrf' } });
     }
     if (path.endsWith('/logout')) {
+      logoutRequests++;
       signedIn = false;
       return route.fulfill({ status: 204 });
     }
@@ -143,9 +145,20 @@ test('login validation, generic failures, workspace selection and logout', async
   await expect(page.getByRole('heading', { name: 'Your community space' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Societies', exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => Object.keys(localStorage))).toEqual([]);
+  await expect(page.getByRole('button', { name: 'Logout from sidebar' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Sign out' }).locator('svg')).toBeVisible();
   await page.getByRole('button', { name: 'Sign out' }).click();
+  await expect(page.getByRole('dialog', { name: 'Confirm logout' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Are you sure you want to log out?' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Stay signed in' }).click();
+  await expect(page.getByRole('dialog', { name: 'Confirm logout' })).toBeHidden();
+  expect(logoutRequests).toBe(0);
+  await page.getByRole('button', { name: 'Sign out' }).click();
+  await page.getByRole('button', { name: 'Log out', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Welcome home' })).toBeVisible();
+  expect(logoutRequests).toBe(1);
 });
 
 test('forgot/reset forms keep responses generic and remove the reset token from history', async ({

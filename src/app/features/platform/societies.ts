@@ -15,6 +15,9 @@ import { TableDirective } from '../../shared/table';
 import { PaginationComponent } from '../../shared/pagination';
 import { StateComponent } from '../../shared/state';
 import { DialogComponent } from '../../shared/dialog';
+
+const defaultSocietyTimezone = 'Asia/Kolkata';
+
 @Component({
   selector: 'se-societies',
   imports: [
@@ -59,7 +62,6 @@ export class SocietiesComponent implements OnInit {
       '',
       [(control: AbstractControl) => Validators.required(control), Validators.maxLength(200)],
     ],
-    timezone: ['Asia/Kolkata', [(control: AbstractControl) => Validators.required(control)]],
   });
   constructor() {
     this.searchControl.valueChanges
@@ -106,10 +108,10 @@ export class SocietiesComponent implements OnInit {
     this.busy.set(true);
     this.createError.set(null);
     try {
-      const result = await this.api.post<{ id: string }>(
-        '/platform/societies',
-        this.form.getRawValue(),
-      );
+      const result = await this.api.post<{ id: string }>('/platform/societies', {
+        ...this.form.getRawValue(),
+        timezone: defaultSocietyTimezone,
+      });
       await this.router.navigate(['/platform/societies', result.id]);
     } catch (error) {
       this.createError.set(onboardingError(error));

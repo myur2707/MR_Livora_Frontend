@@ -12,8 +12,11 @@ import { AuthState } from '../core/auth-state';
 })
 export class SidebarComponent {
   readonly collapsed = input(false);
+  readonly signingOut = input(false);
   readonly navigated = output<void>();
+  readonly logoutRequested = output<void>();
   private readonly auth = inject(AuthState);
+  protected readonly signedIn = computed(() => this.auth.identity() !== null);
   protected readonly navigation = computed(() =>
     NAVIGATION.filter((item) =>
       item.path === '/workspace'

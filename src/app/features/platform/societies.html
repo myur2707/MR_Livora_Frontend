@@ -132,13 +132,6 @@
         "
         ><input seInput formControlName="name" required maxlength="200"
       /></se-field>
-      <se-field
-        controlId="society-timezone"
-        label="Time zone"
-        [required]="true"
-        hint="For example, Asia/Kolkata."
-        ><input seInput formControlName="timezone" required maxlength="64"
-      /></se-field>
       <button seButton type="submit" [disabled]="busy()">
         {{ busy() ? 'Creating…' : 'Create draft' }}
       </button>

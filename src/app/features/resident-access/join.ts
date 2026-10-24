@@ -14,6 +14,7 @@ import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../sha
 import { PaginationComponent } from '../../shared/pagination';
 import { TableDirective } from '../../shared/table';
 import { DialogComponent } from '../../shared/dialog';
+import { IconComponent } from '../../shared/icon';
 import { StateComponent } from '../../shared/state';
 import { ToastService } from '../../shared/toast';
 interface JoinSocietyOption {
@@ -41,6 +42,7 @@ interface JoinPropertyOption {
     PaginationComponent,
     TableDirective,
     DialogComponent,
+    IconComponent,
     StateComponent,
   ],
   templateUrl: './join.html',
@@ -197,6 +199,20 @@ export class ResidentJoin implements OnInit {
   }
   protected propertyTypeLabel(type: JoinPropertyType): string {
     return type === 'FLAT' ? 'Flat' : 'Row house';
+  }
+  protected occupancyTypeLabel(type: (typeof occupancyTypes)[number]): string {
+    const labels: Readonly<Record<(typeof occupancyTypes)[number], string>> = {
+      OWNER: 'Owner',
+      TENANT: 'Tenant',
+      FAMILY_MEMBER: 'Family member',
+      AUTHORIZED_OCCUPANT: 'Authorized occupant',
+    };
+    return labels[type];
+  }
+  protected requestPropertyLabel(request: RegistrationRequest): string {
+    return /^ROW_HOUSES?$/i.test(request.buildingCode)
+      ? 'Row house ' + request.flatNumber
+      : request.buildingCode + ' / ' + request.flatNumber;
   }
   private async loadSocietyOptions(): Promise<void> {
     const sequence = ++this.societyOptionSequence;

@@ -7,7 +7,7 @@
   @if (collapsed()) {
     <img class="brand-mark" src="/assets/brand/monogram.png" width="42" height="42" alt="" />
   } @else {
-    <img class="brand-logo" src="/assets/brand/logo.png" width="190" height="140" alt="" />
+    <img class="brand-logo" src="/assets/brand/logo.png" width="150" height="150" alt="" />
     <span class="brand-subtitle">Live in a Better Aura</span>
   }
 </a>
@@ -30,6 +30,18 @@
     }
   }
 </nav>
+@if (signedIn()) {
+  <button
+    class="sidebar-logout"
+    type="button"
+    aria-label="Logout from sidebar"
+    [title]="collapsed() ? 'Logout' : ''"
+    [disabled]="signingOut()"
+    (click)="logoutRequested.emit(); navigated.emit()"
+  >
+    <se-icon name="logout" /><span class="sidebar-label">Logout</span>
+  </button>
+}
 <div class="sidebar-note sidebar-label">
   <span class="tiny-mark"><se-icon name="sparkle" /></span>
   <p>Good communities<br />begin with connection.</p>

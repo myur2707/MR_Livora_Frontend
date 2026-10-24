@@ -1,6 +1,12 @@
 <a class="skip-link" href="#main-content">Skip to content</a>
 <div class="app-frame" [class.nav-collapsed]="collapsed()">
-  <aside class="desktop-sidebar"><se-sidebar [collapsed]="collapsed()" /></aside>
+  <aside class="desktop-sidebar">
+    <se-sidebar
+      [collapsed]="collapsed()"
+      [signingOut]="signingOut()"
+      (logoutRequested)="requestLogout()"
+    />
+  </aside>
   <div class="workspace">
     <header class="app-header">
       <div class="header-start">
@@ -55,7 +61,7 @@
             aria-label="Sign out"
             title="Sign out"
             [disabled]="signingOut()"
-            (click)="logout()"
+            (click)="requestLogout()"
           >
             <se-icon name="logout" />
           </button>
@@ -72,5 +78,39 @@
   </div>
 </div>
 <se-drawer title="Navigation" side="start" [open]="mobileOpen()" (closed)="mobileOpen.set(false)"
-  ><se-sidebar (navigated)="mobileOpen.set(false)"
+  ><se-sidebar
+    [signingOut]="signingOut()"
+    (navigated)="mobileOpen.set(false)"
+    (logoutRequested)="requestLogout()"
 /></se-drawer>
+<se-dialog
+  class="confirmation-dialog logout-confirmation-dialog"
+  title="Confirm logout"
+  [open]="logoutConfirmationOpen()"
+  (closed)="cancelLogout()"
+>
+  <div class="confirmation-message">
+    <span class="confirmation-icon" aria-hidden="true"><se-icon name="logout" /></span>
+    <div>
+      <p class="confirmation-eyebrow">Secure sign out</p>
+      <h3>Are you sure you want to log out?</h3>
+      <p class="confirmation-description">
+        You will need to sign in again to access your community workspace.
+      </p>
+    </div>
+  </div>
+  <div class="confirmation-actions">
+    <button
+      seButton
+      variant="secondary"
+      type="button"
+      (click)="cancelLogout()"
+      [disabled]="signingOut()"
+    >
+      Stay signed in
+    </button>
+    <button seButton type="button" (click)="logout()" [disabled]="signingOut()">
+      {{ signingOut() ? 'Logging out...' : 'Log out' }}
+    </button>
+  </div>
+</se-dialog>
