@@ -3,12 +3,12 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DOCUMENT } from '@angular/common';
 import { AuthService, authErrorMessage, safeReturnUrl } from '../../core/auth';
-import { ThemeService } from '../../core/theme';
 import { ButtonDirective } from '../../shared/button';
 import { IconComponent } from '../../shared/icon';
 import { ControlDirective, FieldComponent, FormNoticeComponent } from '../../shared/field';
 import { fieldError } from '../../shared/form-errors';
 import { ToastService } from '../../shared/toast';
+import { PublicHeaderComponent } from '../../layout/public-header';
 
 @Component({
   selector: 'se-auth-page',
@@ -20,6 +20,7 @@ import { ToastService } from '../../shared/toast';
     ControlDirective,
     FieldComponent,
     FormNoticeComponent,
+    PublicHeaderComponent,
   ],
   templateUrl: './auth-page.html',
 })
@@ -29,7 +30,6 @@ export class AuthPageComponent {
   private readonly auth = inject(AuthService);
   private readonly document = inject(DOCUMENT);
   private readonly toast = inject(ToastService);
-  protected readonly theme = inject(ThemeService);
   protected readonly mode: string = String(this.route.snapshot.data['mode']);
   protected readonly title =
     this.mode === 'login'

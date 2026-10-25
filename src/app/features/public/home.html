@@ -1,0 +1,117 @@
+<section class="landing-hero" aria-labelledby="landing-title">
+  <div class="landing-hero-copy">
+    <p class="landing-kicker"><se-icon name="sparkle" />Smart society management</p>
+    <h1 id="landing-title" tabindex="-1">Your community, <span>now smarter.</span></h1>
+    <p class="landing-lead">
+      Everything your society needs in one simple app — billing, payments, receipts, notices and
+      complaints, for committees, staff, owners and tenants.
+    </p>
+    <div class="landing-actions">
+      <a seButton routerLink="/register">Get started <se-icon name="arrow" /></a>
+      <a seButton variant="secondary" routerLink="/login">Sign in</a>
+    </div>
+    <ul class="landing-chips" aria-label="Highlights">
+      <li><se-icon name="shield" />Secure and reliable</li>
+      <li><se-icon name="grid" />Web and mobile app</li>
+      <li><se-icon name="people" />Committee-led</li>
+    </ul>
+  </div>
+  <div class="landing-hero-visual" aria-hidden="true">
+    <div class="landing-device">
+      <div class="landing-device-top">
+        <img src="/assets/brand/monogram.png" width="34" height="34" alt="" />
+        <span>Mr. Livora</span>
+        <se-icon name="bell" />
+      </div>
+      <div class="landing-device-hero">
+        <img src="/assets/brand/community.svg" width="520" height="300" alt="" />
+        <p>Welcome home</p>
+      </div>
+      <div class="landing-device-grid">
+        @for (tile of previewTiles; track tile.label) {
+          <span><se-icon [name]="tile.icon" />{{ tile.label }}</span>
+        }
+      </div>
+    </div>
+    <span class="landing-float landing-float-a"><se-icon name="check" />Payment recorded</span>
+    <span class="landing-float landing-float-b"><se-icon name="bell" />New notice published</span>
+  </div>
+</section>
+
+<section id="features" class="landing-section" aria-labelledby="features-title">
+  <header class="landing-section-heading" seReveal>
+    <p class="eyebrow">Features</p>
+    <h2 id="features-title">One workspace for the whole society</h2>
+    <p>From the first setup to everyday bills and complaints — every module works together.</p>
+  </header>
+  <div class="landing-feature-grid">
+    @for (feature of features; track feature.title; let index = $index) {
+      <article class="landing-feature" [seReveal]="index % 4">
+        <span class="landing-icon"><se-icon [name]="feature.icon" /></span>
+        <h3>{{ feature.title }}</h3>
+        <p>{{ feature.summary }}</p>
+        <ul>
+          @for (point of feature.points; track point) {
+            <li><se-icon name="check" />{{ point }}</li>
+          }
+        </ul>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="landing-section" aria-labelledby="steps-title">
+  <header class="landing-section-heading" seReveal>
+    <p class="eyebrow">How it works</p>
+    <h2 id="steps-title">Up and running in three steps</h2>
+  </header>
+  <ol class="landing-steps">
+    @for (step of steps; track step.title; let index = $index) {
+      <li [seReveal]="index">
+        <span class="landing-step-number">{{ index + 1 }}</span>
+        <span class="landing-icon"><se-icon [name]="step.icon" /></span>
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.text }}</p>
+      </li>
+    }
+  </ol>
+</section>
+
+<section class="landing-section" aria-labelledby="audience-title">
+  <header class="landing-section-heading" seReveal>
+    <p class="eyebrow">Who it's for</p>
+    <h2 id="audience-title">Built for everyone in your society</h2>
+  </header>
+  <div class="landing-audience-grid">
+    @for (audience of audiences; track audience.title; let index = $index) {
+      <article class="landing-audience" [seReveal]="index">
+        <span class="landing-icon"><se-icon [name]="audience.icon" /></span>
+        <h3>{{ audience.title }}</h3>
+        <p>{{ audience.text }}</p>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="landing-trust" aria-label="Why societies trust Mr. Livora" seReveal>
+  @for (item of trust; track item.title) {
+    <div>
+      <se-icon [name]="item.icon" />
+      <p>
+        <strong>{{ item.title }}</strong>
+        <span>{{ item.text }}</span>
+      </p>
+    </div>
+  }
+</section>
+
+<section class="landing-cta" aria-labelledby="cta-title" seReveal>
+  <div>
+    <h2 id="cta-title">Ready to bring your society online?</h2>
+    <p>Create your account, request membership and let your committee welcome you in.</p>
+  </div>
+  <div class="landing-actions">
+    <a seButton variant="secondary" routerLink="/register">Create account</a>
+    <a seButton variant="ghost" routerLink="/contact">Talk to us <se-icon name="arrow" /></a>
+  </div>
+</section>

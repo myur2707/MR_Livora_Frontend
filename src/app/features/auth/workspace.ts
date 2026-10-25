@@ -62,9 +62,18 @@ import { StateComponent } from '../../shared/state';
         </section>
       }
       @if (identity.memberships.length) {
-        <form class="workspace-form" (submit)="select($event, selection.value)">
-          <se-field controlId="workspace-society" label="Community" [required]="true">
-            <select seSelect #selection required>
+        <form
+          class="workspace-form"
+          novalidate
+          (submit)="select($event, selection.value, selection)"
+        >
+          <se-field
+            controlId="workspace-society"
+            label="Community"
+            [required]="true"
+            [error]="choiceError()"
+          >
+            <select seSelect #selection required (change)="choiceError.set(null)">
               <option value="">Choose a community</option>
               @for (membership of identity.memberships; track membership.societyId) {
                 <option [value]="membership.societyId">
@@ -91,6 +100,7 @@ export class WorkspaceComponent {
   private readonly router = inject(Router);
   protected readonly error = signal<string | null>(null);
   protected readonly busy = signal(false);
+  protected readonly choiceError = signal<string | null>(null);
   protected roleNames(roles: readonly string[]): string {
     return roles
       .map((role) =>
@@ -101,9 +111,18 @@ export class WorkspaceComponent {
       )
       .join(', ');
   }
-  protected async select(event: Event, societyId: string): Promise<void> {
+  protected async select(
+    event: Event,
+    societyId: string,
+    control: HTMLSelectElement,
+  ): Promise<void> {
     event.preventDefault();
-    if (!societyId || this.busy()) return;
+    if (!societyId) {
+      this.choiceError.set('Choose the community you want to open.');
+      control.focus();
+      return;
+    }
+    if (this.busy()) return;
     this.busy.set(true);
     this.error.set(null);
     try {

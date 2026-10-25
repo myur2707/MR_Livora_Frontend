@@ -77,6 +77,10 @@
   .auth-frame.auth-login.registration-page {
     grid-template-rows: auto auto auto;
   }
+  /* Let the stacked content set its own height so the page scrolls instead of the footer overlapping it. */
+  .auth-login .registration-main {
+    min-height: auto;
+  }
   .auth-login .registration-features {
     display: block;
     order: 2;
@@ -99,12 +103,6 @@
   }
 }
 @media (min-width: 901px) and (max-height: 900px) {
-  .registration-page:has(.registration-success) .auth-header {
-    padding-block: 7px;
-  }
-  .registration-page:has(.registration-success) .auth-header .brand-logo {
-    width: 62px;
-  }
   .auth-login .registration-main:has(.registration-success) {
     gap: clamp(24px, 3vw, 42px);
     padding-block: 4px 8px;
@@ -172,12 +170,6 @@
   }
 }
 @media (max-height: 700px) {
-  .auth-header {
-    padding-block: 8px;
-  }
-  .auth-login .auth-header .brand-logo {
-    width: 60px;
-  }
   .auth-card {
     padding: 22px;
   }
@@ -299,11 +291,9 @@
     flex: 0 0 auto;
     overflow: visible;
   }
+  /* The bottom tab bar owns the phone's bottom edge; the drawer already carries the brand tagline. */
   .workspace .app-footer {
-    position: static;
-    bottom: auto;
-    z-index: auto;
-    box-shadow: none;
+    display: none;
   }
   .app-header {
     min-height: 54px;
@@ -361,29 +351,47 @@
   .platform-overview-totals {
     grid-template-columns: minmax(0, 1fr);
   }
-  .platform-directory-card {
+  .platform-directory-card,
+  .request-directory-card {
     padding: var(--space-3);
   }
-  .platform-directory-table {
+  /* An odd trailing cell (Actions) spans the full card width. */
+  .request-directory-table .data-table tr > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+    border-right: 0;
+  }
+  .request-directory-table .data-table tr > td:nth-child(4) {
+    border-bottom: 1px solid var(--border);
+  }
+  .platform-directory-table,
+  .request-directory-table {
     overflow: visible;
     border: 0;
   }
   .platform-directory-table .data-table,
+  .request-directory-table .data-table,
   .platform-directory-table .data-table tbody,
+  .request-directory-table .data-table tbody,
   .platform-directory-table .data-table tr,
+  .request-directory-table .data-table tr,
   .platform-directory-table .data-table th,
-  .platform-directory-table .data-table td {
+  .request-directory-table .data-table th,
+  .platform-directory-table .data-table td,
+  .request-directory-table .data-table td {
     display: block;
     width: 100%;
   }
-  .platform-directory-table .data-table thead {
+  .platform-directory-table .data-table thead,
+  .request-directory-table .data-table thead {
     display: none;
   }
-  .platform-directory-table .data-table tbody {
+  .platform-directory-table .data-table tbody,
+  .request-directory-table .data-table tbody {
     display: grid;
     gap: var(--space-3);
   }
-  .platform-directory-table .data-table tr {
+  .platform-directory-table .data-table tr,
+  .request-directory-table .data-table tr {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     border: 1px solid var(--border);
@@ -393,7 +401,9 @@
     overflow: hidden;
   }
   .platform-directory-table .data-table th,
-  .platform-directory-table .data-table td {
+  .request-directory-table .data-table th,
+  .platform-directory-table .data-table td,
+  .request-directory-table .data-table td {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
@@ -406,23 +416,32 @@
     overflow-wrap: anywhere;
   }
   .platform-directory-table .data-table th:first-child,
+  .request-directory-table .data-table th:first-child,
   .platform-directory-table .data-table th:nth-child(2),
+  .request-directory-table .data-table th:nth-child(2),
   .platform-directory-table .data-table th:nth-child(3),
-  .platform-directory-table .data-table th:nth-child(4) {
+  .request-directory-table .data-table th:nth-child(3),
+  .platform-directory-table .data-table th:nth-child(4),
+  .request-directory-table .data-table th:nth-child(4) {
     width: 100%;
   }
-  .platform-directory-table .data-table th {
+  .platform-directory-table .data-table th,
+  .request-directory-table .data-table th {
     overflow-wrap: break-word;
     word-break: normal;
   }
-  .platform-directory-table .data-table tr > :nth-child(even) {
+  .platform-directory-table .data-table tr > :nth-child(even),
+  .request-directory-table .data-table tr > :nth-child(even) {
     border-right: 0;
   }
-  .platform-directory-table .data-table tr > :nth-last-child(-n + 2) {
+  .platform-directory-table .data-table tr > :nth-last-child(-n + 2),
+  .request-directory-table .data-table tr > :nth-last-child(-n + 2) {
     border-bottom: 0;
   }
   .platform-directory-table .data-table th::before,
-  .platform-directory-table .data-table td::before {
+  .request-directory-table .data-table th::before,
+  .platform-directory-table .data-table td::before,
+  .request-directory-table .data-table td::before {
     content: attr(data-label);
     color: var(--muted);
     font-size: 11px;
@@ -430,7 +449,8 @@
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
-  .platform-directory-table .badge {
+  .platform-directory-table .badge,
+  .request-directory-table .badge {
     justify-self: start;
   }
   .page-heading {
@@ -506,31 +526,6 @@
   .foundation-note {
     align-items: start;
     gap: 12px;
-  }
-  .app-footer {
-    flex-direction: column;
-    align-items: center;
-    margin-inline: 18px;
-    gap: 6px;
-  }
-  .workspace .app-footer {
-    margin-inline: 0;
-    padding: 10px 18px;
-  }
-  .app-footer .copyright-label {
-    order: -1;
-  }
-  .auth-header {
-    padding: 10px 18px;
-  }
-  .auth-login .auth-header {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    width: 100%;
-    padding: 8px 16px;
-    background: color-mix(in srgb, var(--background) 78%, transparent);
-    backdrop-filter: blur(16px);
   }
   .auth-main {
     padding: 8px 18px;
@@ -611,15 +606,6 @@
     justify-content: center;
     gap: 4px 8px;
   }
-  .auth-header .brand-logo {
-    width: 74px;
-  }
-  .auth-login .auth-header .brand {
-    padding: 0;
-  }
-  .auth-login .auth-header .brand-logo {
-    width: 64px;
-  }
   .auth-note {
     display: none;
   }
@@ -632,12 +618,6 @@
     right: auto;
   }
 }
-@media (max-width: 680px) and (max-height: 700px) {
-  .auth-header .brand-logo,
-  .auth-login .auth-header .brand-logo {
-    width: 56px;
-  }
-}
 @media (max-width: 680px) {
   .header-start se-breadcrumbs,
   .header-start se-breadcrumbs nav {
@@ -646,70 +626,121 @@
     overflow: hidden;
   }
 }
+/* Registered so the notch position can animate smoothly between tabs. */
+@property --notch-x {
+  syntax: '<length-percentage>';
+  inherits: true;
+  initial-value: 50%;
+}
 @media (max-width: 680px) {
   .workspace {
     padding-bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
   }
   .bottom-nav {
+    --notch-radius: 31px;
+    --bubble-size: 50px;
+    --bubble-room: 30px;
+    --tab-motion: 480ms cubic-bezier(0.34, 1.36, 0.64, 1);
+    --tab-width: calc(100vw / var(--tab-count));
+    --notch-x: calc((var(--active-index) + 0.5) * var(--tab-width));
     position: fixed;
     inset: auto 0 0;
     z-index: 15;
-    display: flex;
-    align-items: stretch;
-    justify-content: space-around;
-    gap: var(--space-1);
-    min-height: var(--bottom-nav-height);
-    padding: 6px 8px calc(6px + env(safe-area-inset-bottom, 0px));
-    border-top: 1px solid var(--border);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    background: color-mix(in srgb, var(--surface) 94%, transparent);
-    box-shadow: 0 -10px 30px rgb(17 17 19 / 10%);
-    backdrop-filter: blur(16px) saturate(140%);
+    display: block;
+    /* Headroom keeps the raised bubble inside the horizontal scroller's clip box. */
+    padding-top: var(--bubble-room);
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    filter: drop-shadow(0 -8px 22px rgb(14 14 16 / 28%));
+    transition: --notch-x var(--tab-motion);
+    /* The transparent headroom must not block taps on the page behind it. */
+    pointer-events: none;
   }
-  .bottom-nav a,
-  .bottom-nav button {
+  .bottom-nav::-webkit-scrollbar {
+    display: none;
+  }
+  .bottom-nav.is-scrollable {
+    --tab-width: 84px;
+  }
+  .bottom-nav-track {
     position: relative;
     display: flex;
-    flex: 1 1 0;
+    align-items: stretch;
+    width: calc(var(--tab-count) * var(--tab-width));
+    min-width: 100%;
+    min-height: var(--bottom-nav-height);
+    padding: 8px 0 calc(6px + env(safe-area-inset-bottom, 0px));
+    pointer-events: auto;
+  }
+  /* The bar surface is a separate layer so only it, not the tabs, is cut by the notch. */
+  .bottom-nav-track::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    background: linear-gradient(180deg, #1c1c21 0%, #0e0e10 100%);
+    mask: radial-gradient(
+      circle at var(--notch-x) 0,
+      transparent calc(var(--notch-radius) - 0.5px),
+      #000 var(--notch-radius)
+    );
+  }
+  .bottom-nav:not(.has-active) .bottom-nav-track::before {
+    mask: none;
+  }
+  .bottom-nav-bubble {
+    position: absolute;
+    top: calc(var(--bubble-size) / -2);
+    left: var(--notch-x);
+    width: var(--bubble-size);
+    height: var(--bubble-size);
+    margin-left: calc(var(--bubble-size) / -2);
+    border-radius: 50%;
+    background: var(--gradient-brand);
+    background-color: var(--brand-solid);
+    box-shadow: var(--shadow-brand);
+    transform: scale(0);
+    transition: transform 320ms ease;
+    pointer-events: none;
+  }
+  .bottom-nav.has-active .bottom-nav-bubble {
+    transform: scale(1);
+  }
+  .bottom-nav a {
+    position: relative;
+    display: flex;
+    flex: 0 0 var(--tab-width);
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 3px;
     min-width: 0;
     min-height: 48px;
-    padding: 4px 2px;
-    border: 0;
+    padding: 4px 4px;
     border-radius: 12px;
-    background: transparent;
-    color: var(--muted);
-    font: inherit;
-    transition:
-      background-color 150ms ease,
-      color 150ms ease;
+    color: #a9a9b2;
+    transition: color 200ms ease;
   }
-  .bottom-nav a:hover,
-  .bottom-nav button:hover {
-    color: var(--text);
-  }
-  .bottom-nav a.active {
-    color: var(--brand);
-  }
-  .bottom-nav a.active::before {
-    content:;
-    position: absolute;
-    top: -6px;
-    width: 28px;
-    height: 3px;
-    border-radius: 0 0 var(--radius-pill) var(--radius-pill);
-    background: var(--gradient-brand);
-  }
-  .bottom-nav a.active .icon {
-    transform: translateY(-1px);
+  .bottom-nav a:hover {
+    color: #ffffff;
   }
   .bottom-nav .icon {
     width: 22px;
     height: 22px;
-    transition: transform 150ms ease;
+    transition:
+      transform var(--tab-motion),
+      color 200ms ease;
+  }
+  .bottom-nav a.active {
+    color: var(--on-hero-accent);
+  }
+  /* The active icon rises into the bubble centred on the bar's top edge. */
+  .bottom-nav a.active .icon {
+    color: #ffffff;
+    transform: translateY(var(--active-icon-lift, -24px));
   }
   /* Compact tab labels are a deliberate exception to the 15px minimum used for running text. */
   .bottom-nav .bottom-nav-label {
@@ -721,15 +752,93 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .bottom-nav a.active .bottom-nav-label {
+    animation: tab-label-in 320ms ease-out;
+  }
+}
+@keyframes tab-label-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @media (max-width: 360px) {
-  .bottom-nav {
-    gap: 0;
-    padding-inline: 4px;
-  }
   .bottom-nav .bottom-nav-label {
     font-size: 11px;
     letter-spacing: -0.01em;
+  }
+}
+@media (max-width: 680px) {
+  .registration-switch {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-1);
+    width: 100%;
+    padding: 5px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--surface) 86%, transparent);
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(14px);
+  }
+  .registration-switch button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    min-width: 0;
+    min-height: 46px;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--muted);
+    font-weight: 700;
+    white-space: nowrap;
+    transition:
+      background-color 180ms ease,
+      color 180ms ease,
+      box-shadow 180ms ease;
+  }
+  .registration-switch button:hover {
+    color: var(--text);
+  }
+  .registration-switch button[aria-selected='true'] {
+    background: var(--gradient-brand);
+    background-color: var(--brand-solid);
+    color: #ffffff;
+    box-shadow: var(--shadow-brand);
+  }
+  .registration-switch .icon {
+    width: 18px;
+    height: 18px;
+  }
+  .registration-main .is-mobile-hidden {
+    display: none;
+  }
+  .registration-main > section {
+    animation: registration-panel-in 220ms ease-out;
+  }
+  .registration-switch-cta {
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    width: 100%;
+    margin-top: var(--space-5);
+  }
+}
+@keyframes registration-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 /* Below this width the header controls leave no room for a readable trail; the page heading carries the context. */
@@ -745,5 +854,119 @@
     animation: none;
     transition: none;
     scroll-behavior: auto;
+  }
+}
+/* Phones (signed in): a white app header like the home-screen design — brand left, actions right. */
+@media (max-width: 680px) {
+  .app-header {
+    flex-wrap: wrap;
+    row-gap: var(--space-2);
+    margin: 0;
+    padding: 10px 14px;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    box-shadow: 0 8px 24px rgb(17 17 19 / 8%);
+    backdrop-filter: var(--glass-blur-strong);
+  }
+  /* Flatten both groups so the brand and actions can be ordered as one row. */
+  .app-header .header-start,
+  .app-header .header-actions {
+    display: contents;
+  }
+  .app-header .header-brand-lockup,
+  .app-header se-breadcrumbs,
+  .app-header .header-divider,
+  .app-header .header-sign-out {
+    display: none;
+  }
+  .mobile-brand {
+    order: 0;
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+  .mobile-brand img {
+    flex: 0 0 auto;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgb(17 17 19 / 18%);
+  }
+  .mobile-brand-text {
+    display: grid;
+    min-width: 0;
+    line-height: 1.15;
+  }
+  .mobile-brand-text strong {
+    color: var(--text);
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .mobile-brand-text small {
+    overflow: hidden;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .app-header .header-notices {
+    order: 1;
+  }
+  .app-header .header-actions > .icon-button:not(.header-notices, .header-sign-out) {
+    order: 2;
+  }
+  .app-header .header-start > .mobile-only {
+    order: 3;
+  }
+  .app-header .icon-button {
+    width: 42px;
+    min-height: 42px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: var(--shadow-sm);
+  }
+  .app-header .icon-button:hover:not(:disabled),
+  .app-header .header-notices.is-active {
+    border-color: color-mix(in srgb, var(--brand) 40%, var(--border));
+    background: var(--brand-soft);
+    color: var(--brand);
+  }
+  /* Multi-community accounts get the switcher as a full-width second row. */
+  .app-header se-society-switcher {
+    order: 4;
+    flex: 1 1 100%;
+  }
+  .app-header .society-switcher {
+    width: 100%;
+  }
+  .app-header .society-switcher label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    flex: 0 0 auto;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 650;
+  }
+  .app-header .society-switcher select {
+    flex: 1 1 auto;
+    max-width: none;
+  }
+  .page-heading {
+    padding: 22px 20px;
+  }
+}
+@media (max-width: 360px) {
+  .mobile-brand-text small {
+    display: none;
   }
 }

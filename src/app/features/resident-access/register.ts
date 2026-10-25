@@ -2,10 +2,19 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ResidentAccessApi, residentAccessError } from '../../core/resident-access';
-import { ThemeService } from '../../core/theme';
 import { ButtonDirective } from '../../shared/button';
 import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../shared/field';
 import { IconComponent } from '../../shared/icon';
+import { PublicHeaderComponent } from '../../layout/public-header';
+
+type RegistrationPanel = 'account' | 'features';
+/* With two tabs, arrow keys simply move to the other tab; Home/End jump to the first/last. */
+const TAB_KEYS: Readonly<Partial<Record<string, RegistrationPanel | 'toggle'>>> = {
+  ArrowLeft: 'toggle',
+  ArrowRight: 'toggle',
+  Home: 'account',
+  End: 'features',
+};
 
 @Component({
   selector: 'se-resident-register',
@@ -17,29 +26,47 @@ import { IconComponent } from '../../shared/icon';
     ControlDirective,
     FormNoticeComponent,
     IconComponent,
+    PublicHeaderComponent,
   ],
   template: `
     <a class="skip-link" href="#registration-content">Skip to content</a>
     <div class="auth-frame auth-login registration-page">
-      <header class="auth-header">
-        <a class="brand" routerLink="/" aria-label="Mr. Livora home">
-          <img class="brand-logo" src="/assets/brand/logo.png" alt="" width="90" height="90" />
-        </a>
-        <button
-          seButton
-          variant="ghost"
-          class="icon-button"
-          type="button"
-          [attr.aria-label]="
-            theme.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'
-          "
-          (click)="theme.toggle()"
-        >
-          <se-icon [name]="theme.theme() === 'light' ? 'moon' : 'sun'" />
-        </button>
-      </header>
+      <se-public-header />
       <main id="registration-content" tabindex="-1" class="auth-main registration-main">
-        <section class="auth-story registration-features" aria-labelledby="registration-benefits">
+        <div class="registration-switch" role="tablist" aria-label="Registration sections">
+          <button
+            #accountTab
+            id="registration-tab-account"
+            type="button"
+            role="tab"
+            aria-controls="registration-panel-account"
+            [attr.aria-selected]="panel() === 'account'"
+            [attr.tabindex]="panel() === 'account' ? 0 : -1"
+            (click)="panel.set('account')"
+            (keydown)="onTabKey($event, accountTab, featuresTab)"
+          >
+            <se-icon name="userPlus" /><span>Create account</span>
+          </button>
+          <button
+            #featuresTab
+            id="registration-tab-features"
+            type="button"
+            role="tab"
+            aria-controls="registration-panel-features"
+            [attr.aria-selected]="panel() === 'features'"
+            [attr.tabindex]="panel() === 'features' ? 0 : -1"
+            (click)="panel.set('features')"
+            (keydown)="onTabKey($event, accountTab, featuresTab)"
+          >
+            <se-icon name="sparkle" /><span>Features</span>
+          </button>
+        </div>
+        <section
+          id="registration-panel-features"
+          class="auth-story registration-features"
+          [class.is-mobile-hidden]="panel() !== 'features'"
+          aria-labelledby="registration-benefits"
+        >
           <p class="eyebrow">ONE COMMUNITY WORKSPACE</p>
           <h2 id="registration-benefits">Everything your community needs.</h2>
           <p class="registration-intro">
@@ -72,8 +99,21 @@ import { IconComponent } from '../../shared/icon';
           <p class="registration-assurance">
             <se-icon name="shield" /> Access starts after verification and approval.
           </p>
+          <button
+            seButton
+            type="button"
+            class="registration-switch-cta"
+            (click)="panel.set('account'); accountTab.focus()"
+          >
+            Create your account <se-icon name="arrow" />
+          </button>
         </section>
-        <section class="auth-card registration-card" aria-labelledby="registration-title">
+        <section
+          id="registration-panel-account"
+          class="auth-card registration-card"
+          [class.is-mobile-hidden]="panel() !== 'account'"
+          aria-labelledby="registration-title"
+        >
           <div class="auth-card-heading">
             <span class="guide-icon"><se-icon name="userPlus" /></span>
             <h1 id="registration-title" tabindex="-1">Create your account</h1>
@@ -215,14 +255,28 @@ import { IconComponent } from '../../shared/icon';
 })
 export class ResidentRegister {
   private readonly api = inject(ResidentAccessApi);
-  protected readonly theme = inject(ThemeService);
   protected readonly error = signal<string | null>(null);
   protected readonly busy = signal(false);
   protected readonly done = signal(false);
+  /** Which section the phone layout shows; wider layouts always show both. */
+  protected readonly panel = signal<RegistrationPanel>('account');
   protected email = '';
   protected displayName = '';
   protected password = '';
   protected confirmation = '';
+
+  protected onTabKey(event: KeyboardEvent, account: HTMLElement, features: HTMLElement): void {
+    const target = TAB_KEYS[event.key];
+    if (!target) return;
+    event.preventDefault();
+    const next = target === 'toggle' ? this.otherPanel() : target;
+    this.panel.set(next);
+    (next === 'account' ? account : features).focus();
+  }
+
+  private otherPanel(): RegistrationPanel {
+    return this.panel() === 'account' ? 'features' : 'account';
+  }
 
   protected async submit(valid: boolean | null): Promise<void> {
     if (!valid || this.password !== this.confirmation) {

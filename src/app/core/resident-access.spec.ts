@@ -35,3 +35,25 @@ describe('resident access error boundary', () => {
     ).toContain('intended email');
   });
 });
+describe('additional homes in the same community', () => {
+  const message = (code: string) =>
+    residentAccessError(new HttpErrorResponse({ error: { error: { code } } }));
+  it('tells members they already have the home they asked for', () => {
+    expect(message('RESIDENT_HOME_ALREADY_LINKED')).toBe(
+      'You already have access to this home. Choose a different flat or row house.',
+    );
+  });
+  it('explains a pending request blocks another one until reviewed or cancelled', () => {
+    const text = message('RESIDENT_REQUEST_PENDING');
+    expect(text).toContain('pending request in this community');
+    expect(text).toContain('cancel it');
+  });
+  it('never echoes server diagnostics for the new codes', () => {
+    for (const code of ['RESIDENT_HOME_ALREADY_LINKED', 'RESIDENT_REQUEST_PENDING'])
+      expect(
+        residentAccessError(
+          new HttpErrorResponse({ error: { error: { code, message: 'SQL private detail' } } }),
+        ),
+      ).not.toContain('SQL');
+  });
+});

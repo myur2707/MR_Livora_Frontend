@@ -4,11 +4,12 @@ import {
   DestroyRef,
   Injector,
   afterNextRender,
+  computed,
   effect,
   inject,
   signal,
 } from '@angular/core';
-import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ThemeService } from '../core/theme';
 import { ButtonDirective } from '../shared/button';
@@ -21,11 +22,14 @@ import { AuthService, authErrorMessage } from '../core/auth';
 import { ToastService } from '../shared/toast';
 import { SocietySwitcher } from './society-switcher';
 import { BottomNavComponent } from './bottom-nav';
+import { PublicHeaderComponent } from './public-header';
+import { VisibleNavigation } from './visible-navigation';
 
 @Component({
   selector: 'se-app-shell',
   imports: [
     RouterLink,
+    RouterLinkActive,
     RouterOutlet,
     ButtonDirective,
     DrawerComponent,
@@ -35,11 +39,24 @@ import { BottomNavComponent } from './bottom-nav';
     SidebarComponent,
     SocietySwitcher,
     BottomNavComponent,
+    PublicHeaderComponent,
   ],
   templateUrl: './app-shell.html',
 })
 export class AppShellComponent {
   protected readonly auth = inject(AuthService);
+  /* Signed-out visitors get the public site header instead of the workspace chrome. */
+  protected readonly signedIn = computed(() => this.auth.state.identity() !== null);
+  private readonly navigation = inject(VisibleNavigation).items;
+  /** Phone header brand goes to the first page this account can open. */
+  protected readonly homePath = computed(() => this.navigation()[0]?.path ?? '/workspace');
+  /** The bell opens the notices this account may read, if any. */
+  protected readonly noticesPath = computed(
+    () =>
+      this.navigation().find((item) =>
+        ['/society/resident/notices', '/society/community/notices'].includes(item.path),
+      )?.path ?? null,
+  );
   protected readonly signingOut = signal(false);
   protected readonly logoutConfirmationOpen = signal(false);
   private readonly router = inject(Router);

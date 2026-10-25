@@ -1,0 +1,100 @@
+<header class="public-header">
+  <a class="public-brand" routerLink="/" aria-label="Mr. Livora home">
+    <img class="brand-logo" src="/assets/brand/logo.png" width="44" height="44" alt="" />
+    <span class="public-brand-text">
+      <strong>Mr. Livora</strong>
+      <small>Live in a Better Aura</small>
+    </span>
+  </a>
+  <nav #nav class="public-nav" aria-label="Site navigation">
+    <span
+      class="public-nav-indicator"
+      aria-hidden="true"
+      [class.is-visible]="indicator() !== null"
+      [style.--indicator-left.px]="indicator()?.left ?? 0"
+      [style.--indicator-width.px]="indicator()?.width ?? 0"
+    ></span>
+    @for (link of links; track link.key) {
+      <a
+        [routerLink]="link.path"
+        [fragment]="link.fragment"
+        [attr.data-nav]="link.key"
+        [class.active]="active() === link.key"
+        [attr.aria-current]="active() === link.key ? (link.fragment ? 'location' : 'page') : null"
+        (click)="followLink(link)"
+        >{{ link.label }}</a
+      >
+    }
+  </nav>
+  <div class="public-actions">
+    <button
+      seButton
+      variant="ghost"
+      class="icon-button"
+      type="button"
+      [attr.aria-label]="
+        theme.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'
+      "
+      (click)="theme.toggle()"
+    >
+      <se-icon [name]="theme.theme() === 'light' ? 'moon' : 'sun'" />
+    </button>
+    @if (signedIn()) {
+      <a seButton class="public-cta" routerLink="/workspace"
+        >Open workspace <se-icon name="arrow"
+      /></a>
+    } @else {
+      <a
+        seButton
+        variant="secondary"
+        class="public-cta"
+        routerLink="/login"
+        routerLinkActive="is-current"
+        ariaCurrentWhenActive="page"
+        >Sign in</a
+      >
+      <a
+        seButton
+        class="public-cta"
+        routerLink="/register"
+        routerLinkActive="is-current"
+        ariaCurrentWhenActive="page"
+        >Create account</a
+      >
+    }
+    <button
+      seButton
+      variant="ghost"
+      class="icon-button public-menu-button"
+      type="button"
+      aria-label="Open menu"
+      [attr.aria-expanded]="menuOpen()"
+      (click)="menuOpen.set(true)"
+    >
+      <se-icon name="menu" />
+    </button>
+  </div>
+</header>
+
+<se-drawer title="Menu" side="end" [open]="menuOpen()" (closed)="menuOpen.set(false)">
+  <nav class="public-drawer-nav" aria-label="Mobile site navigation">
+    @for (link of links; track link.key) {
+      <a
+        [routerLink]="link.path"
+        [fragment]="link.fragment"
+        [class.active]="active() === link.key"
+        [attr.aria-current]="active() === link.key ? (link.fragment ? 'location' : 'page') : null"
+        (click)="followLink(link)"
+        ><se-icon [name]="link.icon" />{{ link.label }}</a
+      >
+    }
+  </nav>
+  <div class="public-drawer-actions">
+    @if (signedIn()) {
+      <a seButton routerLink="/workspace" (click)="menuOpen.set(false)">Open workspace</a>
+    } @else {
+      <a seButton routerLink="/register" (click)="menuOpen.set(false)">Create account</a>
+      <a seButton variant="secondary" routerLink="/login" (click)="menuOpen.set(false)">Sign in</a>
+    }
+  </div>
+</se-drawer>

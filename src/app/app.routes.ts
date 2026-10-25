@@ -2,7 +2,30 @@ import type { Routes } from '@angular/router';
 import { authGuard, platformGuard, societyGuard, workspaceGuard } from './core/auth-guards';
 
 export const routes: Routes = [
-  { path: '', pathMatch: 'full', redirectTo: 'workspace' },
+  {
+    // Public marketing pages; anything else falls through to the auth pages and app shell.
+    path: '',
+    loadComponent: () => import('./layout/public-shell').then((m) => m.PublicShellComponent),
+    children: [
+      {
+        path: '',
+        pathMatch: 'full',
+        title: 'Mr. Livora · Smart society management',
+        loadComponent: () => import('./features/public/home').then((m) => m.PublicHomeComponent),
+      },
+      {
+        path: 'about',
+        title: 'About us · Mr. Livora',
+        loadComponent: () => import('./features/public/about').then((m) => m.PublicAboutComponent),
+      },
+      {
+        path: 'contact',
+        title: 'Contact us · Mr. Livora',
+        loadComponent: () =>
+          import('./features/public/contact').then((m) => m.PublicContactComponent),
+      },
+    ],
+  },
   {
     path: 'login',
     title: 'Sign in · Mr. Livora',

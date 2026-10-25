@@ -1,22 +1,6 @@
 <a class="skip-link" href="#auth-content">Skip to content</a>
 <div class="auth-frame" [class.auth-login]="mode === 'login' || mode === 'forgot'">
-  <header class="auth-header">
-    <a class="brand" routerLink="/" aria-label="Mr. Livora home"
-      ><img class="brand-logo" src="/assets/brand/logo.png" alt="" width="90" height="90"
-    /></a>
-    <button
-      seButton
-      variant="ghost"
-      class="icon-button"
-      type="button"
-      [attr.aria-label]="
-        theme.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'
-      "
-      (click)="theme.toggle()"
-    >
-      <se-icon [name]="theme.theme() === 'light' ? 'moon' : 'sun'" />
-    </button>
-  </header>
+  <se-public-header />
   <main id="auth-content" tabindex="-1" class="auth-main">
     <section class="auth-story" aria-labelledby="auth-story-title">
       <p class="eyebrow">Mr. Livora</p>

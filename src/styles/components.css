@@ -16,7 +16,7 @@
   gap: var(--space-2);
   padding: 10px 20px;
   border: 1px solid transparent;
-  border-radius: 12px;
+  border-radius: var(--radius-pill);
   font-weight: 650;
   font-size: 13px;
   line-height: 1.3;
@@ -36,7 +36,7 @@
   box-shadow: var(--shadow-brand);
 }
 .button[data-variant='secondary'] {
-  background: var(--surface);
+  background: var(--glass-bg-strong);
   color: var(--text);
   border-color: var(--control-border);
   box-shadow: var(--shadow-sm);
@@ -73,7 +73,7 @@
 .icon-button {
   padding: 10px;
   width: 44px;
-  border-radius: 12px;
+  border-radius: 50%;
 }
 .button-row {
   @apply flex flex-wrap items-center;
@@ -127,10 +127,11 @@
   display: block;
   position: relative;
   padding: var(--space-6);
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
   margin-bottom: var(--space-6);
   transition:
     border-color 180ms ease,
@@ -181,9 +182,9 @@
   width: 100%;
   min-height: var(--control-height);
   border: 1px solid var(--control-border);
-  border-radius: 12px;
-  padding: 10px 14px;
-  background: var(--surface);
+  border-radius: 14px;
+  padding: 10px 16px;
+  background: var(--glass-bg-strong);
   color: var(--text);
   font-family: inherit;
   font-size: 13px;
@@ -203,6 +204,11 @@ select.form-control {
 }
 .form-control[aria-invalid='true'] {
   border-color: var(--danger);
+  background: color-mix(in srgb, var(--danger-soft) 45%, var(--surface));
+}
+.form-control[aria-invalid='true']:focus-visible {
+  border-color: var(--danger);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--danger) 18%, transparent);
 }
 .form-control:focus-visible {
   outline: none;
@@ -244,9 +250,38 @@ select.form-control {
   margin-top: var(--space-2);
   color: var(--muted);
 }
+/* Themed validation message: a red badge plus text, sliding in (no fade, to keep contrast). */
 .field-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
   color: var(--danger);
-  font-weight: 550;
+  font-weight: 600;
+  line-height: 1.45;
+  animation: field-error-in 200ms ease-out;
+}
+.field-error::before {
+  content: '!';
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--danger);
+  color: var(--surface);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+@keyframes field-error-in {
+  from {
+    transform: translateY(-3px);
+  }
+  to {
+    transform: none;
+  }
 }
 .form-notice {
   border-left: 4px solid var(--danger);
@@ -260,9 +295,11 @@ select.form-control {
   /* Keep positioned accessible labels inside the table's scrolling boundary. */
   position: relative;
   overflow-x: auto;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
 }
 .data-table {
   width: 100%;
@@ -278,12 +315,12 @@ select.form-control {
 }
 .data-table th,
 .data-table td {
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
   white-space: nowrap;
 }
 .data-table thead {
-  background: var(--surface-soft);
+  background: transparent;
 }
 .data-table thead th {
   color: var(--muted);
@@ -305,7 +342,7 @@ select.form-control {
   background: color-mix(in srgb, var(--brand) 4%, transparent);
 }
 .data-table tbody th {
-  font-weight: 600;
+  font-weight: 700;
 }
 .data-table tbody tr:last-child > * {
   border-bottom: 0;
@@ -342,7 +379,7 @@ dialog {
   box-shadow: var(--shadow-lg);
 }
 dialog:not(.drawer) {
-  border-top: 4px solid var(--brand-solid);
+  border-color: var(--glass-border);
 }
 dialog[open] {
   animation: dialog-in 180ms ease-out;
@@ -611,4 +648,11 @@ dialog.drawer .sidebar-note {
     opacity: 1;
     transform: translateY(0);
   }
+}
+/* A table already inside a glass card should not stack a second frosted layer. */
+.card .table-scroll {
+  border-color: var(--border);
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
 }

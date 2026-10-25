@@ -1,0 +1,107 @@
+<section class="public-page-hero" aria-labelledby="about-title">
+  <p class="eyebrow">About us</p>
+  <h1 id="about-title" tabindex="-1">Live in a <span>Better Aura</span></h1>
+  <p>
+    Mr. Livora helps housing societies run with less paperwork, clearer finances and calmer
+    communication — so neighbours can spend more time being a community.
+  </p>
+</section>
+
+<section class="landing-section about-story" aria-labelledby="story-title">
+  <div seReveal>
+    <p class="eyebrow">Our story</p>
+    <h2 id="story-title">Society life deserves better tools</h2>
+    <p>
+      Most societies still run on paper registers, spreadsheets and busy group chats. Dues are hard
+      to follow, receipts go missing and important notices get buried.
+    </p>
+    <p>
+      We built Mr. Livora so committees can manage properties, residents, maintenance and payments
+      in one place, and every resident can see what matters to their home.
+    </p>
+  </div>
+  <aside class="about-mission" [seReveal]="1">
+    <se-icon name="sparkle" />
+    <h2>Our mission</h2>
+    <p>
+      Make every society transparent, private and simple to run — with the committee in charge and
+      residents always informed.
+    </p>
+  </aside>
+</section>
+
+<section class="landing-section" aria-labelledby="solve-title">
+  <header class="landing-section-heading" seReveal>
+    <p class="eyebrow">What we solve</p>
+    <h2 id="solve-title">Less chasing, more living</h2>
+  </header>
+  <div class="landing-audience-grid">
+    @for (item of problems; track item.title; let index = $index) {
+      <article class="landing-audience" [seReveal]="index">
+        <span class="landing-icon"><se-icon [name]="item.icon" /></span>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.text }}</p>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="landing-section" aria-labelledby="values-title">
+  <header class="landing-section-heading" seReveal>
+    <p class="eyebrow">Our values</p>
+    <h2 id="values-title">What we stand for</h2>
+  </header>
+  <div class="landing-feature-grid">
+    @for (value of values; track value.title; let index = $index) {
+      <article class="landing-feature" [seReveal]="index">
+        <span class="landing-icon"><se-icon [name]="value.icon" /></span>
+        <h3>{{ value.title }}</h3>
+        <p>{{ value.text }}</p>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="landing-section" aria-labelledby="journey-title">
+  <header class="landing-section-heading" seReveal>
+    <p class="eyebrow">Committee-led</p>
+    <h2 id="journey-title">How a society comes alive</h2>
+  </header>
+  <ol class="landing-steps landing-steps-four">
+    @for (step of journey; track step.title; let index = $index) {
+      <li [seReveal]="index">
+        <span class="landing-step-number">{{ index + 1 }}</span>
+        <span class="landing-icon"><se-icon [name]="step.icon" /></span>
+        <h3>{{ step.title }}</h3>
+        <p>{{ step.text }}</p>
+      </li>
+    }
+  </ol>
+</section>
+
+<section class="landing-section" aria-labelledby="roles-title">
+  <header class="landing-section-heading" seReveal>
+    <p class="eyebrow">Who we serve</p>
+    <h2 id="roles-title">One app, the right view for every role</h2>
+  </header>
+  <div class="landing-audience-grid">
+    @for (audience of audiences; track audience.title; let index = $index) {
+      <article class="landing-audience" [seReveal]="index">
+        <span class="landing-icon"><se-icon [name]="audience.icon" /></span>
+        <h3>{{ audience.title }}</h3>
+        <p>{{ audience.text }}</p>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="landing-cta" aria-labelledby="about-cta-title" seReveal>
+  <div>
+    <h2 id="about-cta-title">Let's make your society smarter</h2>
+    <p>Have a question or want Mr. Livora for your society? We'd love to hear from you.</p>
+  </div>
+  <div class="landing-actions">
+    <a seButton variant="secondary" routerLink="/contact">Contact us</a>
+    <a seButton variant="ghost" routerLink="/register">Create account <se-icon name="arrow" /></a>
+  </div>
+</section>

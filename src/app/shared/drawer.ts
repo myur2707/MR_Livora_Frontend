@@ -3,6 +3,8 @@ import { DialogComponent } from './dialog';
 
 @Component({
   selector: 'se-drawer',
+  // `title` is an input; clear the host attribute so browsers don't show it as a tooltip.
+  host: { '[attr.title]': 'null' },
   imports: [DialogComponent],
   template:
     '<se-dialog [open]="open()" [title]="title()" [placement]="side()" (closed)="closed.emit()"><ng-content /></se-dialog>',

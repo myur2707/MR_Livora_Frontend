@@ -1,0 +1,126 @@
+<section class="public-page-hero" aria-labelledby="contact-title">
+  <p class="eyebrow">Contact us</p>
+  <h1 id="contact-title" tabindex="-1">Let's talk about <span>your society</span></h1>
+  <p>
+    Questions about Mr. Livora, or ready to bring your community online? Reach us any way you like.
+  </p>
+</section>
+
+<section class="contact-layout">
+  <div class="contact-channels" aria-label="Contact details">
+    <a class="contact-channel" [href]="contact.phoneHref" seReveal>
+      <span class="landing-icon"><se-icon name="phone" /></span>
+      <span
+        ><small>Call us</small><strong>{{ contact.phone }}</strong></span
+      >
+    </a>
+    <a class="contact-channel" [href]="'mailto:' + contact.email" [seReveal]="1">
+      <span class="landing-icon"><se-icon name="mail" /></span>
+      <span
+        ><small>Email</small><strong>{{ contact.email }}</strong></span
+      >
+    </a>
+    <a
+      class="contact-channel"
+      [href]="contact.instagram"
+      target="_blank"
+      rel="noopener noreferrer"
+      [seReveal]="2"
+    >
+      <span class="landing-icon"><se-icon name="camera" /></span>
+      <span
+        ><small>Instagram</small><strong>{{ '@' + contact.social }}</strong></span
+      >
+    </a>
+    <a
+      class="contact-channel"
+      [href]="contact.facebook"
+      target="_blank"
+      rel="noopener noreferrer"
+      [seReveal]="3"
+    >
+      <span class="landing-icon"><se-icon name="social" /></span>
+      <span
+        ><small>Facebook</small><strong>{{ contact.social }}</strong></span
+      >
+    </a>
+  </div>
+
+  <section class="contact-form-card" aria-labelledby="contact-form-title" [seReveal]="1">
+    <h2 id="contact-form-title">Send us a message</h2>
+    <p class="contact-form-note">
+      <se-icon name="info" />Submitting opens your email app with this message ready to send.
+    </p>
+    <form class="contact-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+      <se-field
+        controlId="contact-name"
+        label="Your name"
+        [required]="true"
+        [error]="error('name')"
+      >
+        <input
+          seInput
+          formControlName="name"
+          autocomplete="name"
+          [attr.maxlength]="limits.name"
+          required
+        />
+      </se-field>
+      <se-field
+        controlId="contact-email"
+        label="Email address"
+        [required]="true"
+        [error]="error('email')"
+      >
+        <input
+          seInput
+          type="email"
+          formControlName="email"
+          autocomplete="email"
+          [attr.maxlength]="limits.email"
+          required
+        />
+      </se-field>
+      <se-field controlId="contact-phone" label="Phone number" [error]="error('phone')">
+        <input
+          seInput
+          type="tel"
+          formControlName="phone"
+          autocomplete="tel"
+          [attr.maxlength]="limits.phone"
+        />
+      </se-field>
+      <se-field controlId="contact-society" label="Society name" [error]="error('society')">
+        <input
+          seInput
+          formControlName="society"
+          autocomplete="organization"
+          [attr.maxlength]="limits.society"
+        />
+      </se-field>
+      <se-field
+        class="contact-message"
+        controlId="contact-message"
+        label="Message"
+        [required]="true"
+        [error]="error('message')"
+        hint="Tell us a little about your society and what you need."
+      >
+        <textarea
+          seInput
+          rows="5"
+          formControlName="message"
+          [attr.maxlength]="limits.message"
+          required
+        ></textarea>
+      </se-field>
+      <button seButton type="submit">Open email app <se-icon name="arrow" /></button>
+    </form>
+    @if (prepared()) {
+      <p class="contact-status" role="status">
+        <se-icon name="check" />Your email app should now be open with your message. If it didn't
+        open, write to {{ contact.email }}.
+      </p>
+    }
+  </section>
+</section>

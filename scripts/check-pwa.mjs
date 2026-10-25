@@ -37,6 +37,8 @@ function navigation(path) {
 }
 for (const path of [
   '/',
+  '/about',
+  '/contact',
   '/login',
   '/forgot-password',
   '/reset-password',

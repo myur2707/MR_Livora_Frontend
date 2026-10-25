@@ -50,7 +50,7 @@ test('compact login fits laptop and mobile screens with visible validation and s
         document.documentElement.dataset['theme'] = theme;
       }, theme);
       await page.locator('.brand-logo').evaluate((image: HTMLImageElement) => image.decode());
-      const logo = await page.locator('.auth-header .brand-logo').boundingBox();
+      const logo = await page.locator('.public-header .brand-logo').boundingBox();
       expect(logo?.height).toBeLessThanOrEqual(92);
       await assertFits();
       await page.getByRole('button', { name: 'Sign in', exact: true }).click();

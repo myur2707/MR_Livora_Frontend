@@ -7,6 +7,8 @@ import { IconComponent } from './icon';
 
 @Component({
   selector: 'se-dialog',
+  // `title` is an input; clear the host attribute so browsers don't show it as a tooltip.
+  host: { '[attr.title]': 'null' },
   imports: [ButtonDirective, IconComponent, CdkTrapFocus],
   template: `<dialog
     #dialog

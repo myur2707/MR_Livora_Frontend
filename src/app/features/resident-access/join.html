@@ -56,22 +56,44 @@
           <tbody>
             @for (row of data.items; track row.id) {
               <tr>
-                <th scope="row">{{ row.societyName }}</th>
-                <td>{{ requestPropertyLabel(row) }}</td>
-                <td>
+                <th scope="row" data-label="Society">{{ row.societyName }}</th>
+                <td data-label="Property">{{ requestPropertyLabel(row) }}</td>
+                <td data-label="Status">
                   <se-badge>{{ row.status }}</se-badge>
                 </td>
-                <td>{{ row.decisionNote || 'Awaiting review' }}</td>
-                <td>
+                <td data-label="Decision">{{ row.decisionNote || 'Awaiting review' }}</td>
+                <td data-label="Actions">
                   @if (row.status === 'PENDING') {
-                    <button
-                      seButton
-                      variant="secondary"
-                      type="button"
-                      (click)="cancelling.set(row)"
-                    >
-                      Cancel request
-                    </button>
+                    <div class="join-request-actions">
+                      @if (row.committeeContact; as contact) {
+                        @if (contact.contactPhone) {
+                          <a
+                            seButton
+                            variant="secondary"
+                            [href]="'tel:' + contact.contactPhone"
+                            [attr.aria-label]="'Call committee at ' + contact.contactPhone"
+                            ><se-icon name="phone" />Call committee</a
+                          >
+                        }
+                        @if (contact.contactEmail) {
+                          <a
+                            seButton
+                            variant="secondary"
+                            [href]="'mailto:' + contact.contactEmail"
+                            [attr.aria-label]="'Email committee at ' + contact.contactEmail"
+                            ><se-icon name="mail" />Email committee</a
+                          >
+                        }
+                      }
+                      <button
+                        seButton
+                        variant="secondary"
+                        type="button"
+                        (click)="cancelling.set(row)"
+                      >
+                        Cancel request
+                      </button>
+                    </div>
                   } @else {
                     <span aria-hidden="true">—</span>
                   }
@@ -107,14 +129,39 @@
 >
   @if (showRequest()) {
     <p class="dialog-description">
-      Your committee will verify your identity and occupancy against its records.
+      Your committee will verify your identity and occupancy against its records. Already a resident
+      here? You can also request another flat or row house in the same community.
     </p>
+    <ol class="join-request-steps" aria-label="How membership works">
+      <li>
+        <span class="join-request-step-icon"><se-icon name="filePlus" /></span>
+        <span><strong>1. Send your request</strong>Choose your community and home.</span>
+      </li>
+      <li>
+        <span class="join-request-step-icon"><se-icon name="shield" /></span>
+        <span
+          ><strong>2. Committee review</strong>They check your details against their records.</span
+        >
+      </li>
+      <li>
+        <span class="join-request-step-icon"><se-icon name="home" /></span>
+        <span
+          ><strong>3. Access unlocked</strong>Bills, payments, receipts, notices and
+          complaints.</span
+        >
+      </li>
+    </ol>
     <se-form-notice [message]="requestError()" />
     <form #form="ngForm" class="onboarding-form join-request-form" (ngSubmit)="submit(form.valid)">
       <se-field
         controlId="join-name"
         label="Your name"
         [required]="true"
+        [hint]="
+          prefilled().name
+            ? 'From your profile. Edit it if your committee knows you by another name.'
+            : 'Use the name your committee has on record.'
+        "
         [error]="name.touched && name.invalid ? 'Enter your name.' : null"
         ><input
           seInput
@@ -129,6 +176,7 @@
         controlId="join-society"
         label="Community"
         [required]="true"
+        hint="The society, flat or township you live in."
         [error]="society.touched && society.invalid ? 'Select a community.' : null"
         ><select
           seSelect
@@ -150,6 +198,7 @@
         controlId="join-property-type"
         label="Property type"
         [required]="true"
+        hint="A flat in a building or wing, or a row house."
         [error]="propertyType.touched && propertyType.invalid ? 'Select a property type.' : null"
         ><select
           seSelect
@@ -172,6 +221,7 @@
         controlId="join-property"
         label="Flat or row house"
         [required]="true"
+        hint="The home you own or live in."
         [error]="property.touched && property.invalid ? 'Select a flat or row house.' : null"
         ><select
           seSelect
@@ -190,7 +240,10 @@
           }
         </select></se-field
       >
-      <se-field controlId="join-type" label="Requested occupancy"
+      <se-field
+        controlId="join-type"
+        label="Requested occupancy"
+        hint="How you are connected to this home. The committee confirms it."
         ><select seSelect name="occupancyType" [(ngModel)]="occupancyType">
           @for (type of types; track type) {
             <option [value]="type">{{ occupancyTypeLabel(type) }}</option>
@@ -200,10 +253,19 @@
       <se-field
         controlId="join-phone"
         label="Contact phone"
-        hint="Contact information only; not proof of identity."
+        [hint]="
+          prefilled().phone
+            ? 'From your profile. Contact information only; not proof of identity.'
+            : 'Contact information only; not proof of identity.'
+        "
         ><input seInput name="phone" [(ngModel)]="contactPhone" maxlength="32" autocomplete="tel"
       /></se-field>
-      <se-field class="join-request-note" controlId="join-note" label="Message to the committee">
+      <se-field
+        class="join-request-note"
+        controlId="join-note"
+        label="Message to the committee"
+        hint="Optional. Anything that helps them identify you, such as your move-in date."
+      >
         <textarea seInput name="note" [(ngModel)]="note" maxlength="500"></textarea>
       </se-field>
       <button seButton type="submit" [disabled]="busy()">

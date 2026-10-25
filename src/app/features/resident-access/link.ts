@@ -9,6 +9,7 @@ import { AuthService } from '../../core/auth';
 import { ButtonDirective } from '../../shared/button';
 import { CardComponent } from '../../shared/card';
 import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../shared/field';
+import { IconComponent } from '../../shared/icon';
 @Component({
   selector: 'se-resident-link',
   imports: [
@@ -20,21 +21,33 @@ import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../sha
     FieldComponent,
     ControlDirective,
     FormNoticeComponent,
+    IconComponent,
   ],
-  template: ` <header class="page-heading">
+  template: `<div class="link-page">
+    <header class="page-heading link-hero">
+      <span class="link-hero-icon" aria-hidden="true"
+        ><se-icon [name]="done() ? 'check' : verify ? 'mail' : 'userPlus'"
+      /></span>
       <div>
         <p class="eyebrow">YOUR COMMUNITY</p>
         <h1 tabindex="-1">{{ verify ? 'Verify your email' : 'Resident invitation' }}</h1>
+        <p>
+          {{
+            verify
+              ? 'One quick step to activate your Mr. Livora login.'
+              : 'Your committee has invited you to join your community.'
+          }}
+        </p>
       </div>
     </header>
     <se-form-notice [message]="error()" />
     @if (done()) {
-      <se-card title="Completed"
+      <se-card class="link-card link-card-success" title="Completed"
         ><p role="status">
           {{
             verify
               ? 'Your email is verified. Sign in and submit a society request for committee approval.'
-              : 'Your Resident membership is ready. Sign in if needed and select your community.'
+              : 'Your resident access is ready. Sign in if needed and select your community. If you already belong to it, the new home now appears under My Flats.'
           }}
         </p>
         <p>
@@ -48,14 +61,25 @@ import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../sha
         <p><a routerLink="/workspace">Choose workspace</a></p></se-card
       >
     } @else if (verify) {
-      <se-card title="Confirm your email"
+      <se-card class="link-card" title="Confirm your email"
         ><p>This creates a login only. Your committee must approve society membership.</p>
-        <button seButton type="button" (click)="accept()" [disabled]="busy() || !hasToken">
+        <ol class="link-steps" aria-label="What happens next">
+          <li class="is-current"><span>1</span>Verify your email</li>
+          <li><span>2</span>Sign in to Mr. Livora</li>
+          <li><span>3</span>Request society membership</li>
+        </ol>
+        <button
+          seButton
+          class="link-action"
+          type="button"
+          (click)="accept()"
+          [disabled]="busy() || !hasToken"
+        >
           Verify email
         </button></se-card
       >
     } @else if (preview(); as invitation) {
-      <se-card [title]="invitation.societyName"
+      <se-card class="link-card" [title]="invitation.societyName"
         ><p>{{ invitation.displayName }} · {{ invitation.email }}</p>
         <p>
           Resident access approved by the committee. Link expires
@@ -121,7 +145,8 @@ import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../sha
           </form>
         }
       </se-card>
-    }`,
+    }
+  </div>`,
 })
 export class ResidentLink implements OnInit {
   private readonly api = inject(ResidentAccessApi);

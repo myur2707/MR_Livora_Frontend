@@ -24,6 +24,8 @@
   "dataGroups": [],
   "navigationUrls": [
     "/$",
+    "/about$",
+    "/contact$",
     "/login$",
     "/forgot-password$",
     "/reset-password$",

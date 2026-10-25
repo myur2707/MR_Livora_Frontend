@@ -1,62 +1,86 @@
 <a class="skip-link" href="#main-content">Skip to content</a>
-<div class="app-frame" [class.nav-collapsed]="collapsed()">
-  <aside class="desktop-sidebar">
-    <se-sidebar
-      [collapsed]="collapsed()"
-      [signingOut]="signingOut()"
-      (logoutRequested)="requestLogout()"
-    />
-  </aside>
+<div class="app-frame" [class.nav-collapsed]="collapsed()" [class.is-public]="!signedIn()">
+  @if (signedIn()) {
+    <aside class="desktop-sidebar">
+      <se-sidebar
+        [collapsed]="collapsed()"
+        [signingOut]="signingOut()"
+        (logoutRequested)="requestLogout()"
+      />
+    </aside>
+  }
   <div class="workspace">
-    <header class="app-header">
-      <div class="header-start">
-        <button
-          seButton
-          variant="ghost"
-          class="desktop-only icon-button"
-          type="button"
-          [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
-          [attr.aria-expanded]="!collapsed()"
-          (click)="collapsed.set(!collapsed())"
-        >
-          <se-icon [name]="collapsed() ? 'expand' : 'collapse'" />
-        </button>
-        <button
-          seButton
-          variant="ghost"
-          class="mobile-only icon-button"
-          type="button"
-          aria-label="Open navigation"
-          [attr.aria-expanded]="mobileOpen()"
-          (click)="mobileOpen.set(true)"
-        >
-          <se-icon name="menu" />
-        </button>
-        <div class="header-brand-lockup" aria-label="Mr. Livora workspace">
-          <span class="header-brand-name">Mr. Livora</span>
+    <!-- One outlet for both states, so signing in or out never recreates the routed page. -->
+    @if (signedIn()) {
+      <header class="app-header">
+        <div class="header-start">
+          <button
+            seButton
+            variant="ghost"
+            class="desktop-only icon-button"
+            type="button"
+            [attr.aria-label]="collapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+            [attr.aria-expanded]="!collapsed()"
+            (click)="collapsed.set(!collapsed())"
+          >
+            <se-icon [name]="collapsed() ? 'expand' : 'collapse'" />
+          </button>
+          <button
+            seButton
+            variant="ghost"
+            class="mobile-only icon-button"
+            type="button"
+            aria-label="Open navigation"
+            [attr.aria-expanded]="mobileOpen()"
+            (click)="mobileOpen.set(true)"
+          >
+            <se-icon name="menu" />
+          </button>
+          <div class="header-brand-lockup" aria-label="Mr. Livora workspace">
+            <span class="header-brand-name">Mr. Livora</span>
+          </div>
+          <!-- Phone header brand, as on the app's home screen. -->
+          <a class="mobile-brand" [routerLink]="homePath()" aria-label="Mr. Livora home">
+            <img src="/assets/brand/monogram.png" width="40" height="40" alt="" />
+            <span class="mobile-brand-text">
+              <strong>Mr. Livora</strong>
+              <small>Live in a Better Aura</small>
+            </span>
+          </a>
+          <se-breadcrumbs />
         </div>
-        <se-breadcrumbs />
-      </div>
-      <div class="header-actions">
-        <se-society-switcher />
-        <button
-          seButton
-          variant="ghost"
-          class="icon-button"
-          type="button"
-          [attr.aria-label]="
-            theme.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'
-          "
-          (click)="theme.toggle()"
-        >
-          <se-icon [name]="theme.theme() === 'light' ? 'moon' : 'sun'" />
-        </button>
-        <span class="header-divider" aria-hidden="true"></span>
-        @if (auth.state.identity()) {
+        <div class="header-actions">
+          <se-society-switcher />
+          @if (noticesPath(); as notices) {
+            <a
+              seButton
+              variant="ghost"
+              class="icon-button header-notices"
+              [routerLink]="notices"
+              routerLinkActive="is-active"
+              ariaCurrentWhenActive="page"
+              aria-label="Notices"
+              title="Notices"
+              ><se-icon name="bell"
+            /></a>
+          }
           <button
             seButton
             variant="ghost"
             class="icon-button"
+            type="button"
+            [attr.aria-label]="
+              theme.theme() === 'light' ? 'Switch to dark theme' : 'Switch to light theme'
+            "
+            (click)="theme.toggle()"
+          >
+            <se-icon [name]="theme.theme() === 'light' ? 'moon' : 'sun'" />
+          </button>
+          <span class="header-divider" aria-hidden="true"></span>
+          <button
+            seButton
+            variant="ghost"
+            class="icon-button header-sign-out"
             type="button"
             aria-label="Sign out"
             title="Sign out"
@@ -65,25 +89,29 @@
           >
             <se-icon name="logout" />
           </button>
-        } @else {
-          <a seButton variant="ghost" routerLink="/login">Sign in <se-icon name="arrow" /></a>
-        }
-      </div>
-    </header>
+        </div>
+      </header>
+    } @else {
+      <se-public-header />
+    }
     <main id="main-content" tabindex="-1"><router-outlet (activate)="focusPage()" /></main>
     <footer class="app-footer">
       <span class="footer-tagline">Live in a Better Aura</span>
       <span class="copyright-label">© 2026 Mr. Livora</span>
     </footer>
-    <se-bottom-nav [moreOpen]="mobileOpen()" (moreRequested)="mobileOpen.set(true)" />
+    @if (signedIn()) {
+      <se-bottom-nav />
+    }
   </div>
 </div>
-<se-drawer title="Navigation" side="start" [open]="mobileOpen()" (closed)="mobileOpen.set(false)"
-  ><se-sidebar
-    [signingOut]="signingOut()"
-    (navigated)="mobileOpen.set(false)"
-    (logoutRequested)="requestLogout()"
-/></se-drawer>
+@if (signedIn()) {
+  <se-drawer title="Navigation" side="start" [open]="mobileOpen()" (closed)="mobileOpen.set(false)"
+    ><se-sidebar
+      [signingOut]="signingOut()"
+      (navigated)="mobileOpen.set(false)"
+      (logoutRequested)="requestLogout()"
+  /></se-drawer>
+}
 <se-dialog
   class="confirmation-dialog logout-confirmation-dialog"
   title="Confirm logout"

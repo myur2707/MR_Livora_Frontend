@@ -10,6 +10,7 @@
   <button seButton type="button" (click)="openInvite()">Invite existing resident</button>
 </header>
 <se-form-notice [message]="error()" />
+<se-applicant-contact />
 <div class="property-actions" role="group" aria-label="Resident access lists">
   <button
     seButton
@@ -68,6 +69,9 @@
                 <th scope="row">
                   {{ row.displayName }}
                   <p>{{ row.email }}</p>
+                  @if (row.existingMember; as member) {
+                    <se-badge tone="warning">Existing member · {{ homeSummary(member) }}</se-badge>
+                  }
                 </th>
                 <td>{{ row.buildingCode }} / {{ row.flatNumber }} · {{ row.occupancyType }}</td>
                 <td>
@@ -220,27 +224,70 @@
     </p>
     <p>Claim: {{ row.buildingCode }} / {{ row.flatNumber }} · {{ row.occupancyType }}</p>
     <p>{{ row.note || 'No applicant note' }}</p>
+    @if (row.existingMember; as member) {
+      <section class="existing-member" aria-labelledby="existing-member-title">
+        <p id="existing-member-title" class="existing-member-title">
+          <se-icon name="info" />Already a member of this community ({{ member.status }})
+        </p>
+        <p>
+          This request is for an additional home. Approving adds it to their existing membership; no
+          new account or profile is created.
+        </p>
+        <details class="existing-member-homes">
+          <summary>View homes ({{ homeSummary(member) }})</summary>
+          @if (member.homes.length) {
+            <ul>
+              @for (home of member.homes; track $index) {
+                <li [attr.data-state]="home.state">
+                  <span class="existing-member-home">
+                    <strong>{{ home.buildingName }} · {{ home.flatNumber }}</strong>
+                    <span
+                      >{{ occupancyLabel(home.occupancyType) }} · {{ home.startsOn }} –
+                      {{ home.endsOn ?? 'present' }}</span
+                    >
+                  </span>
+                  <se-badge [tone]="home.state === 'CURRENT' ? 'success' : 'neutral'">{{
+                    homeStateLabel(home.state)
+                  }}</se-badge>
+                </li>
+              }
+            </ul>
+            @if (!currentHomes(member)) {
+              <p class="existing-member-note">
+                None of their homes is current. If an end date was entered by mistake, add a new
+                occupancy from the flat's page under Flats.
+              </p>
+            }
+          } @else {
+            <p>No homes are recorded for this member yet.</p>
+          }
+        </details>
+      </section>
+    }
     <p>
       Check identity and residency against committee records. Matching names or phone numbers must
       not be used to merge people.
     </p>
     <form #approval="ngForm" class="onboarding-form" (ngSubmit)="approve(approval.valid)">
-      <label class="check-label"
-        ><input type="checkbox" name="existingPerson" [(ngModel)]="existingPerson" /> Link a
-        verified existing person</label
-      >
-      @if (existingPerson) {
-        <se-resource-picker
-          kind="persons"
-          label="Verified person"
-          [value]="personId"
-          (selected)="selectPerson($event)"
-        />
-      } @else {
-        <p>
-          A profile for the applicant's existing global identity will be created. Their login
-          account is reused.
-        </p>
+      <!-- Existing members keep their linked person; the server refuses any other. -->
+      @if (!row.existingMember) {
+        <label class="check-label"
+          ><input type="checkbox" name="existingPerson" [(ngModel)]="existingPerson" /> Link a
+          verified existing person</label
+        >
+        @if (existingPerson) {
+          <se-resource-picker
+            kind="persons"
+            label="Verified person"
+            [value]="personId"
+            (selected)="selectPerson($event)"
+          />
+        } @else {
+          <p>
+            A profile for the applicant's existing global identity will be created. Their login
+            account is reused.
+          </p>
+        }
       }
       <se-resource-picker
         kind="flats"
@@ -294,8 +341,23 @@
             type="date"
             required
             [max]="requests()?.today" /></se-field
-        ><se-field controlId="approve-end" label="Verified end date"
-          ><input seInput name="endsOn" [(ngModel)]="endsOn" type="date" [min]="requests()?.today"
+        ><se-field
+          controlId="approve-end"
+          label="End date (optional)"
+          [hint]="
+            endsOn
+              ? 'Access to this home ends after ' +
+                endsOn +
+                '. Clear the date if they still own or live there.'
+              : 'Leave empty if they still own or live in this home.'
+          "
+          ><input
+            seInput
+            name="endsOn"
+            [class.has-end-date]="!!endsOn"
+            [(ngModel)]="endsOn"
+            type="date"
+            [min]="requests()?.today"
         /></se-field>
       }
       <se-field

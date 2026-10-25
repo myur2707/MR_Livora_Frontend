@@ -1,9 +1,97 @@
+/* Page headings become the dark hero panel from the reference; it is ink in both themes. */
 .page-heading {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-5);
-  margin-bottom: var(--space-8);
+  margin-bottom: var(--space-6);
+  padding: 28px 32px;
+  border: 1px solid rgb(255 255 255 / 8%);
+  border-radius: var(--radius-lg);
+  background: var(--hero-gradient);
+  background-color: var(--hero-bg);
+  color: var(--on-hero);
+  box-shadow: 0 24px 50px rgb(14 14 16 / 22%);
+}
+.page-heading::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: -90px;
+  right: -60px;
+  width: 260px;
+  height: 260px;
+  border: 38px solid rgb(255 255 255 / 4%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.page-heading h1,
+.page-heading h2 {
+  color: var(--on-hero);
+}
+.page-heading .eyebrow {
+  color: var(--on-hero-accent);
+}
+.page-heading .eyebrow::before {
+  content: '';
+  width: 18px;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: var(--gradient-brand);
+}
+.page-heading p,
+.page-heading p:last-child {
+  color: var(--on-hero-muted);
+}
+.page-heading p:last-child {
+  margin-top: 8px;
+  font-size: 13px;
+}
+.page-heading .eyebrow:last-child {
+  color: var(--on-hero-accent);
+}
+.page-heading a:not(.button) {
+  color: var(--on-hero-accent);
+  font-weight: 650;
+}
+.page-heading .field label {
+  color: var(--on-hero);
+}
+.page-heading .field-hint {
+  color: var(--on-hero-muted);
+}
+.page-heading .field-error {
+  color: #ffb3b3;
+}
+.page-heading .badge {
+  border-color: rgb(255 255 255 / 14%);
+  background: rgb(255 255 255 / 10%);
+  color: var(--on-hero);
+}
+.page-heading .button[data-variant='secondary'] {
+  border-color: rgb(255 255 255 / 22%);
+  background: rgb(255 255 255 / 10%);
+  color: var(--on-hero);
+  box-shadow: none;
+  backdrop-filter: blur(10px);
+}
+.page-heading .button[data-variant='secondary']:not(:disabled):hover {
+  border-color: rgb(255 255 255 / 45%);
+  background: rgb(255 255 255 / 16%);
+}
+.page-heading .button[data-variant='ghost'] {
+  color: var(--on-hero-muted);
+}
+.page-heading .form-control {
+  border-color: rgb(255 255 255 / 30%);
+  background: rgb(255 255 255 / 96%);
+  color: #111113;
+}
+.page-heading .form-control::placeholder {
+  color: #5d5d66;
 }
 .eyebrow {
   display: inline-flex;
@@ -16,18 +104,6 @@
   color: var(--brand);
   margin-bottom: var(--space-2);
 }
-.page-heading .eyebrow::before {
-  content: '';
-  width: 18px;
-  height: 3px;
-  border-radius: var(--radius-pill);
-  background: var(--gradient-brand);
-}
-.page-heading p:last-child {
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--muted);
-}
 .welcome-panel {
   display: grid;
   grid-template-columns: 1.1fr 1fr;
@@ -38,11 +114,12 @@
       color-mix(in srgb, var(--brand) 12%, transparent),
       transparent 22rem
     ),
-    var(--surface);
+    var(--glass-bg);
   color: var(--hero-text);
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
   overflow: hidden;
   margin-bottom: 40px;
   min-height: 325px;
@@ -128,11 +205,12 @@
 }
 .guide-card {
   display: block;
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
   padding: 24px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
@@ -268,17 +346,6 @@
   display: grid;
   grid-template-rows: auto 1fr auto;
   min-height: 100dvh;
-}
-.auth-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px clamp(20px, 4vw, 56px);
-}
-.auth-header .brand-logo {
-  width: 90px;
-  height: auto;
-  display: block;
 }
 .auth-main {
   display: grid;
@@ -470,33 +537,6 @@
   right: -9%;
   bottom: -20%;
   background: color-mix(in srgb, var(--accent) 8%, transparent);
-}
-.auth-login .auth-header {
-  position: relative;
-  z-index: 2;
-  width: min(calc(100% - 48px), 1160px);
-  margin-inline: auto;
-  padding-inline: 0;
-  padding-block: 18px;
-}
-.auth-login .auth-header .brand {
-  position: relative;
-  padding-inline: 10px;
-  border-radius: 18px;
-  filter: drop-shadow(0 12px 18px rgb(38 18 18 / 12%));
-  transition: transform 180ms ease-out;
-}
-.auth-login .auth-header .brand:hover {
-  transform: translateY(-2px);
-}
-.auth-login .auth-header .brand-logo {
-  width: 90px;
-  filter: drop-shadow(0 3px 0 rgb(255 255 255 / 55%)) drop-shadow(0 10px 16px rgb(0 0 0 / 13%));
-}
-.auth-login .auth-header .icon-button {
-  border: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
-  background: color-mix(in srgb, var(--surface) 72%, transparent);
-  backdrop-filter: blur(14px);
 }
 .auth-login .auth-main {
   position: relative;
@@ -1137,8 +1177,8 @@
       color-mix(in srgb, var(--brand) 12%, transparent),
       transparent 22rem
     ),
-    var(--surface);
-  box-shadow: var(--shadow);
+    var(--glass-bg);
+  box-shadow: var(--glass-shadow);
 }
 .platform-overview-welcome .welcome-copy {
   padding: var(--space-6);
@@ -1161,4 +1201,279 @@
   max-width: 330px;
   height: auto;
   filter: none;
+}
+/* The section switch and its call to action only exist in the phone layout. */
+.registration-switch,
+.registration-switch-cta {
+  display: none;
+}
+/* Email verification and invitation links: one focused, centred task. */
+.link-page {
+  width: min(100%, 760px);
+  margin: 8px auto 0;
+}
+.link-hero {
+  justify-content: flex-start;
+  gap: 20px;
+}
+.link-hero-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: var(--gradient-brand);
+  background-color: var(--brand-solid);
+  color: #ffffff;
+  box-shadow: var(--shadow-brand);
+}
+.link-hero-icon .icon {
+  width: 30px;
+  height: 30px;
+}
+.link-card {
+  padding: clamp(24px, 3vw, 36px);
+}
+.link-card .card-heading h2 {
+  font-size: 22px;
+  font-weight: 800;
+}
+.link-card > p {
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+.link-card > p + p {
+  margin-top: var(--space-3);
+}
+.link-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-6) 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: none;
+}
+.link-steps li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  color: var(--muted);
+  font-weight: 650;
+}
+.link-steps li > span {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--surface-soft);
+  color: var(--text);
+  font-weight: 800;
+}
+.link-steps li.is-current {
+  border-color: color-mix(in srgb, var(--brand) 35%, var(--border));
+  background: var(--brand-soft);
+  color: var(--text);
+}
+.link-steps li.is-current > span {
+  background: var(--gradient-brand);
+  background-color: var(--brand-solid);
+  color: #ffffff;
+}
+.link-action {
+  min-width: 220px;
+  min-height: 50px;
+  font-size: 15px;
+}
+.link-card .onboarding-form {
+  max-width: none;
+}
+.link-card-success {
+  border-color: color-mix(in srgb, var(--brand) 30%, var(--glass-border));
+}
+.link-card-success p[role='status'] {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 600;
+}
+@media (max-width: 680px) {
+  .link-hero {
+    align-items: flex-start;
+  }
+  .link-hero-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+  }
+  .link-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .link-action {
+    width: 100%;
+  }
+}
+/* "How membership works" summary at the top of the join request dialog. */
+.join-request-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+  margin: 0 0 var(--space-4);
+  padding: 0;
+  list-style: none;
+}
+.join-request-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--brand) 16%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--brand-soft) 55%, transparent);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.join-request-steps strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text);
+  font-size: 13px;
+}
+.join-request-step-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: var(--gradient-brand);
+  background-color: var(--brand-solid);
+  color: #ffffff;
+}
+.join-request-step-icon .icon {
+  width: 16px;
+  height: 16px;
+}
+@media (max-width: 680px) {
+  .join-request-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.join-request-dialog .join-request-form {
+  max-width: none;
+}
+.join-request-steps li > span:last-child {
+  font-size: 13px;
+}
+/* Committee applicant contact card and the applicant's contact actions. */
+.applicant-contact-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--space-4);
+  align-items: start;
+}
+.applicant-contact-form > .button {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+/* Committee review: applicant already belongs to this community (additional home). */
+.existing-member {
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, var(--border));
+  border-left: 4px solid var(--warning);
+  border-radius: var(--radius);
+  background: var(--warning-soft);
+}
+.existing-member > p {
+  color: var(--text);
+}
+.existing-member > p + p {
+  margin-top: var(--space-2);
+}
+.existing-member-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: 700;
+}
+.existing-member-title .icon {
+  color: var(--warning);
+}
+.existing-member-homes {
+  margin-top: var(--space-3);
+}
+.existing-member-homes summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 6px 14px;
+  border: 1px solid var(--control-border);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 650;
+  cursor: pointer;
+}
+.existing-member-homes ul {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-3) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.existing-member-homes li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px var(--space-3);
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.existing-member-homes li {
+  align-items: center;
+}
+.existing-member-home {
+  display: grid;
+  gap: 2px;
+}
+.existing-member-home > span {
+  color: var(--muted);
+}
+.existing-member-homes li[data-state='ENDED'] strong {
+  color: var(--muted);
+}
+.existing-member-note {
+  margin-top: var(--space-3);
+  color: var(--warning);
+  font-weight: 600;
+}
+/* A set end date is unusual for an approval, so make it stand out. */
+.form-control.has-end-date {
+  border-color: var(--warning);
+  background: var(--warning-soft);
+}
+.join-request-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.join-request-actions .button {
+  min-height: 40px;
+  padding-inline: 14px;
+}
+@media (max-width: 680px) {
+  .applicant-contact-form {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

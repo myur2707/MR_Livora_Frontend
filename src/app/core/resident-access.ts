@@ -35,12 +35,39 @@ export interface RegistrationRequest {
   resolvedPersonId: string | null;
   membershipId: string | null;
   occupancyId: string | null;
+  /** The committee's published contact; only present on the applicant's own pending requests. */
+  committeeContact?: SocietyContact | null;
+  /** Committee view only: set when a pending applicant already belongs to this society. */
+  existingMember?: ExistingMember | null;
+}
+/** An applicant's current membership and homes in the reviewing committee's society. */
+export interface ExistingMember {
+  status: string;
+  homes: {
+    buildingCode: string;
+    buildingName: string;
+    flatNumber: string;
+    occupancyType: string;
+    startsOn: string;
+    endsOn: string | null;
+    /** Whether the occupancy is in effect on the society's current date. */
+    state: 'CURRENT' | 'ENDED' | 'UPCOMING';
+  }[];
+}
+/** Contact a committee publishes for applicants whose requests await review. */
+export interface SocietyContact {
+  contactPhone: string | null;
+  contactEmail: string | null;
 }
 const residentAccessErrorMessages: Readonly<Record<string, string>> = {
   RESIDENT_LINK_INVALID:
     'This link is unavailable or expired. Existing accounts must sign in with the intended email, then reopen the invitation.',
   RESIDENT_ACCESS_CONFLICT:
     'This record is already linked or changed. Review current membership, identity and occupancy before trying again.',
+  RESIDENT_HOME_ALREADY_LINKED:
+    'You already have access to this home. Choose a different flat or row house.',
+  RESIDENT_REQUEST_PENDING:
+    'You already have a pending request in this community. Wait for the committee to review it, or cancel it to request a different home.',
   CONFLICT:
     'This record is already linked or changed. Review current membership, identity and occupancy before trying again.',
   INVALID_REQUEST:

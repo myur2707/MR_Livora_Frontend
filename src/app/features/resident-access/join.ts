@@ -3,10 +3,11 @@ import type { OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { debounceTime, distinctUntilChanged, map } from 'rxjs';
+import { AuthService } from '../../core/auth';
 import { ResidentAccessApi, residentAccessError } from '../../core/resident-access';
 import type { RegistrationRequest } from '../../core/resident-access';
 import type { Page } from '../../core/onboarding';
-import { occupancyTypes } from '../../core/property';
+import { occupancyTypeLabel, occupancyTypes } from '../../core/property';
 import { ButtonDirective } from '../../shared/button';
 import { CardComponent } from '../../shared/card';
 import { BadgeComponent } from '../../shared/badge';
@@ -58,6 +59,9 @@ export class ResidentJoin implements OnInit {
   protected readonly loading = signal(false);
   protected readonly message = signal('');
   private readonly toast = inject(ToastService);
+  private readonly auth = inject(AuthService);
+  /** Which request fields were filled from the account profile, shown as field hints. */
+  protected readonly prefilled = signal({ name: false, phone: false });
   protected readonly cancelling = signal<RegistrationRequest | null>(null);
   protected readonly showRequest = signal(false);
   protected readonly searchControl = this.fb.nonNullable.control('', Validators.maxLength(80));
@@ -124,6 +128,24 @@ export class ResidentJoin implements OnInit {
     this.requestError.set(null);
     this.showRequest.set(true);
     void this.loadSocietyOptions();
+    void this.prefillFromProfile();
+  }
+  /**
+   * Starts the request with the name and phone saved on the account profile. Both stay
+   * editable, and anything the person already typed is never overwritten.
+   */
+  private async prefillFromProfile(): Promise<void> {
+    if (this.displayName && this.contactPhone) return;
+    try {
+      const profile = await this.auth.profile();
+      const name = !this.displayName && !!profile.displayName;
+      const phone = !this.contactPhone && !!profile.contactPhone;
+      if (name) this.displayName = profile.displayName;
+      if (phone) this.contactPhone = profile.contactPhone ?? '';
+      this.prefilled.set({ name, phone });
+    } catch {
+      // Prefill is only a convenience; the person can still type their details.
+    }
   }
   protected closeRequest(): void {
     if (this.busy()) return;
@@ -201,13 +223,7 @@ export class ResidentJoin implements OnInit {
     return type === 'FLAT' ? 'Flat' : 'Row house';
   }
   protected occupancyTypeLabel(type: (typeof occupancyTypes)[number]): string {
-    const labels: Readonly<Record<(typeof occupancyTypes)[number], string>> = {
-      OWNER: 'Owner',
-      TENANT: 'Tenant',
-      FAMILY_MEMBER: 'Family member',
-      AUTHORIZED_OCCUPANT: 'Authorized occupant',
-    };
-    return labels[type];
+    return occupancyTypeLabel(type);
   }
   protected requestPropertyLabel(request: RegistrationRequest): string {
     return /^ROW_HOUSES?$/i.test(request.buildingCode)

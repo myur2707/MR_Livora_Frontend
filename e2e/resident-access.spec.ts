@@ -153,11 +153,40 @@ test('signup shows associated validation and generic email instructions without 
     [320, 640],
   ] as const) {
     await page.setViewportSize({ width, height });
-    const accountCard = await page.locator('.registration-card').boundingBox();
-    const featureCard = await page.locator('.registration-features').boundingBox();
-    expect(accountCard).not.toBeNull();
-    expect(featureCard).not.toBeNull();
-    if (accountCard && featureCard) expect(accountCard.y).toBeLessThan(featureCard.y);
+    const sections = page.getByRole('tablist', { name: 'Registration sections' });
+    const accountPanel = page.locator('.registration-card');
+    const featuresPanel = page.locator('.registration-features');
+    if (width > 680) {
+      // Tablets keep both sections stacked, with the account card first.
+      await expect(sections).toBeHidden();
+      const accountCard = await accountPanel.boundingBox();
+      const featureCard = await featuresPanel.boundingBox();
+      expect(accountCard).not.toBeNull();
+      expect(featureCard).not.toBeNull();
+      if (accountCard && featureCard) expect(accountCard.y).toBeLessThan(featureCard.y);
+    } else {
+      // Phones switch between the account form and the feature overview.
+      const accountTab = sections.getByRole('tab', { name: 'Create account' });
+      const featuresTab = sections.getByRole('tab', { name: 'Features' });
+      await expect(accountTab).toHaveAttribute('aria-selected', 'true');
+      await expect(accountTab).toHaveAttribute('aria-controls', 'registration-panel-account');
+      await expect(accountPanel).toBeVisible();
+      await expect(featuresPanel).toBeHidden();
+      await featuresTab.click();
+      await expect(featuresTab).toHaveAttribute('aria-selected', 'true');
+      await expect(accountTab).toHaveAttribute('aria-selected', 'false');
+      await expect(page.getByRole('heading', { name: 'For committee admins' })).toBeVisible();
+      await expect(accountPanel).toBeHidden();
+      await page.keyboard.press('ArrowLeft');
+      await expect(accountTab).toBeFocused();
+      await expect(accountTab).toHaveAttribute('aria-selected', 'true');
+      await expect(page.getByRole('heading', { name: 'Check your inbox' })).toBeVisible();
+      await page.keyboard.press('End');
+      await expect(featuresTab).toBeFocused();
+      await page.getByRole('button', { name: 'Create your account' }).click();
+      await expect(accountTab).toBeFocused();
+      await expect(accountPanel).toBeVisible();
+    }
     expect(
       await page.evaluate(() => {
         const registrationPage = document.querySelector('.registration-page');
@@ -234,6 +263,15 @@ test('pending user can request another society and cancel; committee routes rema
         rows = [{ ...pending, status: 'CANCELLED' }];
         return route.fulfill({ status: 204 });
       }
+      // The request form starts from the person's own account profile.
+      if (path === '/auth/profile')
+        return route.fulfill({
+          json: {
+            email: 'pending@example.invalid',
+            displayName: 'Pending Applicant',
+            contactPhone: null,
+          },
+        });
       throw new Error('Unexpected API ' + path);
     },
     'PENDING',
@@ -252,6 +290,8 @@ test('pending user can request another society and cancel; committee routes rema
     'Family member',
     'Authorized occupant',
   ]);
+  await expect(page.getByLabel('Your name')).toHaveValue('Pending Applicant');
+  await expect(page.getByLabel('Contact phone')).toHaveValue('');
   await page.getByLabel('Your name').fill('Applicant');
   await page
     .getByRole('combobox', { name: /^Community/ })
@@ -292,6 +332,9 @@ test('committee approval requires an explicit identity review', async ({ page })
       approved = true;
       return route.fulfill({ status: 204 });
     }
+    // The committee page loads the (unpublished) applicant contact card.
+    if (path === '/society/applicant-contact' && route.request().method() === 'GET')
+      return route.fulfill({ json: { contactPhone: null, contactEmail: null } });
     throw new Error('Unexpected API ' + path);
   });
   await page.goto('/society/resident-access');
@@ -333,6 +376,8 @@ test('committee invites an existing person and confirms resend/revoke', async ({
       rows = [];
       return route.fulfill({ status: 204 });
     }
+    if (path === '/society/applicant-contact' && route.request().method() === 'GET')
+      return route.fulfill({ json: { contactPhone: null, contactEmail: null } });
     throw new Error('Unexpected API ' + path);
   });
   await page.goto('/society/resident-access');

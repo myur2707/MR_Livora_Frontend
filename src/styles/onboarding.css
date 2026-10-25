@@ -124,12 +124,28 @@
   font-variant-numeric: tabular-nums;
   color: var(--text);
 }
-.onboarding-stats > .card,
-.resident-metrics > .card,
-.platform-overview-totals > .card {
-  box-shadow:
-    inset 0 3px 0 var(--brand-solid),
-    var(--shadow);
+/* The first stat in each group is the dark "feature card" from the reference, in both themes. */
+.onboarding-stats > .card:first-child,
+.resident-metrics > .card:first-child,
+.platform-overview-totals > .card:first-child {
+  border-color: rgb(255 255 255 / 8%);
+  background: var(--hero-gradient);
+  background-color: var(--hero-bg);
+  color: var(--on-hero-muted);
+  box-shadow: 0 22px 44px rgb(14 14 16 / 24%);
+}
+:is(.onboarding-stats, .resident-metrics, .platform-overview-totals)
+  > .card:first-child
+  :is(h2, h3, .stat-value, .resident-amount) {
+  color: var(--on-hero);
+}
+:is(.onboarding-stats, .resident-metrics, .platform-overview-totals) > .card:first-child .eyebrow {
+  color: var(--on-hero-accent);
+}
+:is(.onboarding-stats, .resident-metrics, .platform-overview-totals)
+  > .card:first-child
+  a:not(.button, .text-link) {
+  color: var(--on-hero-accent);
 }
 .onboarding-stats > .card,
 .resident-metrics > .card {

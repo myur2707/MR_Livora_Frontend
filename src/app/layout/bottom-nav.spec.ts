@@ -24,45 +24,51 @@ const identity = (
   expiresAt: '2099-01-01T00:00:00Z',
 });
 
-async function tabs(session: SessionIdentity | null): Promise<string[][]> {
+async function render(session: SessionIdentity | null): Promise<HTMLElement> {
   TestBed.configureTestingModule({ providers: [provideRouter([])] });
   TestBed.inject(AuthState).identity.set(session);
   const fixture = TestBed.createComponent(BottomNavComponent);
   await fixture.whenStable();
-  const element: HTMLElement = fixture.nativeElement as HTMLElement;
-  return Array.from(element.querySelectorAll('a')).map((link) => [
+  return fixture.nativeElement as HTMLElement;
+}
+
+const tabsOf = (element: HTMLElement): string[][] =>
+  Array.from(element.querySelectorAll('a')).map((link) => [
     link.textContent.trim(),
     link.getAttribute('href') ?? '',
   ]);
-}
 
 describe('bottom tab bar', () => {
-  it('shows resident destinations only when the active membership allows them', async () => {
-    expect(await tabs(identity(false, access(['RESIDENT'], ['society.dashboard.read'])))).toEqual([
-      ['Home', '/society/resident/dashboard'],
-      ['Notices', '/society/resident/notices'],
-      ['Bills', '/society/resident/bills'],
-      ['Complaints', '/society/resident/complaints'],
-    ]);
-  });
-
-  it('gives platform administrators platform destinations without society data', async () => {
-    expect(await tabs(identity(true, null))).toEqual([
-      ['Home', '/platform/dashboard'],
+  it('lists every permitted destination except the UI library, with compact labels', async () => {
+    const element = await render(identity(true, null));
+    expect(tabsOf(element)).toEqual([
+      ['Overview', '/platform/dashboard'],
       ['Societies', '/platform/societies'],
+      ['Requests', '/join-society'],
       ['Profile', '/profile'],
     ]);
+    expect(element.querySelector('button')).toBeNull();
+    expect(element.querySelector('nav')?.classList.contains('is-scrollable')).toBe(false);
   });
 
-  it('always offers the full navigation through More', async () => {
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
-    const fixture = TestBed.createComponent(BottomNavComponent);
-    let requests = 0;
-    fixture.componentInstance.moreRequested.subscribe(() => requests++);
-    await fixture.whenStable();
-    const more = (fixture.nativeElement as HTMLElement).querySelector('button');
-    expect(more?.getAttribute('aria-haspopup')).toBe('dialog');
-    more?.click();
-    expect(requests).toBe(1);
+  it('shows resident destinations only when the active membership allows them', async () => {
+    const element = await render(identity(false, access(['RESIDENT'], ['society.dashboard.read'])));
+    expect(tabsOf(element)).toEqual([
+      ['Home', '/society/resident/dashboard'],
+      ['My Flats', '/society/resident/flats'],
+      ['My Bills', '/society/resident/bills'],
+      ['Payments', '/society/resident/payments'],
+      ['Receipts', '/society/resident/receipts'],
+      ['Notices', '/society/resident/notices'],
+      ['Complaints', '/society/resident/complaints'],
+      ['Workspace', '/workspace'],
+      ['Community', '/society/dashboard'],
+      ['Requests', '/join-society'],
+      ['Profile', '/profile'],
+    ]);
+    expect(tabsOf(element).some(([, href = '']) => href.startsWith('/society/billing'))).toBe(
+      false,
+    );
+    expect(element.querySelector('nav')?.classList.contains('is-scrollable')).toBe(true);
   });
 });

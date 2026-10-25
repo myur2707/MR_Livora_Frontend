@@ -28,9 +28,9 @@
   --hero-text: #1d1214;
   --accent: #e3122d;
   --background: #f5f5f7;
-  --radius-sm: 10px;
-  --radius: 16px;
-  --radius-lg: 22px;
+  --radius-sm: 12px;
+  --radius: 20px;
+  --radius-lg: 28px;
   --radius-pill: 999px;
   --control-height: 44px;
   --space-1: 4px;
@@ -52,6 +52,28 @@
   --shadow-lg: 0 2px 6px rgb(17 17 19 / 6%), 0 28px 60px rgb(17 17 19 / 14%);
   --shadow-brand: 0 10px 24px rgb(200 16 46 / 26%);
   --gradient-brand: linear-gradient(135deg, #e3122d 0%, #c8102e 55%, #9e0b22 100%);
+  /* Content glass stays see-through so the brand watermark reads behind cards and tables. */
+  --glass-bg: rgb(255 255 255 / 40%);
+  --glass-bg-strong: rgb(255 255 255 / 84%);
+  --glass-border: rgb(255 255 255 / 78%);
+  --glass-blur: blur(1.5px) saturate(115%);
+  /* Floating headers keep heavy frosting so text stays legible over scrolling content. */
+  --glass-blur-strong: blur(18px) saturate(150%);
+  --glass-shadow: 0 1px 0 rgb(255 255 255 / 70%) inset, 0 18px 40px rgb(17 17 19 / 8%);
+  /* Hero panels are translucent ink (the watermark shows through) yet dark enough for white text. */
+  --hero-bg: rgb(16 16 19 / 84%);
+  --hero-gradient:
+    radial-gradient(circle at 100% 0%, rgb(227 18 45 / 42%), transparent 22rem),
+    radial-gradient(circle at 0% 120%, rgb(200 16 46 / 22%), transparent 18rem),
+    linear-gradient(150deg, rgb(255 255 255 / 6%) 0%, transparent 55%, rgb(0 0 0 / 12%) 100%);
+  --on-hero: #ffffff;
+  --on-hero-muted: #c4c4cc;
+  --on-hero-accent: #ff8a8f;
+  --backdrop:
+    radial-gradient(circle at 92% 4%, rgb(200 16 46 / 16%), transparent 26rem),
+    radial-gradient(circle at 4% 96%, rgb(17 17 19 / 9%), transparent 28rem),
+    radial-gradient(circle at 40% 45%, rgb(255 255 255 / 80%), transparent 34rem),
+    linear-gradient(160deg, #f6f6f8 0%, #ececf0 100%);
   --sidebar-width: 250px;
   --sidebar-collapsed-width: 82px;
   --bottom-nav-height: 64px;
@@ -88,6 +110,19 @@
   --background: #09090b;
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 40%);
   --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 30px rgb(0 0 0 / 38%);
+  --glass-bg: rgb(26 26 30 / 42%);
+  --glass-bg-strong: rgb(26 26 30 / 82%);
+  --glass-border: rgb(255 255 255 / 8%);
+  --glass-shadow: 0 1px 0 rgb(255 255 255 / 5%) inset, 0 18px 40px rgb(0 0 0 / 45%);
+  --hero-bg: rgb(24 24 28 / 78%);
+  --hero-gradient:
+    radial-gradient(circle at 100% 0%, rgb(227 18 45 / 38%), transparent 22rem),
+    radial-gradient(circle at 0% 120%, rgb(200 16 46 / 20%), transparent 18rem),
+    linear-gradient(150deg, rgb(255 255 255 / 5%) 0%, transparent 60%, rgb(0 0 0 / 14%) 100%);
+  --backdrop:
+    radial-gradient(circle at 92% 4%, rgb(200 16 46 / 20%), transparent 26rem),
+    radial-gradient(circle at 4% 96%, rgb(255 255 255 / 4%), transparent 28rem),
+    linear-gradient(160deg, #0c0c0e 0%, #050506 100%);
   --shadow-lg: 0 2px 6px rgb(0 0 0 / 40%), 0 28px 60px rgb(0 0 0 / 55%);
   --shadow-brand: 0 10px 24px rgb(200 16 46 / 32%);
 }
@@ -117,18 +152,9 @@ body {
   --watermark-left: 0px;
   position: relative;
   margin: 0;
-  background:
-    radial-gradient(
-      circle at 100% 0%,
-      color-mix(in srgb, var(--brand) 9%, transparent),
-      transparent 30rem
-    ),
-    radial-gradient(
-      circle at 0% 100%,
-      color-mix(in srgb, var(--brand) 5%, transparent),
-      transparent 26rem
-    ),
-    var(--canvas);
+  background: var(--backdrop);
+  background-attachment: fixed;
+  background-color: var(--canvas);
   color: var(--text);
   font: 14px/1.55 var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -145,7 +171,7 @@ body::before {
   z-index: 0;
   pointer-events: none;
   background: url('/assets/brand/logo.png') center 55% / min(40vw, 500px) auto no-repeat;
-  opacity: 0.035;
+  opacity: 0.06;
   transition: left 180ms ease;
 }
 body:has(.app-frame) {
@@ -155,10 +181,7 @@ body:has(.app-frame.nav-collapsed) {
   --watermark-left: var(--sidebar-collapsed-width);
 }
 :root[data-theme='dark'] body::before {
-  opacity: 0.05;
-}
-:root[data-theme='dark'] .auth-login .auth-header .brand-logo {
-  filter: drop-shadow(0 8px 18px rgb(0 0 0 / 28%));
+  opacity: 0.07;
 }
 ::selection {
   background: color-mix(in srgb, var(--brand) 22%, transparent);

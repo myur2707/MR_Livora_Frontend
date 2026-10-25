@@ -1,11 +1,16 @@
 import { Component, effect, inject, signal } from '@angular/core';
+import { ApplicantContactCard } from './applicant-contact';
 import type { OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { ResidentAccessApi, residentAccessError } from '../../core/resident-access';
-import type { ResidentInvitation, RegistrationRequest } from '../../core/resident-access';
+import type {
+  ExistingMember,
+  ResidentInvitation,
+  RegistrationRequest,
+} from '../../core/resident-access';
 import type { Page } from '../../core/onboarding';
-import { PropertyApi, occupancyTypes } from '../../core/property';
+import { PropertyApi, occupancyTypeLabel, occupancyTypes } from '../../core/property';
 import type { Occupancy } from '../../core/property';
 import { ResourcePicker } from '../property/picker';
 import { ButtonDirective } from '../../shared/button';
@@ -15,6 +20,7 @@ import { PaginationComponent } from '../../shared/pagination';
 import { TableDirective } from '../../shared/table';
 import { DialogComponent } from '../../shared/dialog';
 import { StateComponent } from '../../shared/state';
+import { IconComponent } from '../../shared/icon';
 import { ToastService } from '../../shared/toast';
 type ReviewPage = Page<RegistrationRequest> & { today: string };
 type Confirmation =
@@ -35,6 +41,8 @@ type Confirmation =
     TableDirective,
     DialogComponent,
     StateComponent,
+    IconComponent,
+    ApplicantContactCard,
   ],
   templateUrl: './committee.html',
 })
@@ -141,6 +149,24 @@ export class ResidentAccessCommittee implements OnInit {
     } finally {
       this.busy.set(false);
     }
+  }
+  protected readonly occupancyLabel = occupancyTypeLabel;
+  protected currentHomes(member: ExistingMember): number {
+    return member.homes.filter((home) => home.state === 'CURRENT').length;
+  }
+  /** e.g. "1 current · 2 ended"; history is shown so ended homes are never silently hidden. */
+  protected homeSummary(member: ExistingMember): string {
+    const current = this.currentHomes(member);
+    const ended = member.homes.filter((home) => home.state === 'ENDED').length;
+    const upcoming = member.homes.length - current - ended;
+    return [
+      current + ' current',
+      ...(upcoming ? [upcoming + ' upcoming'] : []),
+      ...(ended ? [ended + ' ended'] : []),
+    ].join(' · ');
+  }
+  protected homeStateLabel(state: ExistingMember['homes'][number]['state']): string {
+    return { CURRENT: 'Current', ENDED: 'Ended', UPCOMING: 'Upcoming' }[state];
   }
   protected review(row: RegistrationRequest): void {
     this.reviewing.set(row);

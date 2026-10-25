@@ -30,6 +30,16 @@ export interface Person extends Resource {
 }
 export type DirectoryRow = Building | ManagedFlat | Person;
 export const occupancyTypes = ['OWNER', 'TENANT', 'FAMILY_MEMBER', 'AUTHORIZED_OCCUPANT'] as const;
+const occupancyTypeLabels = new Map<string, string>([
+  ['OWNER', 'Owner'],
+  ['TENANT', 'Tenant'],
+  ['FAMILY_MEMBER', 'Family member'],
+  ['AUTHORIZED_OCCUPANT', 'Authorized occupant'],
+]);
+/** Readable label for an occupancy type; unknown codes fall back to plain words. */
+export function occupancyTypeLabel(type: string): string {
+  return occupancyTypeLabels.get(type) ?? type.replaceAll('_', ' ').toLowerCase();
+}
 export interface Occupancy {
   id: string;
   version: string;

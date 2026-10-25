@@ -6,6 +6,8 @@ import { IconComponent } from './icon';
   imports: [IconComponent],
   host: {
     class: 'state',
+    // `title` is an input; clear the host attribute so browsers don't show it as a tooltip.
+    '[attr.title]': 'null',
     '[attr.role]': 'kind() === "error" ? "alert" : "status"',
     '[attr.aria-busy]': 'kind() === "loading"',
   },
