@@ -855,7 +855,7 @@ se-public-header.is-scrolled .public-header {
 }
 .public-footer-inner {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 2fr);
   gap: 40px;
   width: min(100%, var(--public-width));
   margin: 0 auto;
@@ -880,8 +880,25 @@ se-public-header.is-scrolled .public-header {
 }
 .public-footer-links {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* Contact holds the longest values (the email address), so it gets the widest column. */
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 0.9fr) minmax(0, 1.4fr) minmax(0, 1fr);
   gap: 24px;
+}
+.public-footer-person {
+  display: grid;
+  margin-top: 6px;
+  color: #ffffff;
+  font-weight: 650;
+}
+.public-footer-person + a {
+  padding-top: 2px;
+}
+.public-footer-role {
+  color: #8f8f99;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .public-footer-links h2 {
   margin-bottom: 12px;
@@ -912,8 +929,10 @@ se-public-header.is-scrolled .public-header {
 }
 .public-footer-base {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px 24px;
   width: min(100%, var(--public-width));
   margin: 40px auto 0;
   padding-top: 20px;
@@ -923,6 +942,31 @@ se-public-header.is-scrolled .public-header {
 .public-footer-tagline {
   color: #ff8a8f;
   font-weight: 650;
+}
+.public-footer-motto {
+  color: #8f8f99;
+}
+.public-footer-end {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+}
+.public-footer-top {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: #ffffff;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+.public-footer-top:hover {
+  color: #ff8a8f;
+}
+.public-footer-top:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
 }
 
 /* Mobile drawer ---------------------------------------------------------- */
@@ -1056,6 +1100,9 @@ se-public-header.is-scrolled .public-header {
   .public-footer-inner {
     grid-template-columns: minmax(0, 1fr);
   }
+  .public-footer-links {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
   .landing-cta {
     flex-direction: column;
     align-items: flex-start;
@@ -1144,6 +1191,13 @@ body:has(.app-frame.is-public) {
   /* Without the bottom tab bar, signed-out pages keep their footer on phones. */
   .app-frame.is-public .workspace .app-footer {
     display: flex;
+    /* In the page flow after the form, never pinned over it while scrolling. */
+    position: static;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    margin-top: var(--space-6);
+    padding-block: 16px 20px;
+    border-top: 1px solid var(--border);
   }
 }
 /* Menu jumps glide instead of snapping. */
@@ -1156,5 +1210,10 @@ html:has(.public-frame) {
   }
   .public-nav-indicator {
     transition: none;
+  }
+}
+@media (max-width: 480px) {
+  .public-footer-links {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

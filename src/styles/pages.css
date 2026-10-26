@@ -382,14 +382,6 @@
   font-style: normal;
   color: #ff5c61;
 }
-.auth-story > img {
-  display: block;
-  width: 100%;
-  height: auto;
-  max-height: 190px;
-  object-fit: contain;
-  margin: 18px auto 12px;
-}
 .auth-story > p {
   color: #d4d4d9;
 }
@@ -577,11 +569,6 @@
   margin-top: 16px;
   font-size: clamp(38px, 4.1vw, 56px);
   line-height: 1.05;
-}
-.auth-login .auth-story > img {
-  max-height: 180px;
-  margin-block: 24px 16px;
-  filter: drop-shadow(0 18px 22px rgb(0 0 0 / 10%));
 }
 .auth-story-highlights {
   display: flex;
@@ -1061,17 +1048,12 @@
 .join-request-form > button {
   grid-column: 1 / -1;
 }
+/* Shared table type scale, with tighter rows so five communities fit without scrolling. */
 .platform-directory-table .data-table th,
 .platform-directory-table .data-table td {
-  padding: 8px 12px;
-  font-size: 12px;
+  padding-block: 10px;
   white-space: normal;
   overflow-wrap: anywhere;
-}
-.platform-directory-table .badge,
-.platform-directory-table .text-link,
-.platform-directory-card .pagination {
-  font-size: 11px;
 }
 .platform-directory-table .data-table {
   table-layout: fixed;
@@ -1466,14 +1448,333 @@
 .join-request-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
+/* Compact so pending-request actions fit the table cell; 32px stays above the 24px WCAG target minimum. */
 .join-request-actions .button {
-  min-height: 40px;
-  padding-inline: 14px;
+  min-height: 32px;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+.join-request-actions .button .icon {
+  width: 16px;
+  height: 16px;
 }
 @media (max-width: 680px) {
   .applicant-contact-form {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Sign-in & registration art -------------------------------------------------
+   Decorative, always-on motion for the story panels. Text never fades, so contrast holds,
+   and the global reduced-motion rule stops every animation here. */
+.auth-story {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.auth-story > :not(se-auth-ambient) {
+  position: relative;
+  z-index: 1;
+}
+.auth-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.auth-aurora {
+  position: absolute;
+  width: 62%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: blur(46px);
+  opacity: 0.55;
+  animation: auth-aurora-drift 18s ease-in-out infinite alternate;
+}
+.auth-aurora-a {
+  top: -24%;
+  right: -18%;
+  background: radial-gradient(circle, #e3122d 0%, transparent 70%);
+}
+.auth-aurora-b {
+  bottom: -30%;
+  left: -20%;
+  background: radial-gradient(circle, #9e0b22 0%, transparent 70%);
+  animation-duration: 22s;
+  animation-delay: -6s;
+}
+.auth-aurora-c {
+  top: 30%;
+  left: 30%;
+  width: 40%;
+  background: radial-gradient(circle, #ff5c61 0%, transparent 70%);
+  opacity: 0.3;
+  animation-duration: 26s;
+  animation-delay: -12s;
+}
+.auth-sweep {
+  position: absolute;
+  top: -40%;
+  left: -50%;
+  width: 34%;
+  height: 180%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 9%) 45%,
+    rgb(255 200 202 / 16%) 50%,
+    rgb(255 255 255 / 9%) 55%,
+    transparent
+  );
+  transform: rotate(18deg) translateX(0);
+  animation: auth-sweep 8s ease-in-out infinite;
+}
+.auth-sparkle {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 10px 2px rgb(255 140 145 / 70%);
+  animation: auth-twinkle 5s ease-in-out infinite;
+}
+
+/* Animated night skyline with floating activity cards (sign-in). */
+.auth-scene {
+  position: relative;
+  display: block;
+  height: clamp(140px, 26vh, 220px);
+  margin: 16px 0 6px;
+}
+.auth-skyline {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.auth-tower {
+  stroke: rgb(255 255 255 / 7%);
+}
+.auth-window {
+  fill: #ffc8a8;
+  opacity: 0.18;
+  animation: auth-window 6.6s ease-in-out infinite;
+}
+.auth-moon-glow {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: auth-moon 6s ease-in-out infinite;
+}
+.auth-shooting-star {
+  stroke: #ffffff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 54;
+  stroke-dashoffset: 54;
+  animation: auth-shooting-star 9s ease-in infinite;
+}
+.auth-float {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 14px 30px rgb(0 0 0 / 35%);
+  color: #111113;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  animation: auth-float 6s ease-in-out infinite;
+}
+.auth-float .icon {
+  width: 18px;
+  height: 18px;
+  padding: 3px;
+  border-radius: 50%;
+  background: #c8102e;
+  color: #ffffff;
+}
+.auth-float-a {
+  top: 6%;
+  left: 2%;
+}
+.auth-float-b {
+  top: 34%;
+  right: 0;
+  animation-delay: -2s;
+}
+.auth-float-c {
+  bottom: 4%;
+  left: 18%;
+  animation-delay: -4s;
+}
+/* Two-line headline so the scene and highlights fit on laptop screens. */
+.auth-login .auth-story h2 {
+  max-width: 16ch;
+  font-size: clamp(32px, 3.2vw, 46px);
+}
+.auth-story-lead {
+  max-width: 44ch;
+  margin-top: 14px;
+  color: #d4d4d9;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+/* Sign-in card: animated title underline and a light sheen across the button. */
+.auth-login .auth-card-heading h1 {
+  position: relative;
+}
+.auth-login .auth-card-heading h1::after {
+  content: '';
+  position: absolute;
+  left: 2px;
+  bottom: -6px;
+  width: 64px;
+  height: 3px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, #c8102e, #ff8a8f, #c8102e);
+  background-size: 200% 100%;
+  animation: auth-underline 3.5s linear infinite;
+}
+.auth-login .auth-form > .button {
+  position: relative;
+  overflow: hidden;
+}
+.auth-login .auth-form > .button::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 -40%;
+  width: 30%;
+  background: linear-gradient(100deg, transparent, rgb(255 255 255 / 35%), transparent);
+  transform: skewX(-18deg);
+  animation: auth-sheen 4.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Registration: glowing role icons and staggered entrance. */
+.registration-role {
+  animation: auth-role-in 600ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--role-index, 0) * 140ms + 200ms);
+}
+.registration-role-icon {
+  animation: auth-icon-glow 3.2s ease-in-out infinite;
+}
+
+@keyframes auth-aurora-drift {
+  to {
+    transform: translate(-12%, 10%) scale(1.18);
+  }
+}
+@keyframes auth-sweep {
+  0%,
+  20% {
+    transform: rotate(18deg) translateX(0);
+  }
+  60%,
+  100% {
+    transform: rotate(18deg) translateX(520%);
+  }
+}
+@keyframes auth-twinkle {
+  0%,
+  100% {
+    transform: scale(0.4);
+    opacity: 0.2;
+  }
+  50% {
+    transform: scale(1.4);
+    opacity: 1;
+  }
+}
+@keyframes auth-window {
+  0%,
+  100% {
+    opacity: 0.18;
+  }
+  45%,
+  60% {
+    opacity: 0.95;
+  }
+}
+@keyframes auth-moon {
+  50% {
+    transform: scale(1.15);
+  }
+}
+@keyframes auth-shooting-star {
+  0%,
+  70% {
+    stroke-dashoffset: 54;
+    transform: translate(0, 0);
+  }
+  85% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -54;
+    transform: translate(90px, 45px);
+  }
+}
+@keyframes auth-float {
+  50% {
+    transform: translateY(-9px);
+  }
+}
+@keyframes auth-underline {
+  to {
+    background-position: -200% 0;
+  }
+}
+@keyframes auth-sheen {
+  0%,
+  55% {
+    left: -40%;
+  }
+  85%,
+  100% {
+    left: 120%;
+  }
+}
+@keyframes auth-role-in {
+  from {
+    transform: translateX(-14px);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes auth-icon-glow {
+  50% {
+    box-shadow:
+      0 0 0 6px rgb(255 92 97 / 18%),
+      0 0 22px rgb(255 92 97 / 45%);
+  }
+}
+
+/* Short laptop screens: keep the whole sign-in view on screen. */
+@media (max-height: 700px) {
+  .auth-scene {
+    height: clamp(110px, 22vh, 160px);
+    margin-top: 12px;
+  }
+  .auth-story-lead {
+    margin-top: 8px;
+    font-size: 14px;
+  }
+}
+@media (max-height: 620px) {
+  .auth-scene {
+    height: 100px;
+  }
+  .auth-float-c {
+    display: none;
   }
 }

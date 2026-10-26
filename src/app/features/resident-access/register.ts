@@ -6,6 +6,8 @@ import { ButtonDirective } from '../../shared/button';
 import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../shared/field';
 import { IconComponent } from '../../shared/icon';
 import { PublicHeaderComponent } from '../../layout/public-header';
+import { AuthAmbientComponent } from '../auth/auth-art';
+import { PasswordToggleDirective } from '../../shared/password-toggle';
 
 type RegistrationPanel = 'account' | 'features';
 /* With two tabs, arrow keys simply move to the other tab; Home/End jump to the first/last. */
@@ -19,6 +21,7 @@ const TAB_KEYS: Readonly<Partial<Record<string, RegistrationPanel | 'toggle'>>> 
 @Component({
   selector: 'se-resident-register',
   imports: [
+    PasswordToggleDirective,
     FormsModule,
     RouterLink,
     ButtonDirective,
@@ -27,6 +30,7 @@ const TAB_KEYS: Readonly<Partial<Record<string, RegistrationPanel | 'toggle'>>> 
     FormNoticeComponent,
     IconComponent,
     PublicHeaderComponent,
+    AuthAmbientComponent,
   ],
   template: `
     <a class="skip-link" href="#registration-content">Skip to content</a>
@@ -67,37 +71,40 @@ const TAB_KEYS: Readonly<Partial<Record<string, RegistrationPanel | 'toggle'>>> 
           [class.is-mobile-hidden]="panel() !== 'features'"
           aria-labelledby="registration-benefits"
         >
-          <p class="eyebrow">ONE COMMUNITY WORKSPACE</p>
+          <se-auth-ambient />
+          <p class="eyebrow">One account · every role</p>
           <h2 id="registration-benefits">Everything your community needs.</h2>
           <p class="registration-intro">
-            Create one secure account. Your approved community role decides what you can access.
+            One secure account. Your committee-approved role unlocks exactly what you need — and
+            nothing more.
           </p>
           <div class="registration-role-grid">
-            <article class="registration-role">
+            <article class="registration-role" style="--role-index: 0">
               <span class="registration-role-icon"><se-icon name="user" /></span>
               <div>
                 <h3>For residents</h3>
                 <ul>
-                  <li>View bills, payments and receipts</li>
-                  <li>Read notices and raise complaints</li>
-                  <li>Manage membership requests and profile</li>
+                  <li>See bills, pay history and download receipts</li>
+                  <li>Stay on top of notices and raise complaints</li>
+                  <li>Request membership for every home you own or rent</li>
                 </ul>
               </div>
             </article>
-            <article class="registration-role">
+            <article class="registration-role" style="--role-index: 1">
               <span class="registration-role-icon"><se-icon name="people" /></span>
               <div>
                 <h3>For committee admins</h3>
                 <ul>
-                  <li>Manage properties, residents and access</li>
-                  <li>Run billing, payments and reports</li>
-                  <li>Publish notices and resolve complaints</li>
+                  <li>Manage homes, residents and who gets access</li>
+                  <li>Run billing, record payments and export reports</li>
+                  <li>Publish notices and resolve complaints quickly</li>
                 </ul>
               </div>
             </article>
           </div>
           <p class="registration-assurance">
-            <se-icon name="shield" /> Access starts after verification and approval.
+            <se-icon name="shield" /> Access starts only after email verification and committee
+            approval.
           </p>
           <button
             seButton

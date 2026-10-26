@@ -22,7 +22,7 @@ test('compact login fits laptop and mobile screens with visible validation and s
       ),
     ).toBe(true);
     for (const name of ['Email address', 'Password']) {
-      const bounds = await page.getByLabel(name, { exact: false }).boundingBox();
+      const bounds = await page.getByLabel(new RegExp('^' + name)).boundingBox();
       expect(bounds).not.toBeNull();
       if (bounds)
         expect(bounds.y + bounds.height).toBeLessThanOrEqual(page.viewportSize()?.height ?? 0);
@@ -58,7 +58,7 @@ test('compact login fits laptop and mobile screens with visible validation and s
       await expect(page.locator('#auth-password-description')).toHaveText('Enter password.');
       await assertFits();
       await page.getByLabel('Email address').fill('synthetic@example.invalid');
-      await page.getByLabel('Password', { exact: false }).fill('Invalid synthetic password');
+      await page.getByLabel(/^Password/).fill('Invalid synthetic password');
       await page.getByRole('button', { name: 'Sign in', exact: true }).click();
       await expect(
         page.getByRole('alert').filter({ hasText: 'Email or password is incorrect.' }),
@@ -131,13 +131,13 @@ test('login validation, generic failures, workspace selection and logout', async
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.locator('#auth-email-description')).toHaveText('Enter email address.');
   await page.getByLabel('Email address').fill('synthetic@example.invalid');
-  await page.getByLabel('Password', { exact: false }).fill('wrong');
+  await page.getByLabel(/^Password/).fill('wrong');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(
     page.getByRole('alert').filter({ hasText: 'Email or password is incorrect.' }),
   ).toBeVisible();
   await expect(page.getByText('unsafe detail must be ignored')).toHaveCount(0);
-  await page.getByLabel('Password', { exact: false }).fill('Synthetic browser password');
+  await page.getByLabel(/^Password/).fill('Synthetic browser password');
   await page.getByRole('button', { name: 'Sign in', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Choose your workspace' })).toBeVisible();
   await page.getByLabel('Community', { exact: false }).selectOption('10');

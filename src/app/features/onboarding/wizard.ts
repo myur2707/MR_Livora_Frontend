@@ -25,9 +25,12 @@ import { DialogComponent } from '../../shared/dialog';
 import { parseFlatNumbers, propertyNumberLimits, type FlatNumberPlan } from './flat-numbers';
 import { parseWingCodes, type WingPlan } from './wing-codes';
 import { ToastService } from '../../shared/toast';
+import { LabelPipe, eventLabel } from '../../shared/label';
+import { communityTypeFromCode } from '../platform/community-type';
 @Component({
   selector: 'se-onboarding-wizard',
   imports: [
+    LabelPipe,
     RouterLink,
     ReactiveFormsModule,
     ButtonDirective,
@@ -71,6 +74,10 @@ export class OnboardingWizardComponent implements OnInit {
   protected readonly message = signal<string | null>(null);
   private readonly toast = inject(ToastService);
   protected readonly busy = signal(false);
+  /** Setup history stays collapsed until asked for, so the current step stays in focus. */
+  protected readonly showHistory = signal(false);
+  protected readonly typeOf = communityTypeFromCode;
+  protected readonly eventTitle = eventLabel;
   protected readonly wingOptions = ['A', 'B', 'C', 'D'];
   protected readonly multipleWings = signal(false);
   protected readonly rowHouses = signal(false);
@@ -94,7 +101,7 @@ export class OnboardingWizardComponent implements OnInit {
   protected readonly loading = signal(true);
   protected readonly step = signal(0);
   protected readonly steps = [
-    'Society or Flat or Township',
+    'Society/Flat/Township',
     'Committee Admin',
     'Buildings / Wings / Flats',
     'Residents',

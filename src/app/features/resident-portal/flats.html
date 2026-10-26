@@ -11,14 +11,14 @@
 }
 @if (detail.value(); as flat) {
   <se-card
-    ><h2>{{ flat.buildingCode }} / {{ flat.flatNumber }}</h2>
+    ><h2>{{ flat.buildingCode | label: 'code' }} / {{ flat.flatNumber }}</h2>
     <p>{{ flat.buildingName }}</p>
     @if (flat.areaSqFt) {
       <p>Area: {{ flat.areaSqFt }} sq ft</p>
     }
     @for (occupancy of flat.occupancies; track $index) {
       <p>
-        {{ occupancy.type }} · From {{ occupancy.startsOn }}
+        {{ occupancy.type | label }} · From {{ occupancy.startsOn }}
         @if (occupancy.endsOn) {
           · Until {{ occupancy.endsOn }}
         }
@@ -36,7 +36,7 @@
       <se-card
         ><h2>
           <a [routerLink]="['/society/resident/flats', flat.id]"
-            >{{ flat.buildingCode }} / {{ flat.flatNumber }}</a
+            >{{ flat.buildingCode | label: 'code' }} / {{ flat.flatNumber }}</a
           >
         </h2>
         <p>{{ flat.buildingName }}</p></se-card

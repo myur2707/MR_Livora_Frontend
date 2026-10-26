@@ -9,10 +9,13 @@ import { ControlDirective, FieldComponent, FormNoticeComponent } from '../../sha
 import { fieldError } from '../../shared/form-errors';
 import { ToastService } from '../../shared/toast';
 import { PublicHeaderComponent } from '../../layout/public-header';
+import { AuthAmbientComponent, AuthSceneComponent } from './auth-art';
+import { PasswordToggleDirective } from '../../shared/password-toggle';
 
 @Component({
   selector: 'se-auth-page',
   imports: [
+    PasswordToggleDirective,
     RouterLink,
     ReactiveFormsModule,
     ButtonDirective,
@@ -21,6 +24,8 @@ import { PublicHeaderComponent } from '../../layout/public-header';
     FieldComponent,
     FormNoticeComponent,
     PublicHeaderComponent,
+    AuthAmbientComponent,
+    AuthSceneComponent,
   ],
   templateUrl: './auth-page.html',
 })

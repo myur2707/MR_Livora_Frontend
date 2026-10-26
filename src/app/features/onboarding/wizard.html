@@ -1,7 +1,7 @@
 <header class="page-heading">
   <div>
     <p class="eyebrow">{{ platform ? 'PLATFORM ONBOARDING' : 'COMMITTEE SETUP' }}</p>
-    <h1 tabindex="-1">Society or Flat or Township onboarding</h1>
+    <h1 tabindex="-1">Society/Flat/Township onboarding</h1>
     <p>{{ detail()?.name || 'A clear path to activation' }}</p>
   </div>
   <button seButton variant="secondary" type="button" [disabled]="busy()" (click)="load()">
@@ -14,16 +14,16 @@
 } @else if (detail(); as society) {
   @if (!society.revision) {
     <se-card
-      title="Existing society or flat or township"
-      description="This society or flat or township predates the onboarding wizard. Its existing data and lifecycle are preserved."
+      title="Existing Society/Flat/Township"
+      description="This Society/Flat/Township predates the onboarding wizard. Its existing data and lifecycle are preserved."
       ><dl class="setup-facts">
         <div>
           <dt>Code</dt>
-          <dd>{{ society.code }}</dd>
+          <dd>{{ society.code | label: 'code' }}</dd>
         </div>
         <div>
           <dt>Status</dt>
-          <dd>{{ society.status }}</dd>
+          <dd>{{ society.status | label }}</dd>
         </div>
         <div>
           <dt>Time zone</dt>
@@ -34,7 +34,7 @@
   } @else {
     <div class="onboarding-summary">
       <se-badge [tone]="society.status === 'ACTIVE' ? 'success' : 'neutral'">{{
-        society.status.replaceAll('_', ' ')
+        society.status | label
       }}</se-badge
       ><span
         >{{ society.counts.buildings }} buildings · {{ society.counts.flats }} flats ·
@@ -58,15 +58,19 @@
       </ol>
     </nav>
     @if (step() === 0) {
-      <se-card title="Society or Flat or Township"
+      <se-card title="Society/Flat/Township"
         ><dl class="setup-facts">
           <div>
             <dt>Name</dt>
             <dd>{{ society.name }}</dd>
           </div>
           <div>
+            <dt>Type</dt>
+            <dd>{{ typeOf(society.code) ?? 'Not recorded (older code)' }}</dd>
+          </div>
+          <div>
             <dt>Code</dt>
-            <dd>{{ society.code }}</dd>
+            <dd>{{ society.code | label: 'code' }}</dd>
           </div>
           <div>
             <dt>Time zone</dt>
@@ -93,7 +97,7 @@
                 [disabled]="busy()"
                 (click)="pendingStatus.set('SUSPENDED')"
               >
-                Suspend society or flat or township
+                Suspend Society/Flat/Township
               </button>
             } @else {
               <button
@@ -102,7 +106,7 @@
                 [disabled]="busy()"
                 (click)="pendingStatus.set('ACTIVE')"
               >
-                Resume society or flat or township
+                Resume Society/Flat/Township
               </button>
             }
             <button
@@ -112,7 +116,7 @@
               [disabled]="busy()"
               (click)="pendingStatus.set('DEACTIVATED')"
             >
-              Deactivate society or flat or township
+              Deactivate Society/Flat/Township
             </button>
           </div>
         }
@@ -127,7 +131,8 @@
           <div class="setup-facts">
             <p>{{ invitation.displayName }} · {{ invitation.email }}</p>
             <p>
-              <se-badge>{{ invitation.status }}</se-badge> Delivery: {{ invitation.deliveryStatus }}
+              <se-badge>{{ invitation.status | label }}</se-badge> Delivery:
+              {{ invitation.deliveryStatus | label }}
             </p>
             <p>Expires {{ displayTime(invitation.expiresAt, society.timezone) }}</p>
           </div>
@@ -568,7 +573,7 @@
                     type of ['OWNER', 'TENANT', 'FAMILY_MEMBER', 'AUTHORIZED_OCCUPANT'];
                     track type
                   ) {
-                    <option [value]="type">{{ type.replaceAll('_', ' ') }}</option>
+                    <option [value]="type">{{ type | label }}</option>
                   }
                 </select></se-field
               >
@@ -604,7 +609,7 @@
                       <tr>
                         <th scope="row">{{ resident.displayName }}</th>
                         <td>{{ resident.flatNumber }}</td>
-                        <td>{{ resident.occupancyType.replaceAll('_', ' ') }}</td>
+                        <td>{{ resident.occupancyType | label }}</td>
                         <td>{{ resident.startsOn }} – {{ resident.endsOn || 'Current' }}</td>
                       </tr>
                     }
@@ -717,7 +722,7 @@
                   @for (charge of configurations(); track charge.id) {
                     <tr>
                       <th scope="row">{{ charge.name }}</th>
-                      <td>{{ charge.method.replaceAll('_', ' ') }}</td>
+                      <td>{{ charge.method | label }}</td>
                       <td>{{ charge.rate }}</td>
                       <td>{{ charge.effectiveFrom }}</td>
                     </tr>
@@ -835,7 +840,7 @@
       </se-card>
     }
     @if (step() === 6) {
-      <se-card title="Activate society or flat or township">
+      <se-card title="Activate Society/Flat/Township">
         @if (society.verifiedAt) {
           <p class="onboarding-feedback">
             Verified {{ displayTime(society.verifiedAt, society.timezone) }} by committee membership
@@ -849,8 +854,8 @@
           </p>
         } @else {
           <p>
-            Activation opens the society or flat or township workspace for active members. Completed
-            verification is retained in the society or flat or township history.
+            Activation opens the Society/Flat/Township workspace for active members. Completed
+            verification is retained in the Society/Flat/Township history.
           </p>
           <button
             seButton
@@ -868,28 +873,53 @@
         }
       </se-card>
     }
-    <se-card title="Setup history"
-      ><ol class="setup-history">
-        @for (event of society.events; track event.id) {
-          <li>
-            <strong>{{ event.action.replaceAll('.', ' ').replaceAll('_', ' ') }}</strong
-            ><span
-              >{{ event.toStatus.replaceAll('_', ' ') }} ·
-              {{ displayTime(event.createdAt, society.timezone) }}</span
-            >
-          </li>
-        }
-      </ol></se-card
-    >
+    <se-card title="Setup history">
+      <div class="setup-history-bar">
+        <p>
+          @if (society.events[0]; as latest) {
+            {{ society.events.length }} {{ society.events.length === 1 ? 'update' : 'updates' }} ·
+            latest: {{ eventTitle(latest.action) }},
+            {{ displayTime(latest.createdAt, society.timezone) }}
+          } @else {
+            No setup updates yet.
+          }
+        </p>
+        <button
+          seButton
+          variant="secondary"
+          type="button"
+          aria-controls="setup-history-list"
+          [attr.aria-expanded]="showHistory()"
+          (click)="showHistory.set(!showHistory())"
+        >
+          {{ showHistory() ? 'Hide setup history' : 'Show setup history' }} ({{
+            society.events.length
+          }})
+        </button>
+      </div>
+      @if (showHistory()) {
+        <ol id="setup-history-list" class="setup-history">
+          @for (event of society.events; track event.id) {
+            <li>
+              <strong>{{ eventTitle(event.action) }}</strong
+              ><span
+                >{{ event.toStatus | label }} ·
+                {{ displayTime(event.createdAt, society.timezone) }}</span
+              >
+            </li>
+          }
+        </ol>
+      }
+    </se-card>
   }
 }
 <se-dialog
-  title="Verify and activate this society or flat or township?"
+  title="Verify and activate this Society/Flat/Township?"
   [open]="activationDialog()"
   (closed)="activationDialog.set(false)"
   ><p>
-    I confirm that the society or flat or township setup is correct. My verification will be
-    recorded and the committee will operate the active society or flat or township.
+    I confirm that the Society/Flat/Township setup is correct. My verification will be recorded and
+    the committee will operate the active Society/Flat/Township.
   </p>
   <div class="onboarding-actions">
     <button seButton variant="secondary" type="button" (click)="activationDialog.set(false)">
@@ -900,12 +930,12 @@
   </div></se-dialog
 >
 <se-dialog
-  title="Change society or flat or township lifecycle?"
+  title="Change Society/Flat/Township lifecycle?"
   [open]="pendingStatus() !== null"
   (closed)="pendingStatus.set(null)"
   ><p>
-    Change the society or flat or township to {{ pendingStatus()?.replaceAll('_', ' ') }}.
-    Deactivation is terminal. Existing records are retained.
+    Change the Society/Flat/Township to {{ pendingStatus() | label }}. Deactivation is terminal.
+    Existing records are retained.
   </p>
   <div class="onboarding-actions">
     <button seButton variant="secondary" type="button" (click)="pendingStatus.set(null)">

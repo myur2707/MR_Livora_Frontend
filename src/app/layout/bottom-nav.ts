@@ -22,7 +22,7 @@ const TAB_LABELS: Readonly<Record<string, string>> = {
   'Payment History': 'Payments',
   'My Receipts': 'Receipts',
   'My Complaints': 'Complaints',
-  'Societies or Flats or Townships': 'Societies',
+  'Societies/Flats/Townships': 'Societies',
   'Community space': 'Community',
   'Financial reports': 'Finance',
   'Resident reports': 'Resident list',

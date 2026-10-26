@@ -4,13 +4,13 @@
     <h1 tabindex="-1">Welcome to Mr. Livora</h1>
     <p>Help new communities get ready for committee-led operations.</p>
   </div>
-  <a seButton routerLink="/platform/societies">Manage society or flat or township</a>
+  <a seButton routerLink="/platform/societies">Manage Society/Flat/Township</a>
 </header>
 <se-form-notice [message]="error()" />
 @if (operations(); as data) {
   <section class="platform-overview-totals" aria-label="Platform overview totals">
     <se-card>
-      <p class="eyebrow">SOCIETIES AND FLATS AND TOWNSHIPS</p>
+      <p class="eyebrow">SOCIETIES/FLATS/TOWNSHIPS</p>
       <p class="stat-value">{{ data.totalSocieties }}</p>
       <p>Communities on the platform</p>
     </se-card>
@@ -28,14 +28,44 @@
       <p class="stat-value">{{ lifecycleTotal('DRAFT') }}</p>
     </se-card>
   </section>
+  <!-- Platform metadata only: lifecycle and account states, never a society's private records. -->
+  <section class="dashboard-charts" aria-label="Platform charts">
+    <se-card class="chart-card">
+      <div class="chart-heading">
+        <h2>Communities by lifecycle</h2>
+        <p>Where each Society/Flat/Township is in onboarding.</p>
+      </div>
+      <se-bar-list label="Communities by lifecycle status" [items]="lifecycle()" />
+      <a class="chart-link" routerLink="/platform/societies">Manage communities</a>
+    </se-card>
+    <se-card class="chart-card">
+      <div class="chart-heading">
+        <h2>New communities by month</h2>
+        <p>Communities created on the platform in the last six months.</p>
+      </div>
+      <se-column-chart
+        label="New communities created per month"
+        categoryLabel="Month"
+        [categories]="onboarding().categories"
+        [series]="onboarding().series"
+      />
+    </se-card>
+    <se-card class="chart-card">
+      <div class="chart-heading">
+        <h2>User accounts by status</h2>
+        <p>Sign-in accounts across the platform; residents without a login are not counted.</p>
+      </div>
+      <se-bar-list label="User accounts by status" [items]="accountStates()" />
+    </se-card>
+  </section>
 }
 <section class="welcome-panel platform-overview-welcome" aria-labelledby="platform-welcome">
   <div class="welcome-copy">
     <p class="eyebrow">FROM FIRST STEPS TO A SHARED HOME</p>
     <h2 id="platform-welcome">Help your communities get started</h2>
     <p>
-      Create a society or flat or township, invite its committee and track setup. The committee
-      reviews the details and verifies activation.
+      Create a Society/Flat/Township, invite its committee and track setup. The committee reviews
+      the details and verifies activation.
     </p>
   </div>
   <div class="welcome-art">

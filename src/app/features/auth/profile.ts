@@ -6,10 +6,12 @@ import { CardComponent } from '../../shared/card';
 import { ControlDirective, FieldComponent, FormNoticeComponent } from '../../shared/field';
 import { ToastService } from '../../shared/toast';
 import { DialogComponent } from '../../shared/dialog';
+import { PasswordToggleDirective } from '../../shared/password-toggle';
 
 @Component({
   selector: 'se-account-profile',
   imports: [
+    PasswordToggleDirective,
     ReactiveFormsModule,
     ButtonDirective,
     CardComponent,

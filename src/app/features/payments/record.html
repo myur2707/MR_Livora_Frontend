@@ -15,8 +15,9 @@
       <legend>{{ id ? 'Replacement payment' : 'Payment details' }}</legend>
       @if (original(); as p) {
         <p>
-          Original: {{ p.receiptNumber }} · {{ p.buildingCode }} / {{ p.flatNumber }} ·
-          {{ p.amount }}. The original record is retained and reversed atomically.
+          Original: {{ p.receiptNumber }} · {{ p.buildingCode | label: 'code' }} /
+          {{ p.flatNumber }} · {{ p.amount }}. The original record is retained and reversed
+          atomically.
         </p>
       } @else {
         <se-billing-picker resource="flats" label="Flat" (selected)="selectFlat($event)" />
@@ -41,7 +42,7 @@
         <se-field controlId="payment-method" label="Method" [required]="true"
           ><select seSelect name="method" [(ngModel)]="method" (ngModelChange)="edited()" required>
             @for (option of methods; track option) {
-              <option [value]="option">{{ option }}</option>
+              <option [value]="option">{{ option | label }}</option>
             }
           </select></se-field
         >

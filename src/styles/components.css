@@ -226,6 +226,8 @@ select.form-control {
     appearance: base-select;
   }
   select.form-control::picker(select) {
+    max-height: min(320px, 50dvh);
+    overflow-y: auto;
     margin-block: 4px;
     padding: 6px;
     border: 1px solid var(--border);
@@ -367,13 +369,15 @@ select.form-control {
   width: 44px;
 }
 dialog {
+  --dialog-max-height: calc(100dvh - 32px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 0;
   margin: auto;
   width: min(520px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
-  overflow: auto;
+  max-height: var(--dialog-max-height);
+  /* The heading stays pinned; only the content scrolls, inside the dialog's rounded frame. */
+  overflow: hidden;
   color: var(--text);
   background: var(--surface);
   box-shadow: var(--shadow-lg);
@@ -410,8 +414,27 @@ dialog::backdrop {
   font-size: 19px;
   font-weight: 800;
 }
+dialog > div {
+  display: flex;
+  flex-direction: column;
+  max-height: var(--dialog-max-height);
+}
+.dialog-heading {
+  flex: 0 0 auto;
+}
 .dialog-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--space-6);
+}
+.dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
 }
 .dialog-description {
   margin-bottom: var(--space-5);
@@ -505,11 +528,11 @@ dialog::backdrop {
   padding-block: 8px;
 }
 dialog.drawer {
+  --dialog-max-height: 100dvh;
   width: min(320px, 88vw);
   height: 100dvh;
-  max-height: 100dvh;
   border: 0;
-  border-radius: 0;
+  border-radius: var(--radius-lg) 0 0 var(--radius-lg);
   margin-right: 0;
   background: var(--ink);
   color: var(--on-ink);
@@ -655,4 +678,325 @@ dialog.drawer .sidebar-note {
   background: transparent;
   box-shadow: none;
   backdrop-filter: none;
+}
+/* ---- Charts: thin marks, 4px rounded data ends, hairline grid, text in text tokens ---- */
+.dashboard-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr));
+  gap: var(--space-5);
+  margin-block: var(--space-6);
+}
+.chart-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.chart-card-wide {
+  grid-column: 1 / -1;
+}
+.chart-heading h2 {
+  font-size: 16px;
+}
+.chart-heading p,
+.chart-note,
+.chart-empty {
+  color: var(--muted);
+  font-size: 12px;
+}
+.chart-card h3 {
+  font-size: 13px;
+  color: var(--muted);
+}
+.chart-link {
+  align-self: flex-start;
+  font-weight: 650;
+}
+.chart-meter {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+}
+.chart-meter-value {
+  grid-row: span 2;
+  font: 800 32px/1 var(--font-display);
+  letter-spacing: -0.03em;
+}
+.chart-meter-track {
+  display: block;
+  height: 12px;
+  border-radius: var(--radius-pill);
+  background: var(--chart-track);
+  overflow: hidden;
+}
+.chart-meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--chart-1);
+}
+.chart-meter-caption {
+  color: var(--muted);
+  font-size: 12px;
+}
+.bar-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bar-row {
+  display: grid;
+  grid-template-columns: minmax(5.5rem, 8rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 13px;
+}
+.bar-label {
+  overflow-wrap: anywhere;
+}
+.bar-track {
+  display: block;
+  height: 14px;
+}
+.bar-fill {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: 0 4px 4px 0;
+  background: var(--chart-1);
+}
+.bar-value {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.bar-share {
+  color: var(--muted);
+  font-weight: 500;
+}
+.column-chart {
+  margin: 0;
+  --chart-axis: 3.25rem;
+}
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+  font-size: 12px;
+  color: var(--muted);
+}
+.chart-legend li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.chart-key {
+  display: inline-block;
+  width: 12px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--chart-1);
+}
+.chart-legend .chart-key {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+[data-series='2'].chart-key,
+.chart-segment[data-series='2'] {
+  background: var(--chart-2);
+}
+.chart-plot {
+  position: relative;
+  height: 200px;
+  margin: var(--space-4) 0 0 var(--chart-axis);
+}
+.chart-grid {
+  position: absolute;
+  inset: 0;
+}
+.chart-gridline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--chart-grid);
+}
+.chart-tick {
+  position: absolute;
+  right: calc(100% + 8px);
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.chart-columns {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+}
+.chart-column {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  justify-content: center;
+  align-items: flex-end;
+  height: 100%;
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+.chart-column:hover,
+.chart-column:focus-visible {
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+.chart-column:focus-visible {
+  box-shadow: 0 0 0 2px var(--focus);
+}
+.chart-stack {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+  width: min(24px, 60%);
+}
+.chart-segment {
+  display: block;
+  flex: 1 1 0;
+  min-height: 2px;
+  background: var(--chart-1);
+}
+.chart-stack > .chart-segment:last-child {
+  border-radius: 4px 4px 0 0;
+}
+.chart-cap {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.chart-tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 2;
+  display: none;
+  min-width: 10rem;
+  transform: translateX(-50%);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  font-size: 12px;
+  pointer-events: none;
+}
+.chart-column:first-child .chart-tip {
+  left: 0;
+  transform: none;
+}
+.chart-column:last-child .chart-tip {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+.chart-column:hover .chart-tip,
+.chart-column:focus-visible .chart-tip {
+  display: grid;
+  gap: 4px;
+}
+.chart-tip > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.chart-tip small {
+  color: var(--muted);
+  font-weight: 500;
+}
+.chart-axis {
+  display: flex;
+  margin-left: var(--chart-axis);
+  padding-top: var(--space-2);
+  color: var(--muted);
+  font-size: 11px;
+}
+.chart-axis span {
+  flex: 1 1 0;
+  min-width: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.chart-table {
+  margin-top: var(--space-3);
+  font-size: 12px;
+}
+.chart-table summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 650;
+}
+.chart-table .table-scroll {
+  margin-top: var(--space-2);
+}
+@media (forced-colors: active) {
+  .bar-fill,
+  .chart-segment,
+  .chart-meter-fill,
+  .chart-key {
+    background: CanvasText;
+  }
+  .chart-segment[data-series='2'],
+  [data-series='2'].chart-key {
+    background: Highlight;
+  }
+}
+/* Password fields: the show/hide button sits inside the right edge of the input. */
+.password-field {
+  position: relative;
+  display: block;
+}
+.password-field > .form-control {
+  padding-right: 52px;
+}
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transform: translateY(-50%);
+}
+.password-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+.password-toggle:hover {
+  background: var(--surface-soft);
+  color: var(--text);
+}
+.password-toggle:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
 }

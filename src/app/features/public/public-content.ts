@@ -19,7 +19,7 @@ export const FEATURES: readonly PublicFeature[] = [
   {
     icon: 'sparkle',
     title: 'Society onboarding',
-    summary: 'Set up a society, flat or township and hand it over to its committee.',
+    summary: 'Set up a Society/Flat/Township and hand it over to its committee.',
     points: ['Guided setup wizard', 'Committee invitation', 'Verification before activation'],
   },
   {
@@ -70,7 +70,7 @@ export const STEPS: readonly PublicItem[] = [
   {
     icon: 'sparkle',
     title: 'Your society is set up',
-    text: 'Mr. Livora creates your society, flat or township and invites the committee.',
+    text: 'Mr. Livora creates your Society/Flat/Township and invites the committee.',
   },
   {
     icon: 'shield',
@@ -140,3 +140,18 @@ export const CONTACT = {
   instagram: 'https://www.instagram.com/mrlivora.official',
   facebook: 'https://www.facebook.com/mrlivora.official',
 } as const;
+
+export const FOUNDERS = [
+  {
+    role: 'Founder',
+    name: 'Mayur Panchal',
+    phone: '+91 9157379787',
+    phoneHref: 'tel:+919157379787',
+  },
+  {
+    role: 'Co-founder',
+    name: 'Manan Panchal',
+    phone: '+91 8866384461',
+    phoneHref: 'tel:+918866384461',
+  },
+] as const;

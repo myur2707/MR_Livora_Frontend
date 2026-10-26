@@ -25,19 +25,19 @@
 @if (detail(); as p) {
   <article class="payment-receipt" aria-label="Printable payment receipt">
     <h2>{{ p.societyName }}</h2>
-    <p>Receipt {{ p.receiptNumber ?? 'Unavailable' }} · {{ p.status }}</p>
+    <p>Receipt {{ p.receiptNumber ?? 'Unavailable' }} · {{ p.status | label }}</p>
     @if (p.legacyReceipt) {
       <p>Legacy receipt: names shown from current records; no original name snapshot exists.</p>
     }
     <dl class="billing-totals">
       <dt>Flat</dt>
-      <dd>{{ p.buildingCode }} / {{ p.flatNumber }}</dd>
+      <dd>{{ p.buildingCode | label: 'code' }} / {{ p.flatNumber }}</dd>
       <dt>Payer</dt>
       <dd>{{ p.payerName }}</dd>
       <dt>Payment date</dt>
       <dd>{{ p.paymentDate }}</dd>
       <dt>Method</dt>
-      <dd>{{ p.method }}</dd>
+      <dd>{{ p.method | label }}</dd>
       <dt>Amount received ({{ p.currency }})</dt>
       <dd>{{ p.amount }}</dd>
       <dt>Reference</dt>
@@ -106,7 +106,7 @@
     }
     @for (refund of p.refunds; track refund.id) {
       <p>
-        Refund {{ refund.amount }} · {{ refund.operationDate }} · {{ refund.method }} ·
+        Refund {{ refund.amount }} · {{ refund.operationDate }} · {{ refund.method | label }} ·
         {{ refund.reason }}
         @if (refund.reference) {
           · {{ refund.reference }}
@@ -174,7 +174,7 @@
               required
             >
               @for (option of methods; track option) {
-                <option [value]="option">{{ option }}</option>
+                <option [value]="option">{{ option | label }}</option>
               }
             </select></se-field
           >
@@ -251,7 +251,7 @@
         ><select seSelect name="method" [(ngModel)]="method">
           <option value="">All methods</option>
           @for (option of methods; track option) {
-            <option [value]="option">{{ option }}</option>
+            <option [value]="option">{{ option | label }}</option>
           }
         </select></se-field
       >
@@ -290,12 +290,12 @@
                   p.receiptNumber ?? 'Payment details'
                 }}</a>
               </td>
-              <td>{{ p.buildingCode }} / {{ p.flatNumber }}</td>
+              <td>{{ p.buildingCode | label: 'code' }} / {{ p.flatNumber }}</td>
               <td>{{ p.paymentDate }}</td>
-              <td>{{ p.method }}</td>
+              <td>{{ p.method | label }}</td>
               <td>{{ p.amount }}</td>
               <td>{{ p.netAmount }}</td>
-              <td>{{ p.status }}</td>
+              <td>{{ p.status | label }}</td>
             </tr>
           } @empty {
             <tr>
@@ -353,9 +353,9 @@
                   e.receiptNumber ?? 'Payment details'
                 }}</a>
               </td>
-              <td>{{ e.kind }}</td>
+              <td>{{ e.kind | label }}</td>
               <td>{{ e.eventDate }}</td>
-              <td>{{ e.method }}</td>
+              <td>{{ e.method | label }}</td>
               <td>{{ e.amount }}</td>
               <td>{{ e.reference ?? '—' }}</td>
             </tr>

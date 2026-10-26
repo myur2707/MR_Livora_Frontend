@@ -37,11 +37,31 @@
             ><se-icon name="social" />Facebook</a
           >
         </div>
+        <div>
+          <h2>Founders</h2>
+          @for (person of founders; track person.name) {
+            <p class="public-footer-person">
+              <span class="public-footer-role">{{ person.role }}</span
+              >{{ person.name }}
+            </p>
+            <a
+              [href]="person.phoneHref"
+              [attr.aria-label]="'Call ' + person.name + ', ' + person.role"
+              ><se-icon name="phone" />{{ person.phone }}</a
+            >
+          }
+        </div>
       </nav>
     </div>
     <div class="public-footer-base">
-      <span>© {{ year }} Mr. Livora</span>
-      <span class="public-footer-tagline">Live in a Better Aura</span>
+      <span>© {{ year }} Mr. Livora. All rights reserved.</span>
+      <span class="public-footer-motto">Better communities begin with better connections.</span>
+      <span class="public-footer-end">
+        <span class="public-footer-tagline">Live in a Better Aura</span>
+        <button type="button" class="public-footer-top" (click)="backToTop()">
+          Back to top <span aria-hidden="true">↑</span>
+        </button>
+      </span>
     </div>
   </footer>
 </div>

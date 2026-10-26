@@ -10,7 +10,7 @@ import {
   reportFinancial,
   reportError,
 } from '../../core/reports';
-import type { ReportKind, SocietyReport } from '../../core/reports';
+import type { ReportColumn, ReportKind, SocietyReport } from '../../core/reports';
 import { AuthState } from '../../core/auth-state';
 import { ResidentView as PrivateView } from '../resident-portal/view';
 import { BillingPicker } from '../billing/picker';
@@ -22,9 +22,14 @@ import { TableDirective } from '../../shared/table';
 import { CardComponent } from '../../shared/card';
 import { occupancyTypes } from '../../core/property';
 import { PAYMENT_METHODS } from '../../core/payments';
+import { LabelPipe, friendlyLabel } from '../../shared/label';
+/** Report columns that hold stored state codes rather than free text or identifiers. */
+const CODE_COLUMNS = new Set(['status', 'kind', 'method', 'occupancyType', 'category']);
+
 @Component({
   selector: 'se-society-reports',
   imports: [
+    LabelPipe,
     FormsModule,
     RouterLink,
     BillingPicker,
@@ -51,6 +56,13 @@ export class SocietyReportsPage {
   protected readonly advanced = signal(false);
   protected readonly attempted = signal(false);
   protected readonly labels = REPORT_LABELS;
+  /** Money keeps its exact decimal; codes read as words (IN_PROGRESS, ROW_HOUSES → In progress, Row houses). */
+  protected cell(value: string | number | null | undefined, column: ReportColumn): string {
+    if (value === null || value === undefined || value === '') return '—';
+    const text = String(value);
+    if (column.type === 'money') return '₹ ' + text;
+    return friendlyLabel(text, CODE_COLUMNS.has(column.key) ? 'enum' : 'code');
+  }
   protected readonly financial = reportFinancial;
   protected readonly methods = PAYMENT_METHODS;
   protected readonly occupancyTypes = occupancyTypes;

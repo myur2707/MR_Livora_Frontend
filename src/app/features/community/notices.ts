@@ -3,7 +3,7 @@ import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { CommunityApi } from '../../core/community';
+import { CommunityApi, communityStatusTone } from '../../core/community';
 import type { CommunityNotice } from '../../core/community';
 import type { Page } from '../../core/onboarding';
 import { AuthState } from '../../core/auth-state';
@@ -13,9 +13,15 @@ import { ButtonDirective } from '../../shared/button';
 import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../shared/field';
 import { PaginationComponent } from '../../shared/pagination';
 import { CardComponent } from '../../shared/card';
+import { BadgeComponent } from '../../shared/badge';
+import { DialogComponent } from '../../shared/dialog';
+import { IconComponent } from '../../shared/icon';
+import { TableDirective } from '../../shared/table';
+import { LabelPipe } from '../../shared/label';
 @Component({
   selector: 'se-community-notices',
   imports: [
+    LabelPipe,
     DatePipe,
     FormsModule,
     RouterLink,
@@ -25,6 +31,10 @@ import { CardComponent } from '../../shared/card';
     FormNoticeComponent,
     PaginationComponent,
     CardComponent,
+    BadgeComponent,
+    DialogComponent,
+    IconComponent,
+    TableDirective,
   ],
   templateUrl: './notices.html',
 })
@@ -36,6 +46,8 @@ export class CommitteeNoticesPage {
   protected readonly list = new PrivateView<Page<CommunityNotice>>();
   protected readonly detail = new PrivateView<CommunityNotice>();
   protected readonly saving = signal(false);
+  protected readonly editing = signal(false);
+  protected readonly tone = communityStatusTone;
   protected readonly error = signal<string | null>(null);
   protected readonly attempted = signal(false);
   protected id: string | null = null;
@@ -47,16 +59,13 @@ export class CommitteeNoticesPage {
   constructor() {
     this.route.paramMap.pipe(takeUntilDestroyed(inject(DestroyRef))).subscribe((params) => {
       this.id = params.get('id');
-      this.create = this.route.snapshot.data['create'] === true;
-      this.title = '';
-      this.body = '';
-      this.error.set(null);
-      this.attempted.set(false);
+      this.editing.set(false);
+      // The /notices/new deep link opens the draft dialog over the notice list.
+      if (this.route.snapshot.data['create'] === true) this.openCreator();
       void this.load();
     });
   }
   protected async load(page = 1): Promise<void> {
-    if (this.create) return;
     if (this.id) {
       await this.detail.load(() => this.api.get<CommunityNotice>('notices/' + this.id));
       const item = this.detail.value();
@@ -69,6 +78,28 @@ export class CommitteeNoticesPage {
           search: this.search,
         }),
       );
+  }
+  protected openCreator(): void {
+    this.create = true;
+    this.resetForm('', '');
+  }
+  protected openEditor(): void {
+    const item = this.detail.value();
+    if (!item) return;
+    this.create = false;
+    this.resetForm(item.title, item.body);
+  }
+  protected closeEditor(): void {
+    this.editing.set(false);
+    if (this.route.snapshot.data['create'] === true)
+      void this.router.navigate(['/society/community/notices']);
+  }
+  private resetForm(title: string, body: string): void {
+    this.title = title;
+    this.body = body;
+    this.error.set(null);
+    this.attempted.set(false);
+    this.editing.set(true);
   }
   protected fieldError(field: 'title' | 'body'): string | null {
     if (!this.attempted()) return null;
@@ -95,6 +126,7 @@ export class CommitteeNoticesPage {
           ...(this.create ? {} : { revision: item?.revision }),
         },
       );
+      this.editing.set(false);
       if (this.create) await this.router.navigate(['/society/community/notices', result.id]);
       else await this.load();
     } catch (error) {

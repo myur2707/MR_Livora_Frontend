@@ -172,9 +172,9 @@ test('committee creates validated draft, safely renders text, publishes and arch
   expect(await page.locator('main img').count()).toBe(0);
   expect(await page.locator('body').getAttribute('data-xss')).toBeNull();
   await page.getByRole('button', { name: 'Publish notice' }).click();
-  await expect(page.getByText(/PUBLISHED · By Committee member/)).toBeVisible();
+  await expect(page.getByText(/Published · By Committee member/)).toBeVisible();
   await page.getByRole('button', { name: 'Archive notice' }).click();
-  await expect(page.getByText(/ARCHIVED · By Committee member/)).toBeVisible();
+  await expect(page.getByText(/Archived · By Committee member/)).toBeVisible();
   await expect(page.getByRole('button', { name: 'Save changes' })).toHaveCount(0);
 });
 test('committee assigns, progresses, resolves and closes with visible immutable history', async ({
@@ -182,19 +182,23 @@ test('committee assigns, progresses, resolves and closes with visible immutable 
 }) => {
   const api = await community(page);
   await page.goto('/society/community/complaints/601');
+  await page.getByRole('button', { name: 'Update status' }).click();
   await page.getByRole('button', { name: 'Save status update' }).click();
   await expect(page.getByLabel('Update for resident', { exact: false })).toHaveAttribute(
     'aria-invalid',
     'true',
   );
   await page.getByLabel('Committee assignee', { exact: false }).selectOption('11');
-  for (const status of ['ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'CLOSED']) {
+  for (const [index, status] of ['ASSIGNED', 'IN_PROGRESS', 'RESOLVED', 'CLOSED'].entries()) {
+    // Each saved update closes the dialog; later updates reopen it from the detail page.
+    if (index > 0) await page.getByRole('button', { name: 'Update status' }).click();
     await page.getByLabel('Next status', { exact: false }).selectOption(status);
     await page.getByLabel('Update for resident', { exact: false }).fill('Update ' + status);
     await page.getByRole('button', { name: 'Save status update' }).click();
-    await expect(page.getByRole('heading', { name: new RegExp('→ ' + status) })).toBeVisible();
+    const label = status.charAt(0) + status.slice(1).toLowerCase().replace('_', ' ');
+    await expect(page.getByRole('heading', { name: new RegExp('→ ' + label) })).toBeVisible();
   }
-  await expect(page.getByRole('button', { name: 'Save status update' })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Update status' })).toHaveCount(0);
   expect(api.actions.map((item) => item['status'])).toEqual([
     'ASSIGNED',
     'IN_PROGRESS',

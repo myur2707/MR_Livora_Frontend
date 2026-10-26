@@ -38,7 +38,7 @@
     ><se-field controlId="report-status" label="Status"
       ><select seSelect name="status" [(ngModel)]="status">
         @for (value of statusChoices(); track value) {
-          <option [value]="value">{{ value.replaceAll('_', ' ') }}</option>
+          <option [value]="value">{{ value | label }}</option>
         }
       </select></se-field
     ><se-field controlId="report-sort" label="Sort by"
@@ -58,7 +58,7 @@
         ><select seSelect name="method" [(ngModel)]="method">
           <option value="">All methods</option>
           @for (value of methods; track value) {
-            <option [value]="value">{{ value.replaceAll('_', ' ') }}</option>
+            <option [value]="value">{{ value | label }}</option>
           }
         </select></se-field
       >
@@ -68,7 +68,7 @@
         ><select seSelect name="occupancyType" [(ngModel)]="occupancyType">
           <option value="">All types</option>
           @for (value of occupancyTypes; track value) {
-            <option [value]="value">{{ value.replaceAll('_', ' ') }}</option>
+            <option [value]="value">{{ value | label }}</option>
           }
         </select></se-field
       >
@@ -195,7 +195,7 @@
           @for (row of data.items; track $index) {
             <tr>
               @for (column of data.columns; track column.key) {
-                <td>{{ column.type === 'money' ? '₹ ' : '' }}{{ row[column.key] ?? '—' }}</td>
+                <td>{{ cell(row[column.key], column) }}</td>
               }
             </tr>
           } @empty {

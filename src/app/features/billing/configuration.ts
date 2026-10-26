@@ -12,9 +12,12 @@ import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../sha
 import { TableDirective } from '../../shared/table';
 import { PaginationComponent } from '../../shared/pagination';
 import { ToastService } from '../../shared/toast';
+import { DialogComponent } from '../../shared/dialog';
+import { LabelPipe } from '../../shared/label';
 @Component({
   selector: 'se-billing-configuration',
   imports: [
+    LabelPipe,
     FormsModule,
     BillingPicker,
     ButtonDirective,
@@ -23,6 +26,7 @@ import { ToastService } from '../../shared/toast';
     FormNoticeComponent,
     TableDirective,
     PaginationComponent,
+    DialogComponent,
   ],
   templateUrl: './configuration.html',
 })
@@ -68,6 +72,10 @@ export class BillingConfigurationPage implements OnInit {
   }
   ngOnInit(): void {
     void this.load();
+  }
+  protected formTitle(): string {
+    if (this.form === 'type') return 'New charge type';
+    return this.form === 'period' ? 'New billing period' : 'New configuration version';
   }
   protected open(form: 'type' | 'configuration' | 'period'): void {
     this.form = form;

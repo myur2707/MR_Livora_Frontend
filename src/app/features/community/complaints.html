@@ -18,34 +18,51 @@
         ><select seSelect name="status" [(ngModel)]="status">
           <option value="ALL">All statuses</option>
           @for (value of statuses; track value) {
-            <option [value]="value">{{ value }}</option>
+            <option [value]="value">{{ value | label }}</option>
           }
         </select></se-field
       ><se-field controlId="complaint-filter-category" label="Complaint category"
         ><select seSelect name="category" [(ngModel)]="category">
           <option value="ALL">All categories</option>
           @for (value of categories; track value) {
-            <option [value]="value">{{ value }}</option>
+            <option [value]="value">{{ value | label }}</option>
           }
         </select></se-field
       ><button seButton type="submit">Apply filters</button>
     </form>
     @if (list.value(); as data) {
-      <section class="resident-section" aria-label="Society complaint queue">
-        @for (item of data.items; track item.id) {
-          <se-card
-            ><h2>
-              <a [routerLink]="['/society/community/complaints', item.id]">{{ item.title }}</a>
-            </h2>
-            <p>
-              {{ item.category }} · {{ item.status }} · {{ item.buildingCode }} /
-              {{ item.flatNumber }}
-            </p></se-card
-          >
-        } @empty {
-          <p>No complaints match these filters.</p>
-        }
-      </section>
+      <div class="table-scroll" role="region" aria-label="Complaint queue scroll area" tabindex="0">
+        <table seTable aria-label="Society complaint queue">
+          <thead>
+            <tr>
+              <th scope="col">Complaint</th>
+              <th scope="col">Category</th>
+              <th scope="col">Flat</th>
+              <th scope="col">Status</th>
+              <th scope="col">Submitted</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of data.items; track item.id) {
+              <tr>
+                <td>
+                  <a [routerLink]="['/society/community/complaints', item.id]">{{ item.title }}</a>
+                </td>
+                <td>{{ item.category | label }}</td>
+                <td>{{ item.buildingCode | label: 'code' }} / {{ item.flatNumber }}</td>
+                <td>
+                  <se-badge [tone]="tone(item.status)">{{ item.status | label }}</se-badge>
+                </td>
+                <td>{{ item.createdAt | date: 'mediumDate' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5">No complaints match these filters.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
       <se-pagination
         [page]="data.page"
         [pageSize]="data.pageSize"
@@ -58,7 +75,8 @@
     <se-card
       ><h2>{{ item.title }}</h2>
       <p>
-        {{ item.category }} · {{ item.status }} · {{ item.buildingCode }} / {{ item.flatNumber }}
+        {{ item.category | label }} · {{ item.status | label }} ·
+        {{ item.buildingCode | label: 'code' }} / {{ item.flatNumber }}
       </p>
       <p>
         Created {{ item.createdAt | date: 'medium' }}
@@ -69,15 +87,26 @@
       <p class="resident-text">{{ item.description }}</p></se-card
     >
     @if (next(item.status)) {
-      <section class="resident-section">
-        <h2>Update complaint</h2>
-        <p>Your update is visible to the resident who submitted this complaint.</p>
-        <form class="payment-form" novalidate (ngSubmit)="save()">
+      <div class="payment-actions">
+        <button seButton type="button" [disabled]="saving()" (click)="openUpdate()">
+          Update status
+        </button>
+      </div>
+      <se-dialog
+        title="Update complaint"
+        [open]="updating()"
+        (closed)="!saving() && updating.set(false)"
+      >
+        <p class="dialog-description">
+          Your update is visible to the resident who submitted this complaint.
+        </p>
+        <se-form-notice [message]="error()" />
+        <form class="onboarding-form" novalidate (ngSubmit)="save()">
           <se-field controlId="complaint-target" label="Next status"
             ><select seSelect name="target" [(ngModel)]="target" [disabled]="saving()">
-              <option [value]="next(item.status)">{{ next(item.status) }}</option>
+              <option [value]="next(item.status)">{{ next(item.status) | label }}</option>
               @if (item.status === 'ASSIGNED' || item.status === 'IN_PROGRESS') {
-                <option [value]="item.status">{{ item.status }} · Reassign</option>
+                <option [value]="item.status">{{ item.status | label }} · Reassign</option>
               }
             </select></se-field
           >
@@ -100,12 +129,14 @@
               </select></se-field
             >
             @if (assignees.value(); as data) {
-              <se-pagination
-                [page]="data.page"
-                [pageSize]="data.pageSize"
-                [total]="data.total"
-                (pageSelected)="loadAssignees($event)"
-              />
+              @if (data.total > data.pageSize) {
+                <se-pagination
+                  [page]="data.page"
+                  [pageSize]="data.pageSize"
+                  [total]="data.total"
+                  (pageSelected)="loadAssignees($event)"
+                />
+              }
             }
           }
           <se-field
@@ -122,19 +153,30 @@
               rows="4"
               required
               [disabled]="saving()"
-            ></textarea></se-field
-          ><button seButton type="submit" [disabled]="saving()">
-            {{ saving() ? 'Saving…' : 'Save status update' }}
-          </button>
+            ></textarea>
+          </se-field>
+          <div class="dialog-actions">
+            <button
+              seButton
+              variant="secondary"
+              type="button"
+              [disabled]="saving()"
+              (click)="updating.set(false)"
+            >
+              Cancel</button
+            ><button seButton type="submit" [disabled]="saving()">
+              {{ saving() ? 'Saving…' : 'Save status update' }}
+            </button>
+          </div>
         </form>
-      </section>
+      </se-dialog>
     }
     @if (history.value(); as data) {
       <section class="resident-section" aria-label="Complaint status history">
         <h2>Status history</h2>
         @for (entry of data.items; track entry.id) {
           <se-card
-            ><h3>{{ entry.fromStatus ?? 'Submitted' }} → {{ entry.toStatus }}</h3>
+            ><h3>{{ (entry.fromStatus | label) || 'Submitted' }} → {{ entry.toStatus | label }}</h3>
             <p>{{ entry.createdAt | date: 'medium' }}</p>
             <p class="resident-text">{{ entry.note }}</p></se-card
           >

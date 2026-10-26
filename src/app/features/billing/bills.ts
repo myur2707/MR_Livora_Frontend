@@ -8,9 +8,11 @@ import { ButtonDirective } from '../../shared/button';
 import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../shared/field';
 import { PaginationComponent } from '../../shared/pagination';
 import { TableDirective } from '../../shared/table';
+import { LabelPipe } from '../../shared/label';
 @Component({
   selector: 'se-billing-bills',
   imports: [
+    LabelPipe,
     FormsModule,
     RouterLink,
     ButtonDirective,

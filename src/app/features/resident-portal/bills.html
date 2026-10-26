@@ -12,9 +12,9 @@
 @if (detail.value(); as bill) {
   <section class="payment-receipt" aria-label="My authorized bill">
     <h2>{{ bill.billNumber }}</h2>
-    <p>{{ bill.buildingCode }} / {{ bill.flatNumber }} · {{ bill.periodCode }}</p>
+    <p>{{ bill.buildingCode | label: 'code' }} / {{ bill.flatNumber }} · {{ bill.periodCode }}</p>
     <p>{{ bill.startsOn }} to {{ bill.endsOn }} · Due {{ bill.dueOn }}</p>
-    <p>{{ bill.settlementStatus }}</p>
+    <p>{{ bill.settlementStatus | label }}</p>
     <div class="table-scroll" role="region" aria-label="Bill items scroll area" tabindex="0">
       <table seTable aria-label="My bill items">
         <thead>
@@ -92,9 +92,9 @@
             <td>
               <a [routerLink]="['/society/resident/bills', bill.id]">{{ bill.billNumber }}</a>
             </td>
-            <td>{{ bill.buildingCode }} / {{ bill.flatNumber }}</td>
+            <td>{{ bill.buildingCode | label: 'code' }} / {{ bill.flatNumber }}</td>
             <td>{{ bill.dueOn }}</td>
-            <td>{{ bill.settlementStatus }}</td>
+            <td>{{ bill.settlementStatus | label }}</td>
             <td>{{ money(bill.outstanding) }}</td>
           </tr>
         } @empty {

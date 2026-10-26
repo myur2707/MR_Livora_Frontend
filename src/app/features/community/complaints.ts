@@ -8,6 +8,7 @@ import {
   COMPLAINT_CATEGORIES,
   COMPLAINT_STATUSES,
   complaintNext,
+  communityStatusTone,
 } from '../../core/community';
 import type { CommitteeComplaint, ComplaintHistory, ComplaintAssignee } from '../../core/community';
 import type { Page } from '../../core/onboarding';
@@ -18,9 +19,14 @@ import { ButtonDirective } from '../../shared/button';
 import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../shared/field';
 import { PaginationComponent } from '../../shared/pagination';
 import { CardComponent } from '../../shared/card';
+import { BadgeComponent } from '../../shared/badge';
+import { DialogComponent } from '../../shared/dialog';
+import { TableDirective } from '../../shared/table';
+import { LabelPipe } from '../../shared/label';
 @Component({
   selector: 'se-committee-complaints',
   imports: [
+    LabelPipe,
     DatePipe,
     FormsModule,
     RouterLink,
@@ -30,6 +36,9 @@ import { CardComponent } from '../../shared/card';
     FormNoticeComponent,
     PaginationComponent,
     CardComponent,
+    BadgeComponent,
+    DialogComponent,
+    TableDirective,
   ],
   templateUrl: './complaints.html',
 })
@@ -45,6 +54,8 @@ export class CommitteeComplaintsPage {
   protected readonly statuses = COMPLAINT_STATUSES;
   protected readonly next = complaintNext;
   protected readonly saving = signal(false);
+  protected readonly updating = signal(false);
+  protected readonly tone = communityStatusTone;
   protected readonly error = signal<string | null>(null);
   protected readonly attempted = signal(false);
   protected id: string | null = null;
@@ -59,6 +70,7 @@ export class CommitteeComplaintsPage {
       this.note = '';
       this.error.set(null);
       this.attempted.set(false);
+      this.updating.set(false);
       void this.load();
     });
   }
@@ -88,6 +100,14 @@ export class CommitteeComplaintsPage {
       this.api.list<ComplaintAssignee>('complaints/assignees', page),
     );
   }
+  protected openUpdate(): void {
+    const item = this.detail.value();
+    this.target = item ? (complaintNext(item.status) ?? '') : '';
+    this.note = '';
+    this.error.set(null);
+    this.attempted.set(false);
+    this.updating.set(true);
+  }
   protected noteError(): string | null {
     return this.attempted() && (!this.note.trim() || this.note.length > 1000)
       ? 'Enter an update of up to 1000 characters.'
@@ -116,6 +136,7 @@ export class CommitteeComplaintsPage {
       });
       this.note = '';
       this.attempted.set(false);
+      this.updating.set(false);
       await this.load();
     } catch (error) {
       this.error.set(billingError(error));

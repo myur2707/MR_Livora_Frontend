@@ -10,9 +10,17 @@ import { FormNoticeComponent } from '../../shared/field';
 import { PaginationComponent } from '../../shared/pagination';
 import { TableDirective } from '../../shared/table';
 import { ResidentView } from './view';
+import { LabelPipe } from '../../shared/label';
 @Component({
   selector: 'se-resident-payments',
-  imports: [RouterLink, ButtonDirective, FormNoticeComponent, PaginationComponent, TableDirective],
+  imports: [
+    LabelPipe,
+    RouterLink,
+    ButtonDirective,
+    FormNoticeComponent,
+    PaginationComponent,
+    TableDirective,
+  ],
   templateUrl: './payments.html',
 })
 export class ResidentPaymentsPage {

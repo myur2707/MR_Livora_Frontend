@@ -184,7 +184,7 @@ test('partial refund restores allocation, marks original receipt and hides corre
   expect(body['amount']).toBe('25.00');
   expect(body['allocations']).toEqual([{ billId: '31', amount: '25.00' }]);
   await expect(page.getByRole('link', { name: 'Correct payment' })).toHaveCount(0);
-  await expect(page.getByText('Receipt R-1-41 · PARTIALLY_REFUNDED')).toBeVisible();
+  await expect(page.getByText('Receipt R-1-41 · Partially refunded')).toBeVisible();
 });
 test('correction sends a linked replacement while retaining the original record', async ({
   page,
@@ -220,7 +220,7 @@ test('correction sends a linked replacement while retaining the original record'
   await expect(page.getByRole('link', { name: 'View original' })).toBeVisible();
   await page.getByRole('link', { name: 'View original' }).click();
   await expect(page).toHaveURL(/payments\/41$/);
-  await expect(page.getByText('Receipt R-1-41 · RECORDED')).toBeVisible();
+  await expect(page.getByText('Receipt R-1-41 · Recorded')).toBeVisible();
 });
 test('collection filters encode dates, method and authorized collector and show signed reconciliation', async ({
   page,

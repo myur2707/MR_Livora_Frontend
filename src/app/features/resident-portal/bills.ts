@@ -11,9 +11,11 @@ import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../sha
 import { PaginationComponent } from '../../shared/pagination';
 import { TableDirective } from '../../shared/table';
 import { ResidentView } from './view';
+import { LabelPipe } from '../../shared/label';
 @Component({
   selector: 'se-resident-bills',
   imports: [
+    LabelPipe,
     FormsModule,
     RouterLink,
     ButtonDirective,

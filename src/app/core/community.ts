@@ -77,3 +77,9 @@ export function complaintNext(status: string): string | null {
     )[status] ?? null
   );
 }
+/** Badge tone for complaint and notice states: settled work reads as success, open work as pending. */
+export function communityStatusTone(status: string): 'neutral' | 'success' | 'warning' {
+  if (['RESOLVED', 'CLOSED', 'PUBLISHED'].includes(status)) return 'success';
+  if (['NEW', 'ASSIGNED', 'IN_PROGRESS', 'DRAFT'].includes(status)) return 'warning';
+  return 'neutral';
+}

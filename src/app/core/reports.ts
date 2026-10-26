@@ -50,15 +50,21 @@ export interface CommitteeSummary {
     types: { type: string; total: number }[];
   };
   pendingComplaints: number;
+  complaintStatuses: { status: string; total: number }[];
   recentNotices: { id: string; title: string; publishedAt: string }[];
   finance: {
     billing: Record<string, string>;
-    billingStatuses: { status: string; total: number }[];
     collections: Record<string, string>;
     cash: Record<string, string>;
     from: string;
     to: string;
   } | null;
+  /** Society-level chart totals, shared by every dashboard role. */
+  trends?: {
+    billingStatuses: { status: string; total: number }[];
+    periods: { periodCode: string; billed: string; collected: string; outstanding: string }[];
+    monthlyCollections: { month: string; netRecorded: string }[];
+  };
 }
 @Injectable({ providedIn: 'root' })
 export class ReportsApi {

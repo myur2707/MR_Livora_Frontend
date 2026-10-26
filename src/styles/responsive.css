@@ -208,9 +208,6 @@
   .auth-story {
     padding: 24px;
   }
-  .auth-story > img {
-    max-height: 150px;
-  }
   .auth-footer {
     padding-block: 6px;
   }
@@ -253,9 +250,6 @@
   }
   .auth-note {
     display: none;
-  }
-  .auth-story > img {
-    max-height: 130px;
   }
   .auth-footer {
     padding-block: 4px;

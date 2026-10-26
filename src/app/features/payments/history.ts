@@ -15,9 +15,11 @@ import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../sha
 import { PaginationComponent } from '../../shared/pagination';
 import { TableDirective } from '../../shared/table';
 import { ToastService } from '../../shared/toast';
+import { LabelPipe } from '../../shared/label';
 @Component({
   selector: 'se-payment-history',
   imports: [
+    LabelPipe,
     FormsModule,
     RouterLink,
     BillingPicker,

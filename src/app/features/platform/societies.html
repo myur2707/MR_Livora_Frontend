@@ -1,7 +1,7 @@
 <header class="page-heading platform-directory-heading">
   <div>
     <p class="eyebrow">PLATFORM WORKSPACE</p>
-    <h1 tabindex="-1">Your societies or flats or townships</h1>
+    <h1 tabindex="-1">Your Societies/Flats/Townships</h1>
     <p>Guide new communities from first setup to committee activation.</p>
   </div>
   <div class="page-heading-actions">
@@ -23,7 +23,7 @@
       >
         <option value="">All statuses</option>
         @for (status of statuses; track status) {
-          <option [value]="status">{{ status.replaceAll('_', ' ') }}</option>
+          <option [value]="status">{{ status | label }}</option>
         }
       </select></se-field
     >
@@ -36,7 +36,7 @@
 @if (loading()) {
   <se-state
     kind="loading"
-    title="Loading societies or flats or townships"
+    title="Loading Societies/Flats/Townships"
     message="Fetching platform metadata."
   />
 } @else if (result(); as data) {
@@ -46,15 +46,15 @@
         class="table-scroll platform-directory-table"
         tabindex="0"
         role="region"
-        aria-label="Society or Flat or Township directory"
+        aria-label="Society/Flat/Township directory"
       >
         <table seTable>
           <caption class="sr-only">
-            Society or Flat or Township directory
+            Society/Flat/Township directory
           </caption>
           <thead>
             <tr>
-              <th scope="col">Society or Flat or Township</th>
+              <th scope="col">Society/Flat/Township</th>
               <th scope="col">Code</th>
               <th scope="col">Status</th>
               <th scope="col">Setup</th>
@@ -64,13 +64,13 @@
             @for (society of data.items; track society.id) {
               <tr>
                 <th scope="row" data-label="Community">{{ society.name }}</th>
-                <td data-label="Code">{{ society.code }}</td>
+                <td data-label="Code">{{ society.code | label: 'code' }}</td>
                 <td data-label="Status">
-                  <se-badge>{{ society.status.replaceAll('_', ' ') }}</se-badge>
+                  <se-badge>{{ society.status | label }}</se-badge>
                 </td>
                 <td data-label="Setup">
                   <a class="text-link" [routerLink]="['/platform/societies', society.id]"
-                    >{{ society.revision ? 'View setup' : 'View society or flat or township' }}
+                    >{{ society.revision ? 'View setup' : 'View Society/Flat/Township' }}
                     <span class="sr-only">for {{ society.name }}</span></a
                   >
                 </td>
@@ -88,11 +88,11 @@
   } @else {
     <se-state
       kind="empty"
-      title="No societies or flats or townships found"
+      title="No Societies/Flats/Townships found"
       [message]="
         searchControl.value.trim() || status
           ? 'Try a different search or lifecycle status.'
-          : 'Create a draft society or flat or township to begin onboarding.'
+          : 'Create a draft Society/Flat/Township to begin onboarding.'
       "
     />
   }
@@ -100,7 +100,7 @@
 <se-dialog
   class="compact-dialog"
   [open]="showCreate()"
-  title="New society or flat or township"
+  title="New Society/Flat/Township"
   (closed)="closeCreate()"
 >
   @if (showCreate()) {
@@ -109,26 +109,29 @@
     </p>
     <se-form-notice [message]="createError()" />
     <form [formGroup]="form" (ngSubmit)="create()" class="onboarding-form">
+      <se-field controlId="society-type" label="Type" [required]="true"
+        ><select seSelect formControlName="type" (change)="typeChanged()">
+          @for (option of communityTypes; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select></se-field
+      >
       <se-field
         controlId="society-code"
-        label="Society or Flat or Township code"
+        [label]="fieldText().codeLabel"
         [required]="true"
-        hint="3–64 uppercase letters, numbers, underscores or hyphens."
+        [hint]="suggesting() ? 'Finding the next free code…' : fieldText().codeHint"
         [error]="
-          form.controls.code.touched && form.controls.code.invalid
-            ? 'Enter a valid, unique society code.'
-            : null
+          form.controls.code.touched && form.controls.code.invalid ? fieldText().codeError : null
         "
-        ><input seInput formControlName="code" required maxlength="64"
+        ><input seInput formControlName="code" required maxlength="64" (input)="codeTyped()"
       /></se-field>
       <se-field
         controlId="society-name"
-        label="Society or Flat or Township name"
+        [label]="fieldText().nameLabel"
         [required]="true"
         [error]="
-          form.controls.name.touched && form.controls.name.invalid
-            ? 'Enter the society name.'
-            : null
+          form.controls.name.touched && form.controls.name.invalid ? fieldText().nameError : null
         "
         ><input seInput formControlName="name" required maxlength="200"
       /></se-field>

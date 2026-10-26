@@ -12,42 +12,71 @@
   }
   @if (summary.value(); as data) {
     <p>As of {{ data.asOf }} · {{ data.timezone }}</p>
-    <section class="onboarding-stats" aria-label="Community totals">
-      <se-card
-        ><p>Active flats</p>
-        <p class="stat-value">{{ data.flats }}</p></se-card
-      ><se-card
-        ><p>Occupied flats</p>
-        <p class="stat-value">{{ data.occupancy.occupiedFlats }}</p></se-card
-      ><se-card
-        ><p>Current occupants</p>
-        <p class="stat-value">{{ data.occupancy.persons }}</p></se-card
-      ><se-card
-        ><p>Pending complaints</p>
-        <p class="stat-value">{{ data.pendingComplaints }}</p>
-        @if (auth.identity()?.activeSociety?.permissions.includes('society.complaints.manage')) {
-          <a routerLink="/society/community/complaints">Review complaints</a>
+    @if (community()) {
+      <section class="onboarding-stats" aria-label="Community totals">
+        <se-card
+          ><p>Active flats</p>
+          <p class="stat-value">{{ data.flats }}</p></se-card
+        ><se-card
+          ><p>Occupied flats</p>
+          <p class="stat-value">{{ data.occupancy.occupiedFlats }}</p></se-card
+        ><se-card
+          ><p>Current occupants</p>
+          <p class="stat-value">{{ data.occupancy.persons }}</p></se-card
+        ><se-card
+          ><p>Pending complaints</p>
+          <p class="stat-value">{{ data.pendingComplaints }}</p>
+          @if (auth.identity()?.activeSociety?.permissions.includes('society.complaints.manage')) {
+            <a routerLink="/society/community/complaints">Review complaints</a>
+          }
+        </se-card>
+      </section>
+      <section class="dashboard-charts" aria-label="Community charts">
+        @if (occupancy(); as occ) {
+          <se-card class="chart-card">
+            <div class="chart-heading">
+              <h2>Flat occupancy</h2>
+              <p>{{ occ.occupied }} of {{ data.flats }} active flats have a current occupant.</p>
+            </div>
+            <div class="chart-meter">
+              <span class="chart-meter-value">{{ occ.percent }}%</span>
+              <span
+                class="chart-meter-track"
+                role="meter"
+                aria-label="Occupied flats"
+                aria-valuemin="0"
+                [attr.aria-valuemax]="data.flats"
+                [attr.aria-valuenow]="occ.occupied"
+                [attr.aria-valuetext]="occ.occupied + ' of ' + data.flats + ' flats occupied'"
+                ><span class="chart-meter-fill" [style.width.%]="occ.percent"></span
+              ></span>
+              <span class="chart-meter-caption"
+                >{{ occ.occupied }} occupied · {{ occ.vacant }} vacant</span
+              >
+            </div>
+            <h3>Current occupancies by type</h3>
+            <se-bar-list label="Current occupancies by type" [items]="occ.types" />
+            <p class="chart-note">
+              {{ data.occupancy.occupancies }} occupancy records · {{ data.occupancy.persons }}
+              people
+            </p>
+          </se-card>
         }
-      </se-card>
-    </section>
-    <section class="resident-section" aria-label="Occupancy types">
-      <h2>Current occupancy</h2>
-      <p>
-        {{ data.occupancy.occupancies }} occupancy records across
-        {{ data.occupancy.occupiedFlats }} flats.
-      </p>
-      @for (item of data.occupancy.types; track item.type) {
-        <p>{{ item.type.replaceAll('_', ' ') }}: {{ item.total }}</p>
-      }
-    </section>
-    @if (
-      auth.identity()?.activeSociety?.permissions.includes('society.finance.read')
-        ? data.finance
-        : null;
-      as finance
-    ) {
-      <section class="resident-section">
-        <h2>Maintenance and collections</h2>
+        <se-card class="chart-card">
+          <div class="chart-heading">
+            <h2>Complaints by status</h2>
+            <p>{{ data.pendingComplaints }} still open (new, assigned or in progress).</p>
+          </div>
+          <se-bar-list label="Complaints by status" [items]="complaints()" />
+          @if (auth.identity()?.activeSociety?.permissions.includes('society.complaints.manage')) {
+            <a class="chart-link" routerLink="/society/community/complaints">Review complaints</a>
+          }
+        </se-card>
+      </section>
+    }
+    <section class="resident-section" aria-labelledby="dashboard-finance-title">
+      <h2 id="dashboard-finance-title">Maintenance and collections</h2>
+      @if (financeReader() ? data.finance : null; as finance) {
         <p>Collection events: {{ finance.from }} through {{ finance.to }} · {{ data.timezone }}</p>
         <div class="onboarding-stats">
           <se-card
@@ -66,26 +95,63 @@
             <a routerLink="/society/reports/cash-collection">Cash collection report</a></se-card
           >
         </div>
-        <h3>Billing status</h3>
-        @for (item of finance.billingStatuses; track item.status) {
-          <p>{{ item.status.replaceAll('_', ' ') }}: {{ item.total }}</p>
+      }
+      <div class="dashboard-charts">
+        <se-card class="chart-card chart-card-wide">
+          <div class="chart-heading">
+            <h2>Billed vs collected</h2>
+            <p>Issued bills for the latest billing periods. Hover or focus a column for amounts.</p>
+          </div>
+          @if (periods().categories.length) {
+            <se-column-chart
+              label="Collected and outstanding amounts by billing period"
+              unit="money"
+              [categories]="periods().categories"
+              [series]="periods().series"
+            />
+          } @else {
+            <p class="chart-empty">No bills have been issued yet.</p>
+          }
+        </se-card>
+        <se-card class="chart-card">
+          <div class="chart-heading">
+            <h2>Net collections by month</h2>
+            <p>Payments recorded, less refunds and reversals.</p>
+          </div>
+          <se-column-chart
+            label="Net collections over the last six months"
+            categoryLabel="Month"
+            unit="money"
+            [categories]="monthly().categories"
+            [series]="monthly().series"
+          />
+        </se-card>
+        <se-card class="chart-card">
+          <div class="chart-heading">
+            <h2>Bills by status</h2>
+            <p>Every bill on record, by its current payment state.</p>
+          </div>
+          <se-bar-list label="Bills by status" [items]="bills()" />
+          @if (financeReader()) {
+            <a class="chart-link" routerLink="/society/billing/bills">Open bills</a>
+          }
+        </se-card>
+      </div>
+    </section>
+    @if (community()) {
+      <section class="resident-section" aria-label="Recent published notices">
+        <h2>Recent notices</h2>
+        @for (item of data.recentNotices; track item.id) {
+          <se-card
+            ><h3>
+              <a [routerLink]="['/society/resident/notices', item.id]">{{ item.title }}</a>
+            </h3>
+            <p>{{ item.publishedAt | date: 'medium' }}</p></se-card
+          >
         } @empty {
-          <p>No bills yet.</p>
+          <p>No published notices yet.</p>
         }
       </section>
     }
-    <section class="resident-section" aria-label="Recent published notices">
-      <h2>Recent notices</h2>
-      @for (item of data.recentNotices; track item.id) {
-        <se-card
-          ><h3>
-            <a [routerLink]="['/society/resident/notices', item.id]">{{ item.title }}</a>
-          </h3>
-          <p>{{ item.publishedAt | date: 'medium' }}</p></se-card
-        >
-      } @empty {
-        <p>No published notices yet.</p>
-      }
-    </section>
   }
 }

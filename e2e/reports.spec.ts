@@ -23,6 +23,10 @@ async function reports(page: Page, role = 'COMMITTEE_ADMIN', exports = true) {
       ...(role === 'RESIDENT' ? [] : ['society.dashboard.manage']),
       ...(['COMMITTEE_ADMIN', 'ACCOUNTANT'].includes(role) ? ['society.finance.read'] : []),
       ...(role === 'COMMITTEE_ADMIN' ? ['society.members.manage'] : []),
+      // Mirrors roleCapabilities: committee roles manage notices and complaints.
+      ...(['COMMITTEE_ADMIN', 'COMMITTEE_MEMBER'].includes(role)
+        ? ['society.notices.manage', 'society.complaints.manage']
+        : []),
       ...(exports && ['COMMITTEE_ADMIN', 'ACCOUNTANT'].includes(role)
         ? ['society.reports.export']
         : []),
@@ -68,6 +72,30 @@ async function reports(page: Page, role = 'COMMITTEE_ADMIN', exports = true) {
             ],
           },
           pendingComplaints: 1,
+          complaintStatuses: [
+            { status: 'IN_PROGRESS', total: 1 },
+            { status: 'CLOSED', total: 3 },
+          ],
+          trends: {
+            billingStatuses: [{ status: 'OVERDUE', total: 2 }],
+            periods: [
+              { periodCode: '2026-09', billed: '300.00', collected: '300.00', outstanding: '0.00' },
+              {
+                periodCode: '2026-10',
+                billed: '300.35',
+                collected: '110.35',
+                outstanding: '190.00',
+              },
+            ],
+            monthlyCollections: [
+              '2026-05',
+              '2026-06',
+              '2026-07',
+              '2026-08',
+              '2026-09',
+              '2026-10',
+            ].map((month) => ({ month, netRecorded: month === '2026-10' ? '110.35' : '0.00' })),
+          },
           recentNotices: [
             {
               id: '501',
@@ -80,7 +108,6 @@ async function reports(page: Page, role = 'COMMITTEE_ADMIN', exports = true) {
               ? null
               : {
                   billing: { outstanding: '190.00' },
-                  billingStatuses: [{ status: 'OVERDUE', total: 2 }],
                   collections: { collections: '150.40', netRecorded: '110.35' },
                   cash: { collections: '120.30', netRecorded: '80.25' },
                   from: '2026-10-01',
@@ -273,6 +300,38 @@ test('society switch discards an in-flight private export and loads the new dash
   expect(await page.evaluate(() => document.documentElement.dataset['reportBlob'])).toBeUndefined();
 });
 
+test('committee admin dashboard charts reconcile with totals and stay readable at 320px', async ({
+  page,
+}) => {
+  await reports(page);
+  await page.goto('/society/dashboard');
+  await expect(page.getByRole('heading', { name: 'Billed vs collected' })).toBeVisible();
+  // Every column is keyboard reachable and names its exact amounts, so colour is never required.
+  await expect(
+    page
+      .getByRole('group', { name: 'Collected and outstanding amounts by billing period' })
+      .getByLabel('2026-10: Collected ₹ 110.35, Outstanding ₹ 190.00'),
+  ).toBeVisible();
+  await expect(page.getByRole('meter', { name: 'Occupied flats' })).toHaveAttribute(
+    'aria-valuetext',
+    '1 of 2 flats occupied',
+  );
+  const complaints = page.getByRole('list', { name: 'Complaints by status' });
+  await expect(complaints.getByText('In progress', { exact: true })).toBeVisible();
+  await expect(complaints.getByText('IN_PROGRESS')).toHaveCount(0);
+  await page.getByText('View data table').first().click();
+  await expect(page.getByRole('cell', { name: '₹ 190.00' })).toBeVisible();
+  for (const theme of ['light', 'dark']) {
+    await page.setViewportSize({ width: 320, height: 800 });
+    await page.evaluate((value) => {
+      document.documentElement.dataset['theme'] = value;
+    }, theme);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(
+      true,
+    );
+  }
+});
+
 test('role-specific dashboards and report guards preserve financial and resident privacy', async ({
   browser,
 }) => {
@@ -283,9 +342,21 @@ test('role-specific dashboards and report guards preserve financial and resident
     if (role === 'COMMITTEE_MEMBER') {
       await page.goto('/society/dashboard');
       await expect(page.getByRole('heading', { name: 'Committee dashboard' })).toBeVisible();
-      await expect(page.getByText('Maintenance and collections', { exact: true })).toHaveCount(0);
+      // Members get the society-level charts but no report totals or report links.
+      await expect(page.getByRole('heading', { name: 'Billed vs collected' })).toBeVisible();
+      await expect(page.getByText('Current outstanding', { exact: true })).toHaveCount(0);
+      await expect(page.getByRole('link', { name: 'Open bills' })).toHaveCount(0);
       await expect(page.getByText('Water <script>literal</script>', { exact: true })).toBeVisible();
       await expect(page.locator('se-committee-dashboard script')).toHaveCount(0);
+    }
+    if (role === 'ACCOUNTANT') {
+      // Accountants see only finance: charts and report totals, no community views.
+      await page.goto('/society/dashboard');
+      await expect(page.getByRole('heading', { name: 'Billed vs collected' })).toBeVisible();
+      await expect(page.getByText('Current outstanding', { exact: true })).toBeVisible();
+      await expect(page.getByRole('heading', { name: 'Complaints by status' })).toHaveCount(0);
+      await expect(page.getByRole('heading', { name: 'Flat occupancy' })).toHaveCount(0);
+      await expect(page.getByRole('heading', { name: 'Recent notices' })).toHaveCount(0);
     }
     await page.goto('/society/reports/' + (role === 'ACCOUNTANT' ? 'payments' : 'billing'));
     if (role === 'ACCOUNTANT') {

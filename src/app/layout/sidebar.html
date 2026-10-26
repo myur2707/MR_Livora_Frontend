@@ -24,7 +24,10 @@
           [title]="collapsed() ? item.label : ''"
           (click)="navigated.emit()"
         >
-          <se-icon [name]="item.icon" /><span class="sidebar-label">{{ item.label }}</span>
+          <se-icon [name]="item.icon" />
+          <!-- Long slash labels may wrap after a slash, never mid-word; kept on one line so no spaces creep in. -->
+          <!-- prettier-ignore -->
+          <span class="sidebar-label">@for (part of labelParts(item.label); track $index) {<wbr />{{ part }}}</span>
         </a>
       }
     }

@@ -238,9 +238,24 @@ test('society switch destroys private views, refreshes context and supports no a
   await expect(
     page.locator('.page-heading').getByText('Community 20', { exact: true }),
   ).toBeVisible();
+  const shortcuts = page.getByRole('navigation', { name: 'My community shortcuts' });
+  for (const label of [
+    'My Flats',
+    'My Bills',
+    'Payment History',
+    'My Receipts',
+    'Notices',
+    'My Complaints',
+  ])
+    await expect(shortcuts.getByRole('link', { name: label, exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'My Flats', exact: true }).first().click();
   await expect(page.getByText(/No current authorized flats/)).toBeVisible();
+  await page.goto('/society/resident/notices');
+  // An empty list keeps its table headers so the page structure stays recognisable.
+  await expect(page.getByRole('columnheader', { name: 'Notice', exact: true })).toBeVisible();
+  await expect(page.getByRole('cell', { name: 'No published notices yet.' })).toBeVisible();
   await page.goto('/society/resident/complaints');
+  await page.getByRole('button', { name: 'New complaint', exact: true }).click();
   await expect(
     page.getByText('A current approved flat occupancy is required to submit a complaint.'),
   ).toBeVisible();
@@ -282,6 +297,8 @@ test('complaint validation is associated with fields and submit uses authorized 
 }) => {
   await portal(page);
   await page.goto('/society/resident/complaints');
+  await expect(page.getByRole('columnheader', { name: 'Status' })).toBeVisible();
+  await page.getByRole('button', { name: 'New complaint', exact: true }).click();
   await page.getByRole('button', { name: 'Send complaint', exact: true }).click();
   await expect(page.getByLabel('Title', { exact: false })).toHaveAttribute('aria-invalid', 'true');
   await page.getByLabel('Your flat', { exact: false }).selectOption('101');

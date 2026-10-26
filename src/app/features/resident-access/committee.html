@@ -73,9 +73,12 @@
                     <se-badge tone="warning">Existing member · {{ homeSummary(member) }}</se-badge>
                   }
                 </th>
-                <td>{{ row.buildingCode }} / {{ row.flatNumber }} · {{ row.occupancyType }}</td>
                 <td>
-                  <se-badge>{{ row.status }}</se-badge>
+                  {{ row.buildingCode | label: 'code' }} / {{ row.flatNumber }} ·
+                  {{ row.occupancyType | label }}
+                </td>
+                <td>
+                  <se-badge>{{ row.status | label }}</se-badge>
                   @if (row.reviewedAt) {
                     <p>{{ row.reviewedAt | date: 'medium' }}</p>
                   }
@@ -144,8 +147,8 @@
                   <p>{{ row.email }}</p>
                 </th>
                 <td>
-                  <se-badge>{{ row.status }}</se-badge>
-                  <p>{{ row.deliveryStatus }}</p>
+                  <se-badge>{{ row.status | label }}</se-badge>
+                  <p>{{ row.deliveryStatus | label }}</p>
                 </td>
                 <td>{{ row.expiresAt | date: 'medium' }}</td>
                 <td>
@@ -222,12 +225,15 @@
       <strong>{{ row.displayName }}</strong> · {{ row.email }} ·
       {{ row.contactPhone || 'No phone supplied' }}
     </p>
-    <p>Claim: {{ row.buildingCode }} / {{ row.flatNumber }} · {{ row.occupancyType }}</p>
+    <p>
+      Claim: {{ row.buildingCode | label: 'code' }} / {{ row.flatNumber }} ·
+      {{ row.occupancyType | label }}
+    </p>
     <p>{{ row.note || 'No applicant note' }}</p>
     @if (row.existingMember; as member) {
       <section class="existing-member" aria-labelledby="existing-member-title">
         <p id="existing-member-title" class="existing-member-title">
-          <se-icon name="info" />Already a member of this community ({{ member.status }})
+          <se-icon name="info" />Already a member of this community ({{ member.status | label }})
         </p>
         <p>
           This request is for an additional home. Approving adds it to their existing membership; no
@@ -298,7 +304,7 @@
       <se-field controlId="approve-type" label="Approved occupancy"
         ><select seSelect name="type" [(ngModel)]="occupancyType">
           @for (type of types; track type) {
-            <option [value]="type">{{ type }}</option>
+            <option [value]="type">{{ type | label }}</option>
           }
         </select></se-field
       >
@@ -321,7 +327,7 @@
               <option value="">Select a matching occupancy</option>
               @for (o of matchingOccupancies(); track o.id) {
                 <option [value]="o.id">
-                  {{ o.displayName }} · {{ o.occupancyType }} · {{ o.startsOn }}
+                  {{ o.displayName }} · {{ o.occupancyType | label }} · {{ o.startsOn }}
                 </option>
               }
             </select></se-field

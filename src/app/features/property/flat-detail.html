@@ -3,7 +3,7 @@
     <p class="eyebrow">FLAT RECORD</p>
     <h1 tabindex="-1">
       @if (flat(); as row) {
-        {{ row.buildingCode }} / {{ row.flatNumber }}
+        {{ row.buildingCode | label: 'code' }} / {{ row.flatNumber }}
       } @else {
         Flat details
       }
@@ -68,7 +68,7 @@
                 @for (occupancy of data.items; track occupancy.id) {
                   <tr>
                     <th scope="row">{{ occupancy.displayName }}</th>
-                    <td>{{ occupancy.occupancyType.replaceAll('_', ' ') }}</td>
+                    <td>{{ occupancy.occupancyType | label }}</td>
                     <td>{{ occupancy.startsOn }}</td>
                     <td>{{ occupancy.endsOn ?? 'Ongoing' }}</td>
                     <td>
@@ -128,7 +128,7 @@
       <se-field controlId="occupancy-type" label="Occupancy type" [required]="true"
         ><select seSelect name="type" [(ngModel)]="occupancyType" required>
           @for (type of types; track type) {
-            <option [value]="type">{{ type.replaceAll('_', ' ') }}</option>
+            <option [value]="type">{{ type | label }}</option>
           }
         </select></se-field
       >

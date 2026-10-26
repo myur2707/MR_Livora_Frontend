@@ -10,9 +10,11 @@ import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../sha
 import { TableDirective } from '../../shared/table';
 import { DialogComponent } from '../../shared/dialog';
 import { PaginationComponent } from '../../shared/pagination';
+import { LabelPipe } from '../../shared/label';
 @Component({
   selector: 'se-property-imports',
   imports: [
+    LabelPipe,
     FormsModule,
     ButtonDirective,
     CardComponent,

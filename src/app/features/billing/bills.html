@@ -9,11 +9,13 @@
 }
 @if (bill(); as detail) {
   <section class="billing-preview">
-    <h2>{{ detail.billNumber }} · {{ detail.buildingCode }} / {{ detail.flatNumber }}</h2>
+    <h2>
+      {{ detail.billNumber }} · {{ detail.buildingCode | label: 'code' }} / {{ detail.flatNumber }}
+    </h2>
     <p>
       {{ detail.periodCode }} · {{ detail.startsOn }} – {{ detail.endsOn }} · Due {{ detail.dueOn }}
     </p>
-    <p>{{ detail.status }} / {{ detail.settlementStatus }}</p>
+    <p>{{ detail.status | label }} / {{ detail.settlementStatus | label }}</p>
     <dl class="billing-totals">
       <dt>Gross charges</dt>
       <dd>{{ detail.gross }}</dd>
@@ -105,12 +107,12 @@
               <td>
                 <a [routerLink]="['/society/billing/bills', row.id]">{{ row.billNumber }}</a>
               </td>
-              <td>{{ row.buildingCode }} / {{ row.flatNumber }}</td>
+              <td>{{ row.buildingCode | label: 'code' }} / {{ row.flatNumber }}</td>
               <td>{{ row.periodCode }}</td>
               <td>{{ row.net }}</td>
               <td>{{ row.paid }}</td>
               <td>{{ row.outstanding }}</td>
-              <td>{{ row.settlementStatus }}</td>
+              <td>{{ row.settlementStatus | label }}</td>
             </tr>
           } @empty {
             <tr>

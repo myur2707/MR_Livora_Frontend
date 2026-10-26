@@ -103,7 +103,7 @@
     }
     @for (discount of discounts; track discount.flatId) {
       <p>
-        {{ flatLabel(discount.flatId) }}: {{ discount.kind }} {{ discount.value }} —
+        {{ flatLabel(discount.flatId) }}: {{ discount.kind | label }} {{ discount.value }} —
         {{ discount.reason }}
         <button
           seButton
@@ -119,7 +119,7 @@
   </fieldset>
   @if (preview(); as plan) {
     <section class="billing-preview" aria-label="Bill preview">
-      <h2>Review {{ plan.period.code }}</h2>
+      <h2>Review {{ plan.period.code | label: 'code' }}</h2>
       <p>
         New charges: {{ plan.gross }} · Discounts: {{ plan.discount }} · New amount due:
         {{ plan.net }}
@@ -127,7 +127,10 @@
       <p>Previous outstanding is informational. It is not added to these bills.</p>
       @for (flat of plan.flats; track flat.flatId) {
         <article class="billing-flat-preview">
-          <h3>{{ flat.buildingCode }} / {{ flat.flatNumber }} — {{ flat.status }}</h3>
+          <h3>
+            {{ flat.buildingCode | label: 'code' }} / {{ flat.flatNumber }} —
+            {{ flat.status | label }}
+          </h3>
           <p>
             Gross {{ flat.gross }} · Discount {{ flat.discount }} · Net {{ flat.net }} · Previous
             outstanding {{ flat.previousOutstanding }}

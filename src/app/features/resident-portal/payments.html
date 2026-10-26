@@ -15,9 +15,12 @@
 @if (detail.value(); as payment) {
   <article class="payment-receipt" aria-label="My printable receipt">
     <h2>Receipt {{ payment.receiptNumber }}</h2>
-    <p>{{ payment.societyName }} · {{ payment.buildingCode }} / {{ payment.flatNumber }}</p>
+    <p>
+      {{ payment.societyName }} · {{ payment.buildingCode | label: 'code' }} /
+      {{ payment.flatNumber }}
+    </p>
     <p>Payer: {{ payment.payerName }}</p>
-    <p>{{ payment.paymentDate }} · {{ payment.method }} · {{ payment.status }}</p>
+    <p>{{ payment.paymentDate }} · {{ payment.method | label }} · {{ payment.status | label }}</p>
     @if (payment.reference) {
       <p>Reference: {{ payment.reference }}</p>
     }
@@ -51,7 +54,10 @@
       </table>
     </div>
     @for (refund of payment.refunds; track $index) {
-      <p>Refund recorded: {{ money(refund.amount) }} · {{ refund.date }} · {{ refund.method }}</p>
+      <p>
+        Refund recorded: {{ money(refund.amount) }} · {{ refund.date }} ·
+        {{ refund.method | label }}
+      </p>
     }
     <p>
       This receipt records collection by your society. A reversed or refunded entry remains part of
@@ -77,10 +83,10 @@
         @for (payment of data.items; track payment.id) {
           <tr>
             <td>{{ payment.paymentDate }}</td>
-            <td>{{ payment.buildingCode }} / {{ payment.flatNumber }}</td>
-            <td>{{ payment.method }}</td>
+            <td>{{ payment.buildingCode | label: 'code' }} / {{ payment.flatNumber }}</td>
+            <td>{{ payment.method | label }}</td>
             <td>{{ money(payment.amount) }}</td>
-            <td>{{ payment.status }}</td>
+            <td>{{ payment.status | label }}</td>
             <td>
               @if (payment.receiptNumber) {
                 <a [routerLink]="['/society/resident/payments', payment.id, 'receipt']">{{

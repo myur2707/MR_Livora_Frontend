@@ -13,9 +13,11 @@ import { DialogComponent } from '../../shared/dialog';
 import { PaginationComponent } from '../../shared/pagination';
 import { StateComponent } from '../../shared/state';
 import { ResourcePicker } from './picker';
+import { LabelPipe } from '../../shared/label';
 @Component({
   selector: 'se-flat-detail',
   imports: [
+    LabelPipe,
     FormsModule,
     RouterLink,
     ButtonDirective,

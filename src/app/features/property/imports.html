@@ -66,8 +66,8 @@
 @if (batch(); as current) {
   <se-card title="Import review"
     ><p aria-live="polite">
-      {{ current.status }} · {{ current.totalRows }} rows · {{ current.errorRows }} rows with errors
-      · {{ current.warningRows }} rows with warnings
+      {{ current.status | label }} · {{ current.totalRows }} rows · {{ current.errorRows }} rows
+      with errors · {{ current.warningRows }} rows with warnings
     </p>
     @if (current.status === 'REVIEW') {
       @if (needsPreview()) {
@@ -121,7 +121,7 @@
                   <td>
                     @for (issue of row.errors; track $index) {
                       <p class="field-error">
-                        {{ issue.field }}: {{ issue.message }} ({{ issue.code }})
+                        {{ issue.field }}: {{ issue.message }} ({{ issue.code | label }})
                       </p>
                     }
                     @for (issue of row.warnings; track $index) {
@@ -191,7 +191,7 @@
           @for (item of data.items; track item.id) {
             <tr>
               <th scope="row">{{ item.importType }} #{{ item.id }}</th>
-              <td>{{ item.status }}</td>
+              <td>{{ item.status | label }}</td>
               <td>{{ item.totalRows }}</td>
               <td>
                 <button

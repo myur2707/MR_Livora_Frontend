@@ -22,6 +22,7 @@ import { DialogComponent } from '../../shared/dialog';
 import { StateComponent } from '../../shared/state';
 import { IconComponent } from '../../shared/icon';
 import { ToastService } from '../../shared/toast';
+import { LabelPipe } from '../../shared/label';
 type ReviewPage = Page<RegistrationRequest> & { today: string };
 type Confirmation =
   | { action: 'resend' | 'revoke'; invitation: ResidentInvitation }
@@ -29,6 +30,7 @@ type Confirmation =
 @Component({
   selector: 'se-resident-access-committee',
   imports: [
+    LabelPipe,
     FormsModule,
     DatePipe,
     ResourcePicker,

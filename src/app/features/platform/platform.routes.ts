@@ -9,13 +9,13 @@ export const PLATFORM_ROUTES: Routes = [
   },
   {
     path: 'societies',
-    title: 'Societies or Flats or Townships · Mr. Livora',
-    data: { breadcrumb: 'Societies or Flats or Townships' },
+    title: 'Societies/Flats/Townships · Mr. Livora',
+    data: { breadcrumb: 'Societies/Flats/Townships' },
     loadComponent: () => import('./societies').then((m) => m.SocietiesComponent),
   },
   {
     path: 'societies/:id',
-    title: 'Society or Flat or Township onboarding · Mr. Livora',
+    title: 'Society/Flat/Township onboarding · Mr. Livora',
     data: { breadcrumb: 'Onboarding', scope: 'platform' },
     loadComponent: () => import('../onboarding/wizard').then((m) => m.OnboardingWizardComponent),
   },

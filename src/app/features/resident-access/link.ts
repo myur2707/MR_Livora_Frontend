@@ -10,9 +10,11 @@ import { ButtonDirective } from '../../shared/button';
 import { CardComponent } from '../../shared/card';
 import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../shared/field';
 import { IconComponent } from '../../shared/icon';
+import { PasswordToggleDirective } from '../../shared/password-toggle';
 @Component({
   selector: 'se-resident-link',
   imports: [
+    PasswordToggleDirective,
     FormsModule,
     RouterLink,
     DatePipe,

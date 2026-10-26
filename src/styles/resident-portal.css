@@ -17,11 +17,60 @@
   margin-block: var(--space-4);
   overflow-wrap: anywhere;
 }
-.resident-links {
-  display: flex;
-  flex-wrap: wrap;
+.resident-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
   gap: var(--space-3);
   margin-block: var(--space-6);
+}
+.resident-shortcut {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 60px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  color: var(--text);
+  font-weight: 650;
+  text-decoration: none;
+  transition:
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+.resident-shortcut:hover {
+  border-color: var(--brand);
+  transform: translateY(-1px);
+}
+.resident-shortcut:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+.resident-shortcut-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-soft);
+  color: var(--brand);
+}
+.resident-shortcut-icon .icon {
+  width: 18px;
+  height: 18px;
+}
+.resident-shortcut-label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.resident-shortcut-arrow {
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
 }
 .resident-section {
   display: grid;
@@ -54,12 +103,36 @@
   overflow-wrap: anywhere;
   min-width: 0;
 }
-.resident-filter {
+/* Filter toolbars: one glass panel whose controls and submit button share a baseline. */
+.resident-filter,
+.payment-filters {
   display: flex;
   flex-wrap: wrap;
   align-items: end;
-  gap: var(--space-3);
-  margin-bottom: var(--space-4);
+  gap: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+}
+:is(.resident-filter, .payment-filters, .property-filters) .field {
+  flex: 1 1 12rem;
+  max-width: 22rem;
+  min-width: 0;
+  margin-bottom: 0;
+}
+:is(.resident-filter, .payment-filters, .property-filters) > .button {
+  flex: 0 0 auto;
+  height: var(--control-height);
+}
+.table-summary {
+  max-width: 28rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .society-switcher {
   display: flex;
@@ -97,4 +170,34 @@
   .header-actions .header-divider {
     display: none;
   }
+}
+/* Shown when the resident context disappears; a centred card keeps it readable in either shell. */
+.access-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  width: min(100%, 560px);
+  margin: clamp(24px, 8vh, 72px) auto;
+  padding: var(--space-10) var(--space-6);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+  text-align: center;
+}
+.access-state h1 {
+  font-size: clamp(22px, 3vw, 28px);
+}
+.access-state p {
+  max-width: 420px;
+  color: var(--muted);
+}
+.access-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
 }

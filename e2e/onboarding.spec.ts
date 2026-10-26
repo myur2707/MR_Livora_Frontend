@@ -128,6 +128,25 @@ test('committee wizard requires review and explicit activation; stale server con
   page,
 }) => {
   let detail = structuredClone(setup);
+  detail.code = 'SOC-00007';
+  detail.events = [
+    {
+      id: '2',
+      actorUserId: '1',
+      action: 'society.status_changed',
+      fromStatus: 'DRAFT',
+      toStatus: 'SETUP_IN_PROGRESS',
+      createdAt: '2026-10-02T00:00:00Z',
+    },
+    {
+      id: '1',
+      actorUserId: '1',
+      action: 'society.created',
+      fromStatus: null,
+      toStatus: 'DRAFT',
+      createdAt: '2026-10-01T00:00:00Z',
+    },
+  ];
   let posts = 0;
   await page.route('**/api/v1/**', async (route) => {
     const path = new URL(route.request().url()).pathname;
@@ -201,8 +220,17 @@ test('committee wizard requires review and explicit activation; stale server con
   });
   await page.goto('/onboarding/societies/10');
   await expect(
-    page.getByRole('heading', { name: 'Society or Flat or Township onboarding', exact: true }),
+    page.getByRole('heading', { name: 'Society/Flat/Township onboarding', exact: true }),
   ).toBeVisible();
+  // Type comes from the code prefix; history stays collapsed until asked for, in sentence case.
+  await expect(page.locator('.setup-facts')).toContainText(/Type\s*Society/);
+  const history = page.getByRole('button', { name: /Show setup history \(2\)/ });
+  await expect(page.getByText('Society created', { exact: true })).toHaveCount(0);
+  await history.click();
+  await expect(page.getByText('Society status changed', { exact: true })).toBeVisible();
+  await expect(page.getByText('Society created', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /Hide setup history/ }).click();
+  await expect(page.getByText('Society created', { exact: true })).toHaveCount(0);
   for (const button of await page.locator('.wizard-steps button').all()) {
     await button.click();
     expect(
@@ -310,7 +338,19 @@ test('invitation token stays in memory and new account acceptance validates matc
   });
   await page.goto('/accept-invitation#token=' + token);
   await expect(page).toHaveURL(/\/accept-invitation$/);
-  await page.getByLabel('Password', { exact: false }).first().fill('Synthetic invitation password');
+  // On phones the footer follows the form instead of being pinned over it while scrolling.
+  await page.setViewportSize({ width: 390, height: 700 });
+  const footer = page.locator('.app-footer');
+  await expect(footer).toBeVisible();
+  expect(await footer.evaluate((element) => getComputedStyle(element).position)).toBe('static');
+  const confirmBox = await page.getByLabel('Confirm password').boundingBox();
+  const footerBox = await footer.boundingBox();
+  expect((footerBox?.y ?? 0) >= (confirmBox?.y ?? 0) + (confirmBox?.height ?? 0)).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page
+    .getByLabel(/^Password/)
+    .first()
+    .fill('Synthetic invitation password');
   await page.getByLabel('Confirm password').fill('Different invitation password');
   await page.getByRole('button', { name: 'Accept Committee Admin invitation' }).click();
   await expect(page.getByRole('alert').filter({ hasText: 'matching passwords' })).toBeVisible();
@@ -350,7 +390,7 @@ test('wing range preview creates separate flat lists and rejects invalid plans',
   });
   await page.goto('/platform/societies/10');
   await expect(
-    page.getByRole('heading', { name: 'Society or Flat or Township onboarding', exact: true }),
+    page.getByRole('heading', { name: 'Society/Flat/Township onboarding', exact: true }),
   ).toBeVisible();
   await page.getByRole('button', { name: /3\s*Buildings/ }).click();
   await expect(page.locator('#wing-options option')).toHaveCount(4);

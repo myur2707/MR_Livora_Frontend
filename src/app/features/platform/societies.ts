@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import type { OnInit } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -15,12 +16,16 @@ import { TableDirective } from '../../shared/table';
 import { PaginationComponent } from '../../shared/pagination';
 import { StateComponent } from '../../shared/state';
 import { DialogComponent } from '../../shared/dialog';
+import { COMMUNITY_TYPES, communityFieldText } from './community-type';
+import type { CommunityType } from './community-type';
+import { LabelPipe } from '../../shared/label';
 
 const defaultSocietyTimezone = 'Asia/Kolkata';
 
 @Component({
   selector: 'se-societies',
   imports: [
+    LabelPipe,
     ReactiveFormsModule,
     RouterLink,
     ButtonDirective,
@@ -50,7 +55,15 @@ export class SocietiesComponent implements OnInit {
   protected readonly showCreate = signal(false);
   protected status = '';
   protected readonly searchControl = this.fb.nonNullable.control('', Validators.maxLength(80));
+  protected readonly communityTypes = COMMUNITY_TYPES;
+  protected readonly suggesting = signal(false);
+  /** Field wording follows the chosen type ("Society code", "Enter the Flat name."). */
+  protected readonly fieldText = signal(communityFieldText('SOC'));
+  /** True once the admin types their own code; type changes then stop replacing it. */
+  private codeEdited = false;
+  private suggestion = 0;
   protected readonly form = this.fb.nonNullable.group({
+    type: this.fb.nonNullable.control<CommunityType>('SOC'),
     code: [
       '',
       [
@@ -95,7 +108,35 @@ export class SocietiesComponent implements OnInit {
   }
   protected openCreate(): void {
     this.createError.set(null);
+    this.form.reset();
+    this.fieldText.set(communityFieldText(this.form.controls.type.value));
+    this.codeEdited = false;
     this.showCreate.set(true);
+    void this.suggestCode();
+  }
+  protected codeTyped(): void {
+    this.codeEdited = true;
+  }
+  protected typeChanged(): void {
+    this.fieldText.set(communityFieldText(this.form.controls.type.value));
+    if (!this.codeEdited) void this.suggestCode();
+  }
+  /** Fills the next free code for the chosen type; a late answer for an older type is ignored. */
+  protected async suggestCode(): Promise<void> {
+    const sequence = ++this.suggestion;
+    const type = this.form.controls.type.value;
+    this.suggesting.set(true);
+    try {
+      const result = await this.api.get<{ code: string }>(
+        '/platform/societies/next-code?type=' + type,
+      );
+      if (sequence === this.suggestion && !this.codeEdited)
+        this.form.controls.code.setValue(result.code);
+    } catch (error) {
+      if (sequence === this.suggestion) this.createError.set(onboardingError(error));
+    } finally {
+      if (sequence === this.suggestion) this.suggesting.set(false);
+    }
   }
   protected closeCreate(): void {
     if (this.busy()) return;
@@ -108,15 +149,33 @@ export class SocietiesComponent implements OnInit {
     this.busy.set(true);
     this.createError.set(null);
     try {
+      const { code, name } = this.form.getRawValue();
       const result = await this.api.post<{ id: string }>('/platform/societies', {
-        ...this.form.getRawValue(),
+        code,
+        name,
         timezone: defaultSocietyTimezone,
       });
       await this.router.navigate(['/platform/societies', result.id]);
     } catch (error) {
-      this.createError.set(onboardingError(error));
+      if (codeTaken(error) && !this.codeEdited) {
+        // Someone else took this number first; offer the next free one instead of failing.
+        await this.suggestCode();
+        this.createError.set(
+          'That code was just used. The next free code is filled in; try again.',
+        );
+      } else this.createError.set(onboardingError(error));
     } finally {
       this.busy.set(false);
     }
   }
+}
+
+function codeTaken(error: unknown): boolean {
+  return (
+    error instanceof HttpErrorResponse &&
+    error.status === 409 &&
+    typeof error.error === 'object' &&
+    error.error !== null &&
+    (error.error as { error?: { code?: unknown } }).error?.code === 'CODE_TAKEN'
+  );
 }

@@ -241,3 +241,21 @@ test('header hides while scrolling down and returns on scroll up', async ({ page
   await page.getByRole('link', { name: 'Mr. Livora home' }).focus();
   await expect(page.locator('.public-header')).toBeInViewport();
 });
+
+test('footer lists the founders, full copyright and returns to the top', async ({ page }) => {
+  await page.goto('/about');
+  const footer = page.locator('.public-footer');
+  await expect(footer.getByRole('link', { name: 'Call Mayur Panchal, Founder' })).toHaveAttribute(
+    'href',
+    'tel:+919157379787',
+  );
+  await expect(
+    footer.getByRole('link', { name: 'Call Manan Panchal, Co-founder' }),
+  ).toHaveAttribute('href', 'tel:+918866384461');
+  await expect(footer).toContainText('All rights reserved.');
+  await expect(footer).toContainText('Better communities begin with better connections.');
+  await expect(footer).toContainText('Live in a Better Aura');
+  await footer.getByRole('button', { name: /Back to top/ }).scrollIntoViewIfNeeded();
+  await footer.getByRole('button', { name: /Back to top/ }).click();
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
+});

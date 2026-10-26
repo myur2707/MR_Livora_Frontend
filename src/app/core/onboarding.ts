@@ -93,6 +93,7 @@ export function displaySocietyTime(value: string, timezone: string): string {
   }).format(new Date(value));
 }
 const onboardingErrorMessages: Readonly<Record<string, string>> = {
+  CODE_TAKEN: 'This code is already in use. Choose another code.',
   REVISION_CONFLICT: 'The setup changed or conflicts with existing data. Refresh and try again.',
   CONFLICT: 'The setup changed or conflicts with existing data. Refresh and try again.',
   SETUP_INCOMPLETE: 'Complete all required setup sections before verification.',

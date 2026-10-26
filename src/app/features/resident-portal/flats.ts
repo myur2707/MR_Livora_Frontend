@@ -8,9 +8,10 @@ import { CardComponent } from '../../shared/card';
 import { PaginationComponent } from '../../shared/pagination';
 import { FormNoticeComponent } from '../../shared/field';
 import { ResidentView } from './view';
+import { LabelPipe } from '../../shared/label';
 @Component({
   selector: 'se-resident-flats',
-  imports: [RouterLink, CardComponent, PaginationComponent, FormNoticeComponent],
+  imports: [LabelPipe, RouterLink, CardComponent, PaginationComponent, FormNoticeComponent],
   templateUrl: './flats.html',
 })
 export class ResidentFlatsPage {

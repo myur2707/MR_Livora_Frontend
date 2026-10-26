@@ -20,16 +20,15 @@
       }}
     </p>
   </div>
+  @if (!notices && !id) {
+    <button seButton type="button" (click)="openComposer()">
+      <se-icon name="filePlus" />New complaint
+    </button>
+  }
 </header>
 <se-form-notice
   [message]="
-    feed.error() ||
-    requests.error() ||
-    notice.error() ||
-    complaint.error() ||
-    history.error() ||
-    flats.error() ||
-    submitError()
+    feed.error() || requests.error() || notice.error() || complaint.error() || history.error()
   "
 />
 @if (feed.loading() || requests.loading() || notice.loading() || complaint.loading()) {
@@ -49,7 +48,10 @@
 @if (complaint.value(); as item) {
   <se-card
     ><h2>{{ item.title }}</h2>
-    <p>{{ item.category }} · {{ item.status }} · {{ item.buildingCode }} / {{ item.flatNumber }}</p>
+    <p>
+      {{ item.category | label }} · {{ item.status | label }} ·
+      {{ item.buildingCode | label: 'code' }} / {{ item.flatNumber }}
+    </p>
     <p>
       {{ item.createdAt }}
       @if (item.resolvedAt) {
@@ -64,7 +66,7 @@
       <h2>Status history</h2>
       @for (entry of data.items; track entry.id) {
         <se-card
-          ><h3>{{ entry.fromStatus ?? 'Submitted' }} → {{ entry.toStatus }}</h3>
+          ><h3>{{ (entry.fromStatus | label) || 'Submitted' }} → {{ entry.toStatus | label }}</h3>
           <p>{{ entry.createdAt }}</p>
           <p class="resident-text">{{ entry.note }}</p></se-card
         >
@@ -81,18 +83,31 @@
   }
 }
 @if (feed.value(); as data) {
-  <div class="resident-section">
-    @for (item of data.items; track item.id) {
-      <se-card
-        ><h2>
-          <a [routerLink]="['/society/resident/notices', item.id]">{{ item.title }}</a>
-        </h2>
-        <p>{{ item.publishedAt }}</p>
-        <p class="resident-text">{{ item.body }}</p></se-card
-      >
-    } @empty {
-      <p>No published notices yet.</p>
-    }
+  <div class="table-scroll" role="region" aria-label="Notice list scroll area" tabindex="0">
+    <table seTable aria-label="Published notices">
+      <thead>
+        <tr>
+          <th scope="col">Notice</th>
+          <th scope="col">Published</th>
+          <th scope="col">Summary</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of data.items; track item.id) {
+          <tr>
+            <td>
+              <a [routerLink]="['/society/resident/notices', item.id]">{{ item.title }}</a>
+            </td>
+            <td>{{ item.publishedAt | date: 'mediumDate' }}</td>
+            <td class="table-summary">{{ item.body }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="3">No published notices yet.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
   </div>
   <se-pagination
     [page]="data.page"
@@ -102,18 +117,38 @@
   />
 }
 @if (requests.value(); as data) {
-  <section class="resident-section" aria-label="My complaint history">
-    @for (item of data.items; track item.id) {
-      <se-card
-        ><h2>
-          <a [routerLink]="['/society/resident/complaints', item.id]">{{ item.title }}</a>
-        </h2>
-        <p>{{ item.status }} · {{ item.buildingCode }} / {{ item.flatNumber }}</p></se-card
-      >
-    } @empty {
-      <p>You have no complaints yet.</p>
-    }
-  </section>
+  <div class="table-scroll" role="region" aria-label="Complaint list scroll area" tabindex="0">
+    <table seTable aria-label="My complaint history">
+      <thead>
+        <tr>
+          <th scope="col">Complaint</th>
+          <th scope="col">Category</th>
+          <th scope="col">Flat</th>
+          <th scope="col">Status</th>
+          <th scope="col">Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (item of data.items; track item.id) {
+          <tr>
+            <td>
+              <a [routerLink]="['/society/resident/complaints', item.id]">{{ item.title }}</a>
+            </td>
+            <td>{{ item.category | label }}</td>
+            <td>{{ item.buildingCode | label: 'code' }} / {{ item.flatNumber }}</td>
+            <td>
+              <se-badge [tone]="tone(item.status)">{{ item.status | label }}</se-badge>
+            </td>
+            <td>{{ item.createdAt | date: 'mediumDate' }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="5">You have no complaints yet. Use New complaint to send one.</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
   <se-pagination
     [page]="data.page"
     [pageSize]="data.pageSize"
@@ -121,77 +156,103 @@
     (pageSelected)="load($event)"
   />
 }
-@if (!notices && !id && flats.value(); as data) {
-  <section class="resident-section" aria-label="Submit a complaint">
-    <h2>Send a complaint</h2>
-    @if (data.total) {
-      <form class="payment-form" novalidate (ngSubmit)="submit()">
-        <se-field controlId="resident-complaint-category" label="Category" [required]="true"
-          ><select seSelect name="category" [(ngModel)]="category" required [disabled]="saving()">
-            @for (value of categories; track value) {
-              <option [value]="value">{{ value }}</option>
-            }
-          </select></se-field
-        >
-        <se-field
-          controlId="resident-complaint-flat"
-          label="Your flat"
-          [required]="true"
-          [error]="error('flat')"
-          ><select
-            seSelect
-            name="flat"
-            [(ngModel)]="flatId"
-            required
-            [disabled]="saving() || flats.loading()"
-          >
-            <option value="">Choose your flat</option>
-            @for (flat of data.items; track flat.id) {
-              <option [value]="flat.id">{{ flat.buildingCode }} / {{ flat.flatNumber }}</option>
-            }
-          </select></se-field
-        >
-        <se-pagination
-          [page]="data.page"
-          [pageSize]="data.pageSize"
-          [total]="data.total"
-          (pageSelected)="loadFlats($event)"
-        />
-        <se-field
-          controlId="resident-complaint-title"
-          label="Title"
-          [required]="true"
-          [error]="error('title')"
-          ><input
-            seInput
-            name="title"
-            [(ngModel)]="title"
-            required
-            maxlength="200"
-            [disabled]="saving()"
-        /></se-field>
-        <se-field
-          controlId="resident-complaint-description"
-          label="Description"
-          [required]="true"
-          [error]="error('description')"
-        >
-          <textarea
-            seInput
-            name="description"
-            [(ngModel)]="description"
-            required
-            maxlength="4000"
-            rows="5"
-            [disabled]="saving()"
-          ></textarea>
-        </se-field>
-        <button seButton type="submit" [disabled]="saving()">
-          {{ saving() ? 'Sending…' : 'Send complaint' }}
-        </button>
-      </form>
-    } @else {
-      <p>A current approved flat occupancy is required to submit a complaint.</p>
+@if (!notices && !id) {
+  <se-dialog
+    title="New complaint"
+    [open]="composing()"
+    (closed)="!saving() && composing.set(false)"
+  >
+    <p class="dialog-description">
+      Only the committee and you can see this complaint and its updates.
+    </p>
+    <se-form-notice [message]="flats.error() || submitError()" />
+    @if (flats.loading()) {
+      <p role="status">Loading your flats…</p>
     }
-  </section>
+    @if (flats.value(); as data) {
+      @if (data.total) {
+        <form class="onboarding-form" novalidate (ngSubmit)="submit()">
+          <se-field controlId="resident-complaint-category" label="Category" [required]="true"
+            ><select seSelect name="category" [(ngModel)]="category" required [disabled]="saving()">
+              @for (value of categories; track value) {
+                <option [value]="value">{{ value | label }}</option>
+              }
+            </select></se-field
+          >
+          <se-field
+            controlId="resident-complaint-flat"
+            label="Your flat"
+            [required]="true"
+            [error]="error('flat')"
+            ><select
+              seSelect
+              name="flat"
+              [(ngModel)]="flatId"
+              required
+              [disabled]="saving() || flats.loading()"
+            >
+              <option value="">Choose your flat</option>
+              @for (flat of data.items; track flat.id) {
+                <option [value]="flat.id">
+                  {{ flat.buildingCode | label: 'code' }} / {{ flat.flatNumber }}
+                </option>
+              }
+            </select></se-field
+          >
+          @if (data.total > data.pageSize) {
+            <se-pagination
+              [page]="data.page"
+              [pageSize]="data.pageSize"
+              [total]="data.total"
+              (pageSelected)="loadFlats($event)"
+            />
+          }
+          <se-field
+            controlId="resident-complaint-title"
+            label="Title"
+            [required]="true"
+            [error]="error('title')"
+            ><input
+              seInput
+              name="title"
+              [(ngModel)]="title"
+              required
+              maxlength="200"
+              [disabled]="saving()"
+          /></se-field>
+          <se-field
+            controlId="resident-complaint-description"
+            label="Description"
+            [required]="true"
+            [error]="error('description')"
+          >
+            <textarea
+              seInput
+              name="description"
+              [(ngModel)]="description"
+              required
+              maxlength="4000"
+              rows="5"
+              [disabled]="saving()"
+            ></textarea>
+          </se-field>
+          <div class="dialog-actions">
+            <button
+              seButton
+              variant="secondary"
+              type="button"
+              [disabled]="saving()"
+              (click)="composing.set(false)"
+            >
+              Cancel</button
+            ><button seButton type="submit" [disabled]="saving()">
+              {{ saving() ? 'Sending…' : 'Send complaint' }}
+            </button>
+          </div>
+        </form>
+      } @else {
+        <p>A current approved flat occupancy is required to submit a complaint.</p>
+      }
+    }
+  </se-dialog>
 }

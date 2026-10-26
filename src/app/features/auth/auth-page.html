@@ -3,14 +3,18 @@
   <se-public-header />
   <main id="auth-content" tabindex="-1" class="auth-main">
     <section class="auth-story" aria-labelledby="auth-story-title">
-      <p class="eyebrow">Mr. Livora</p>
-      <h2 id="auth-story-title">A smarter way<br />to live <em>together.</em></h2>
-      <img src="/assets/brand/community.svg" alt="" width="520" height="300" />
-      <p>One thoughtful space. A stronger sense of belonging.</p>
+      <se-auth-ambient />
+      <p class="eyebrow">Smart society living</p>
+      <h2 id="auth-story-title">Your community,<br /><em>beautifully</em> connected.</h2>
+      <p class="auth-story-lead">
+        Bills, receipts, notices and complaints — one calm, secure place for every home.
+      </p>
+      <se-auth-scene />
       @if (mode === 'login') {
         <div class="auth-story-highlights" aria-label="Platform benefits">
-          <span><se-icon name="shield" /> Secure access</span>
-          <span><se-icon name="home" /> One community</span>
+          <span><se-icon name="shield" /> Secure sign-in</span>
+          <span><se-icon name="people" /> Committee verified</span>
+          <span><se-icon name="grid" /> Any device</span>
         </div>
       }
     </section>
@@ -22,7 +26,7 @@
       <p class="auth-subtitle">
         {{
           mode === 'login'
-            ? 'Sign in to your community workspace.'
+            ? 'Sign in to pick up right where your community left off.'
             : mode === 'forgot'
               ? 'Enter your email to request a password reset link.'
               : 'Choose a password with at least 15 characters.'

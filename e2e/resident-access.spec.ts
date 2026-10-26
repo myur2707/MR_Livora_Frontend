@@ -309,10 +309,10 @@ test('pending user can request another society and cancel; committee routes rema
   await expect(
     page.getByRole('status').filter({ hasText: 'No society or flat access' }),
   ).toBeVisible();
-  await expect(page.getByText('PENDING', { exact: true })).toBeVisible();
+  await expect(page.getByRole('table').getByText('Pending', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Cancel request' }).click();
   await page.getByRole('button', { name: 'Confirm cancellation' }).click();
-  await expect(page.getByText('CANCELLED', { exact: true })).toBeVisible();
+  await expect(page.getByRole('table').getByText('Cancelled', { exact: true })).toBeVisible();
   await page.goto('/society/resident-access');
   await expect(page).toHaveURL(/\/workspace$/);
 });

@@ -1,3 +1,4 @@
+import { friendlyLabel } from '../../shared/label';
 import { Component, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService, authErrorMessage } from '../../core/auth';
@@ -34,14 +35,12 @@ import { StateComponent } from '../../shared/state';
           <div>
             <p class="eyebrow">PLATFORM ADMIN</p>
             <h2 id="platform-workspace-title">Platform workspace</h2>
-            <p>
-              Manage societies or flats or townships, review onboarding, and track setup progress.
-            </p>
+            <p>Manage Societies/Flats/Townships, review onboarding, and track setup progress.</p>
           </div>
           <div class="platform-workspace-actions">
             <a seButton routerLink="/platform/dashboard">Open platform workspace</a>
             <a seButton variant="secondary" routerLink="/platform/societies"
-              >View societies or flats or townships</a
+              >View Societies/Flats/Townships</a
             >
           </div>
         </section>
@@ -102,14 +101,7 @@ export class WorkspaceComponent {
   protected readonly busy = signal(false);
   protected readonly choiceError = signal<string | null>(null);
   protected roleNames(roles: readonly string[]): string {
-    return roles
-      .map((role) =>
-        role
-          .split('_')
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-          .join(' '),
-      )
-      .join(', ');
+    return roles.map((role) => friendlyLabel(role)).join(', ');
   }
   protected async select(
     event: Event,

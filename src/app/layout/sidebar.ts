@@ -18,6 +18,10 @@ export class SidebarComponent {
   private readonly auth = inject(AuthState);
   protected readonly signedIn = computed(() => this.auth.identity() !== null);
   protected readonly navigation = inject(VisibleNavigation).items;
+  /** "Societies/Flats/Townships" → ["Societies/", "Flats/", "Townships"]: break points after each slash. */
+  protected labelParts(label: string): string[] {
+    return label.split(/(?<=\/)/);
+  }
   protected readonly groups = computed(() => [
     ...new Set(this.navigation().map((item) => item.group)),
   ]);

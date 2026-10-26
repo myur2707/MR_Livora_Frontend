@@ -1,4 +1,5 @@
 import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -10,12 +11,19 @@ import { ButtonDirective } from '../../shared/button';
 import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../shared/field';
 import { PaginationComponent } from '../../shared/pagination';
 import { CardComponent } from '../../shared/card';
+import { BadgeComponent } from '../../shared/badge';
+import { DialogComponent } from '../../shared/dialog';
+import { IconComponent } from '../../shared/icon';
+import { TableDirective } from '../../shared/table';
 import { ResidentView } from './view';
-import { COMPLAINT_CATEGORIES } from '../../core/community';
+import { COMPLAINT_CATEGORIES, communityStatusTone } from '../../core/community';
 import type { ComplaintHistory } from '../../core/community';
+import { LabelPipe } from '../../shared/label';
 @Component({
   selector: 'se-resident-community',
   imports: [
+    LabelPipe,
+    DatePipe,
     FormsModule,
     RouterLink,
     ButtonDirective,
@@ -24,6 +32,10 @@ import type { ComplaintHistory } from '../../core/community';
     FormNoticeComponent,
     PaginationComponent,
     CardComponent,
+    BadgeComponent,
+    DialogComponent,
+    IconComponent,
+    TableDirective,
   ],
   templateUrl: './community.html',
 })
@@ -40,6 +52,8 @@ export class ResidentCommunityPage {
   protected readonly saving = signal(false);
   protected readonly history = new ResidentView<Page<ComplaintHistory>>();
   protected readonly categories = COMPLAINT_CATEGORIES;
+  protected readonly tone = communityStatusTone;
+  protected readonly composing = signal(false);
   protected category = 'OTHER';
   protected readonly submitError = signal<string | null>(null);
   protected readonly attempted = signal(false);
@@ -52,7 +66,6 @@ export class ResidentCommunityPage {
       this.id = params.get('id');
       void this.load();
       if (!this.notices && this.id) void this.loadHistory();
-      if (!this.notices && !this.id) void this.loadFlats();
     });
   }
   protected load(page = 1): Promise<void> {
@@ -63,6 +76,16 @@ export class ResidentCommunityPage {
     return this.id
       ? this.complaint.load(() => this.api.get<ResidentComplaint>('complaints/' + this.id))
       : this.requests.load(() => this.api.list<ResidentComplaint>('complaints', page));
+  }
+  /** Opens a fresh complaint form; flats load on demand so the list view stays light. */
+  protected openComposer(): void {
+    this.category = 'OTHER';
+    this.title = '';
+    this.description = '';
+    this.attempted.set(false);
+    this.submitError.set(null);
+    this.composing.set(true);
+    void this.loadFlats();
   }
   protected loadFlats(page = 1): Promise<void> {
     this.flatId = '';
@@ -96,6 +119,7 @@ export class ResidentCommunityPage {
         title: this.title.trim(),
         description: this.description.trim(),
       });
+      this.composing.set(false);
       await this.router.navigate(['/society/resident/complaints', result.id]);
     } catch (error) {
       this.submitError.set(billingError(error) + ' Check your complaint history before retrying.');

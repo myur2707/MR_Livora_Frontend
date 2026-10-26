@@ -201,17 +201,31 @@
   margin-bottom: var(--space-2);
   color: var(--brand);
 }
+/* Key facts as tiles: one row on wide screens, wrapping to two or one column as space shrinks. */
 .setup-facts {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
   gap: var(--space-3);
-  margin-block: var(--space-5);
+  margin-block: var(--space-4) var(--space-5);
+}
+.setup-facts > div {
+  min-width: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--surface-soft) 70%, transparent);
 }
 .setup-facts dt {
   color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 .setup-facts dd {
-  margin: 0;
-  font-weight: 600;
+  margin: var(--space-1) 0 0;
+  font-size: 15px;
+  font-weight: 650;
   overflow-wrap: anywhere;
 }
 .setup-attestation {
@@ -247,10 +261,43 @@
   gap: var(--space-3);
   margin-top: var(--space-5);
 }
-.setup-history {
-  padding-left: var(--space-5);
-  display: grid;
+/* History summary and its toggle share one row; the list opens below as a timeline. */
+.setup-history-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.setup-history-bar p {
+  margin: 0;
+  color: var(--muted);
+}
+.setup-history {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-5) 0 0 6px;
+  padding: 0 0 0 var(--space-5);
+  border-left: 2px solid var(--border);
+  list-style: none;
+}
+.setup-history li {
+  position: relative;
+}
+.setup-history li::before {
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: calc(-1 * var(--space-5) - 7px);
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--brand);
+}
+.setup-history li + li::before {
+  background: var(--muted);
 }
 .setup-history span {
   display: block;

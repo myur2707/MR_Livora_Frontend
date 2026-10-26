@@ -59,7 +59,7 @@
                 <th scope="row" data-label="Society">{{ row.societyName }}</th>
                 <td data-label="Property">{{ requestPropertyLabel(row) }}</td>
                 <td data-label="Status">
-                  <se-badge>{{ row.status }}</se-badge>
+                  <se-badge>{{ row.status | label }}</se-badge>
                 </td>
                 <td data-label="Decision">{{ row.decisionNote || 'Awaiting review' }}</td>
                 <td data-label="Actions">
@@ -176,7 +176,7 @@
         controlId="join-society"
         label="Community"
         [required]="true"
-        hint="The society, flat or township you live in."
+        hint="The Society/Flat/Township you live in."
         [error]="society.touched && society.invalid ? 'Select a community.' : null"
         ><select
           seSelect

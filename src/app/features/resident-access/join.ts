@@ -18,6 +18,7 @@ import { DialogComponent } from '../../shared/dialog';
 import { IconComponent } from '../../shared/icon';
 import { StateComponent } from '../../shared/state';
 import { ToastService } from '../../shared/toast';
+import { LabelPipe } from '../../shared/label';
 interface JoinSocietyOption {
   code: string;
   name: string;
@@ -32,6 +33,7 @@ interface JoinPropertyOption {
 @Component({
   selector: 'se-resident-join',
   imports: [
+    LabelPipe,
     FormsModule,
     ReactiveFormsModule,
     ButtonDirective,

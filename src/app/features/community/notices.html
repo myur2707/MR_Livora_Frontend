@@ -2,42 +2,64 @@
   <div>
     <p class="eyebrow">COMMUNITY UPDATES</p>
     <h1 tabindex="-1">
-      {{ create ? 'New notice draft' : id ? 'Manage notice' : 'Committee notices' }}
+      {{ id ? 'Manage notice' : 'Committee notices' }}
     </h1>
     <p>Publish clear updates for everyone in your society.</p>
   </div>
+  @if (!id && auth.identity()?.activeSociety?.permissions.includes('society.notices.manage')) {
+    <button seButton type="button" (click)="openCreator()">
+      <se-icon name="filePlus" />New draft
+    </button>
+  }
 </header>
 @if (auth.identity()?.activeSociety?.permissions.includes('society.notices.manage')) {
   <se-form-notice [message]="error() || list.error() || detail.error()" />
   @if (list.loading() || detail.loading()) {
     <p role="status">Loading notices…</p>
   }
-  @if (!id && !create) {
-    <a seButton routerLink="/society/community/notices/new">New draft</a>
+  @if (!id) {
     <form class="payment-filters" (ngSubmit)="load()">
       <se-field controlId="notice-search" label="Search notices"
         ><input seInput name="search" [(ngModel)]="search" maxlength="100" /></se-field
       ><se-field controlId="notice-status" label="Notice status"
         ><select seSelect name="status" [(ngModel)]="status">
           @for (value of ['ALL', 'DRAFT', 'PUBLISHED', 'ARCHIVED']; track value) {
-            <option [value]="value">{{ value }}</option>
+            <option [value]="value">{{ value | label }}</option>
           }
         </select></se-field
       ><button seButton type="submit">Apply filters</button>
     </form>
     @if (list.value(); as data) {
-      <section class="resident-section" aria-label="Society notices">
-        @for (item of data.items; track item.id) {
-          <se-card
-            ><h2>
-              <a [routerLink]="['/society/community/notices', item.id]">{{ item.title }}</a>
-            </h2>
-            <p>{{ item.status }} · {{ item.publishedAt | date: 'medium' }}</p></se-card
-          >
-        } @empty {
-          <p>No notices match these filters.</p>
-        }
-      </section>
+      <div class="table-scroll" role="region" aria-label="Notice list scroll area" tabindex="0">
+        <table seTable aria-label="Society notices">
+          <thead>
+            <tr>
+              <th scope="col">Notice</th>
+              <th scope="col">Status</th>
+              <th scope="col">Created</th>
+              <th scope="col">Published</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of data.items; track item.id) {
+              <tr>
+                <td>
+                  <a [routerLink]="['/society/community/notices', item.id]">{{ item.title }}</a>
+                </td>
+                <td>
+                  <se-badge [tone]="tone(item.status)">{{ item.status | label }}</se-badge>
+                </td>
+                <td>{{ item.createdAt | date: 'mediumDate' }}</td>
+                <td>{{ item.publishedAt ? (item.publishedAt | date: 'mediumDate') : '—' }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4">No notices match these filters.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
       <se-pagination
         [page]="data.page"
         [pageSize]="data.pageSize"
@@ -49,7 +71,7 @@
   @if (detail.value(); as item) {
     <se-card
       ><h2>{{ item.title }}</h2>
-      <p>{{ item.status }} · By {{ item.authorName }}</p>
+      <p>{{ item.status | label }} · By {{ item.authorName }}</p>
       <p>
         Created {{ item.createdAt | date: 'medium' }}
         @if (item.publishedAt) {
@@ -59,6 +81,17 @@
       <p class="resident-text">{{ item.body }}</p></se-card
     >
     <div class="payment-actions">
+      @if (item.status !== 'ARCHIVED') {
+        <button
+          seButton
+          variant="secondary"
+          type="button"
+          [disabled]="saving()"
+          (click)="openEditor()"
+        >
+          Edit notice
+        </button>
+      }
       @if (item.status === 'DRAFT') {
         <button seButton type="button" [disabled]="saving()" (click)="action('PUBLISH')">
           Publish notice
@@ -71,10 +104,14 @@
       }
     </div>
   }
-  @if (create || (detail.value() && detail.value()?.status !== 'ARCHIVED')) {
-    <section class="resident-section">
-      <h2>{{ create ? 'Write a draft' : 'Edit notice' }}</h2>
-      <form class="payment-form" novalidate (ngSubmit)="save()">
+  <se-dialog
+    [title]="create ? 'Write a draft' : 'Edit notice'"
+    [open]="editing()"
+    (closed)="!saving() && closeEditor()"
+  >
+    @if (editing()) {
+      <se-form-notice [message]="error()" />
+      <form class="onboarding-form" novalidate (ngSubmit)="save()">
         <se-field
           controlId="notice-title"
           label="Title"
@@ -101,14 +138,25 @@
             rows="8"
             required
             [disabled]="saving()"
-          ></textarea></se-field
-        ><button seButton type="submit" [disabled]="saving()">
-          {{ saving() ? 'Saving…' : create ? 'Save draft' : 'Save changes' }}
-        </button>
+          ></textarea>
+        </se-field>
+        <div class="dialog-actions">
+          <button
+            seButton
+            variant="secondary"
+            type="button"
+            [disabled]="saving()"
+            (click)="closeEditor()"
+          >
+            Cancel</button
+          ><button seButton type="submit" [disabled]="saving()">
+            {{ saving() ? 'Saving…' : create ? 'Save draft' : 'Save changes' }}
+          </button>
+        </div>
       </form>
-    </section>
-  }
-  @if (id || create) {
+    }
+  </se-dialog>
+  @if (id) {
     <p><a routerLink="/society/community/notices">All committee notices</a></p>
   }
 }

@@ -40,10 +40,26 @@ test.beforeEach(async ({ context }) => {
     }),
   );
   await context.route('**/api/v1/platform/dashboard', (route) =>
-    route.fulfill({ json: { statuses: [{ status: 'DRAFT', total: 1 }] } }),
+    route.fulfill({
+      json: {
+        statuses: [
+          { status: 'DRAFT', total: 1 },
+          { status: 'PENDING_VERIFICATION', total: 2 },
+        ],
+        societiesByMonth: ['2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10'].map(
+          (month) => ({ month, total: month === '2026-10' ? 3 : 0 }),
+        ),
+        accounts: [{ status: 'ACTIVE', total: 4 }],
+      },
+    }),
   );
   await context.route('**/api/v1/platform/societies?**', (route) =>
     route.fulfill({ json: { items: [], total: 0, page: 1, pageSize: 20 } }),
+  );
+  await context.route('**/api/v1/platform/societies/next-code?**', (route) =>
+    route.fulfill({
+      json: { code: new URL(route.request().url()).searchParams.get('type') + '-00003' },
+    }),
   );
   // Mock current server authorization, preserving the real production route guards.
   const access = {
@@ -74,7 +90,7 @@ test('all lazy placeholders and the unknown route render without accessibility v
   await page.emulateMedia({ reducedMotion: 'reduce' });
   const routes = [
     ['/platform/dashboard', 'Welcome to Mr. Livora'],
-    ['/platform/societies', 'Your societies or flats or townships'],
+    ['/platform/societies', 'Your Societies/Flats/Townships'],
     ['/society/dashboard', 'Your community space'],
     ['/login', 'Welcome home'],
     ['/forgot-password', 'A fresh start'],
@@ -105,6 +121,15 @@ test('sidebar collapse and dark theme remain usable and survive refresh', async 
   await expect(
     page.locator('.desktop-sidebar').getByRole('link', { name: 'Mr. Livora home' }),
   ).toBeVisible();
+  // Platform charts show lifecycle and account metadata with friendly state names.
+  const lifecycle = page.getByRole('list', { name: 'Communities by lifecycle status' });
+  await expect(lifecycle.getByText('Pending verification', { exact: true })).toBeVisible();
+  await expect(
+    page
+      .getByRole('group', { name: 'New communities created per month' })
+      .getByLabel(/Oct 2026: New communities 3/),
+  ).toBeVisible();
+  await expect(page.getByRole('list', { name: 'User accounts by status' })).toContainText('Active');
   await expect(page.locator('.desktop-sidebar .brand-subtitle')).toHaveText(
     'Live in a Better Aura',
   );
@@ -123,9 +148,9 @@ test('sidebar collapse and dark theme remain usable and survive refresh', async 
   await expect(
     page.getByRole('button', { name: 'Expand sidebar' }).locator('path'),
   ).toHaveAttribute('d', 'M3 3h18v18H3zM16 3v18M8 8l4 4-4 4');
-  await page.getByRole('link', { name: 'Societies or Flats or Townships', exact: true }).click();
+  await page.getByRole('link', { name: 'Societies/Flats/Townships', exact: true }).click();
   await expect(
-    page.getByRole('heading', { name: 'Your societies or flats or townships', level: 1 }),
+    page.getByRole('heading', { name: 'Your Societies/Flats/Townships', level: 1 }),
   ).toBeFocused();
   await expect(page.getByRole('button', { name: 'Add society' })).toBeVisible();
   await expect(page.getByRole('button', { name: /Refresh societies/i })).toHaveCount(0);
@@ -133,9 +158,20 @@ test('sidebar collapse and dark theme remain usable and survive refresh', async 
     await page.locator('main').evaluate((main) => main.scrollHeight <= main.clientHeight),
   ).toBe(true);
   await page.getByRole('button', { name: 'Add society' }).click();
-  const createDialog = page.getByRole('dialog', { name: 'New society or flat or township' });
+  const createDialog = page.getByRole('dialog', { name: 'New Society/Flat/Township' });
   await expect(createDialog).toBeVisible();
-  await expect(createDialog.getByLabel('Society or Flat or Township code')).toBeVisible();
+  // The code is pre-filled for the chosen type; labels and messages follow the type.
+  const code = createDialog.getByLabel('Society code');
+  await expect(code).toHaveValue('SOC-00003');
+  await expect(createDialog.getByLabel('Society name')).toBeVisible();
+  await createDialog.getByLabel('Type').selectOption('TWP');
+  const townshipCode = createDialog.getByLabel('Township code');
+  await expect(townshipCode).toHaveValue('TWP-00003');
+  await townshipCode.fill('TWP-00099');
+  await createDialog.getByLabel('Type').selectOption('FLT');
+  await expect(createDialog.getByLabel('Flat code')).toHaveValue('TWP-00099');
+  await createDialog.getByRole('button', { name: 'Create draft' }).click();
+  await expect(createDialog.getByText('Enter the Flat name.')).toBeVisible();
   await expect(createDialog.getByLabel('Time zone')).toHaveCount(0);
   await page.keyboard.press('Escape');
   await expect(createDialog).toBeHidden();
@@ -145,7 +181,7 @@ test('sidebar collapse and dark theme remain usable and survive refresh', async 
   await page.reload();
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   const pageHeading = page.getByRole('heading', {
-    name: 'Your societies or flats or townships',
+    name: 'Your Societies/Flats/Townships',
     level: 1,
   });
   await expect(pageHeading).toBeFocused();
@@ -203,11 +239,11 @@ test('mobile navigation works by keyboard and does not overflow at 320px', async
   await page.keyboard.press('Enter');
   const dialog = page.getByRole('dialog', { name: 'Navigation' });
   await expect(dialog).toBeVisible();
-  await dialog.getByRole('link', { name: 'Societies or Flats or Townships', exact: true }).focus();
+  await dialog.getByRole('link', { name: 'Societies/Flats/Townships', exact: true }).focus();
   await page.keyboard.press('Enter');
   await expect(dialog).toBeHidden();
   await expect(
-    page.getByRole('heading', { name: 'Your societies or flats or townships', level: 1 }),
+    page.getByRole('heading', { name: 'Your Societies/Flats/Townships', level: 1 }),
   ).toBeFocused();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,
@@ -238,9 +274,9 @@ test('society records become readable cards on narrow screens', async ({ page, c
   );
   await page.setViewportSize({ width: 320, height: 780 });
   await page.goto('/platform/societies');
-  const table = page.getByRole('table', { name: 'Society or Flat or Township directory' });
+  const table = page.getByRole('table', { name: 'Society/Flat/Township directory' });
   await expect(table).toBeVisible();
-  const scroll = page.getByRole('region', { name: 'Society or Flat or Township directory' });
+  const scroll = page.getByRole('region', { name: 'Society/Flat/Township directory' });
   expect(await scroll.evaluate((element) => element.scrollWidth <= element.clientWidth)).toBe(true);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   const record = table.getByRole('row').filter({ hasText: 'Synthetic community with a long name' });
