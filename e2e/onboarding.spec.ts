@@ -102,12 +102,35 @@ test('committee resident choice filters pages and clears the previous property b
         },
       });
     }
-    if (path.endsWith('/residents') || path.endsWith('/maintenance'))
+    if (path.endsWith('/residents'))
+      return route.fulfill({
+        json: {
+          items: submitted
+            ? [
+                {
+                  id: '90',
+                  displayName: 'House resident',
+                  flatNumber: '2',
+                  occupancyType: 'OWNER',
+                  startsOn: '2026-10-27',
+                  endsOn: null,
+                },
+              ]
+            : [],
+          total: submitted ? 1 : 0,
+          page: 1,
+          pageSize: 50,
+        },
+      });
+    if (path.endsWith('/maintenance'))
       return route.fulfill({ json: { items: [], total: 0, page: 1, pageSize: 50 } });
     return route.fulfill({ json: setup });
   });
   await page.goto('/onboarding/societies/10');
   await page.getByRole('button', { name: /4\s*Residents/ }).click();
+  await expect(page.getByRole('checkbox', { name: /Previously confirmed/ })).toBeChecked();
+  await expect(page.getByRole('checkbox', { name: /Previously confirmed/ })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Decision saved' })).toBeDisabled();
   await expect(page.locator('.resident-form > :first-child')).toContainText('Resident name');
   await expect(
     page.getByRole('group', { name: 'What type of property does this resident live in?' }),
@@ -145,6 +168,10 @@ test('committee resident choice filters pages and clears the previous property b
   await page.getByRole('button', { name: 'Add initial resident' }).click();
   await expect(page.getByRole('status').filter({ hasText: 'Resident added' })).toBeVisible();
   expect(submitted).toBe(true);
+  await expect(page.getByRole('row', { name: /House resident/ })).toBeVisible();
+  await expect(page.getByRole('textbox', { name: 'Resident name (required)' })).toBeHidden();
+  await page.getByRole('button', { name: 'Add another resident' }).click();
+  await expect(page.getByRole('textbox', { name: 'Resident name (required)' })).toBeVisible();
 });
 test('committee wizard requires review and explicit activation; stale server conflicts remain visible', async ({
   page,

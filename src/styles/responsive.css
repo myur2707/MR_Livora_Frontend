@@ -390,7 +390,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     border: 1px solid var(--border);
     border-radius: var(--radius-sm);
-    background: var(--surface);
+    background: var(--panel-bg);
+    backdrop-filter: var(--glass-blur);
     box-shadow: var(--shadow-sm);
     overflow: hidden;
   }
@@ -516,6 +517,22 @@
   }
   .card {
     padding: 20px;
+  }
+  .workspace-form,
+  .setup-workspace-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .workspace-form .field {
+    flex-basis: auto;
+    width: 100%;
+  }
+  .workspace-form > .button,
+  .setup-workspace-item .button {
+    width: 100%;
+  }
+  .community-access-item {
+    align-items: flex-start;
   }
   .foundation-note {
     align-items: start;

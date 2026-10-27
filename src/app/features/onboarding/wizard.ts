@@ -92,6 +92,7 @@ export class OnboardingWizardComponent implements OnInit {
   private residentSearchTimer: ReturnType<typeof setTimeout> | null = null;
   protected readonly chargesPage = signal<Page<Configuration> | null>(null);
   protected readonly residents = signal<Page<Resident> | null>(null);
+  protected readonly residentFormOpen = signal(false);
   protected readonly configurations = signal<Configuration[]>([]);
   protected readonly error = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
@@ -106,6 +107,11 @@ export class OnboardingWizardComponent implements OnInit {
   protected readonly isRowHouse = (flat: Flat): boolean =>
     flat.buildingCode === rowHouseBuildingCode;
   protected readonly residentSummary = residentSummary;
+  protected residentConfirmation(
+    detail: SocietyDetail,
+  ): SocietyDetail['events'][number] | undefined {
+    return detail.events.find((event) => event.action === 'residents.confirmed');
+  }
   protected readonly eventTitle = eventLabel;
   protected readonly wingOptions = ['A', 'B', 'C', 'D'];
   protected readonly multipleWings = signal(false);
@@ -540,6 +546,7 @@ export class OnboardingWizardComponent implements OnInit {
       this.residentForm.controls.displayName.reset();
       this.residentForm.controls.flatId.reset();
       this.residentSelectedProperty.set(null);
+      this.residentFormOpen.set(false);
     }, 'Resident added without a login account. Review the list again before confirming.');
   }
   protected async maintenance(): Promise<void> {

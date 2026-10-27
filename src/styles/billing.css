@@ -41,7 +41,8 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: var(--space-3);
-  background: var(--surface);
+  background: var(--panel-bg);
+  backdrop-filter: var(--glass-blur);
   cursor: pointer;
 }
 .billing-flat-choice:has(input:checked) {

@@ -598,6 +598,7 @@
     }
     @if (step() === 3) {
       <se-card
+        class="residents-card"
         title="Residents"
         description="Review the initial occupants, including vacant flats and row houses. People do not need a login account."
       >
@@ -607,199 +608,324 @@
             {{ society.requirements.residents ? 'confirmed' : 'awaiting committee review' }}.
           </p>
         } @else {
-          @if (editable()) {
+          @if (residents(); as residentData) {
+            @if (editable() && residentData.items.length === 0) {
+              <aside class="resident-skip-guidance" aria-labelledby="resident-skip-title">
+                <span class="resident-skip-icon" aria-hidden="true">→</span>
+                <div>
+                  <p class="eyebrow">OPTIONAL FOR NOW</p>
+                  <h3 id="resident-skip-title">Not ready to add residents?</h3>
+                  <p>
+                    @if (society.requirements.residents) {
+                      This choice is saved. You continued setup with an empty resident list and can
+                      still add residents later. Adding a resident will reopen this step for review.
+                    } @else {
+                      You can complete this step with an empty resident list and add residents
+                      later. Select the confirmation below, confirm this step, then choose
+                      <strong>Maintenance</strong> to continue setup.
+                    }
+                  </p>
+                </div>
+              </aside>
+              <div
+                class="resident-review-actions resident-skip-actions"
+                [class.is-saved]="society.requirements.residents"
+              >
+                <label class="setup-attestation"
+                  ><input
+                    type="checkbox"
+                    #emptyResidentCheck
+                    [checked]="society.requirements.residents || residentsAttested()"
+                    [disabled]="society.requirements.residents || busy()"
+                    (change)="residentsAttested.set(emptyResidentCheck.checked)"
+                  />
+                  <span>
+                    @if (society.requirements.residents) {
+                      <strong>Previously confirmed:</strong> Continue without adding residents now.
+                      Residents can be added later.
+                      @if (residentConfirmation(society); as confirmation) {
+                        <small>
+                          Saved
+                          {{ displayTime(confirmation.createdAt, society.timezone) }}
+                          @if (confirmation.actorName || confirmation.actorEmail) {
+                            by {{ confirmation.actorName || confirmation.actorEmail }}
+                          }
+                        </small>
+                      }
+                    } @else {
+                      Continue without adding residents now. I understand residents can be added
+                      later.
+                    }
+                  </span></label
+                ><button
+                  seButton
+                  type="button"
+                  [disabled]="society.requirements.residents || busy() || !residentsAttested()"
+                  (click)="confirm('residents')"
+                >
+                  {{ society.requirements.residents ? 'Decision saved' : 'Confirm this step' }}
+                </button>
+              </div>
+              <div class="resident-choice-divider"><span>or add a resident now</span></div>
+            }
+          }
+          @if (editable() && ((residents()?.items?.length ?? 0) === 0 || residentFormOpen())) {
             <form
               [formGroup]="residentForm"
               (ngSubmit)="resident()"
               class="onboarding-form resident-form"
             >
-              <se-field controlId="resident-name" label="Resident name" [required]="true"
-                ><input seInput formControlName="displayName" required maxlength="160"
-              /></se-field>
-              <fieldset class="wing-mode resident-property-type">
-                <legend>What type of property does this resident live in?</legend>
-                <div class="resident-property-type-options">
-                  <label
-                    class="resident-property-type-option"
-                    [class.is-selected]="!residentRowHouses()"
-                    ><input
-                      type="radio"
-                      name="resident-property-type"
-                      [checked]="!residentRowHouses()"
-                      (change)="setResidentPropertyType(false)"
-                      [disabled]="busy()"
-                    />
-                    Flats</label
-                  >
-                  <label
-                    class="resident-property-type-option"
-                    [class.is-selected]="residentRowHouses()"
-                    ><input
-                      type="radio"
-                      name="resident-property-type"
-                      [checked]="residentRowHouses()"
-                      (change)="setResidentPropertyType(true)"
-                      [disabled]="busy()"
-                    />
-                    Row houses</label
-                  >
+              <section class="resident-form-section" aria-labelledby="resident-home-title">
+                <div class="resident-form-heading">
+                  <span aria-hidden="true">1</span>
+                  <div>
+                    <h3 id="resident-home-title">Resident and home</h3>
+                    <p>Identify the person and choose their property.</p>
+                  </div>
                 </div>
-              </fieldset>
-              <fieldset class="resident-property-picker">
-                <legend>
-                  Resident {{ residentRowHouses() ? 'row house' : 'flat' }}
-                  <span aria-hidden="true">*</span>
-                </legend>
-                <input type="hidden" formControlName="flatId" />
-                <details #propertyPicker>
-                  <summary>
-                    @if (residentSelectedProperty(); as selected) {
-                      {{
-                        residentRowHouses()
-                          ? selected.flatNumber
-                          : selected.buildingCode + ' / ' + selected.flatNumber
-                      }}
-                    } @else {
-                      Choose a {{ residentRowHouses() ? 'row house' : 'flat' }}
-                    }
-                  </summary>
-                  <div class="resident-property-options">
-                    <label for="resident-property-search"
-                      >Search by
-                      {{
-                        residentRowHouses() ? 'row house number' : 'flat number or building'
-                      }}</label
+                <se-field controlId="resident-name" label="Resident name" [required]="true"
+                  ><input seInput formControlName="displayName" required maxlength="160"
+                /></se-field>
+                <fieldset class="wing-mode resident-property-type">
+                  <legend>What type of property does this resident live in?</legend>
+                  <div class="resident-property-type-options">
+                    <label
+                      class="resident-property-type-option"
+                      [class.is-selected]="!residentRowHouses()"
+                      ><input
+                        type="radio"
+                        name="resident-property-type"
+                        [checked]="!residentRowHouses()"
+                        (change)="setResidentPropertyType(false)"
+                        [disabled]="busy()"
+                      />
+                      Flats</label
                     >
-                    <input
-                      id="resident-property-search"
-                      type="search"
-                      maxlength="80"
-                      [value]="residentPropertySearch()"
-                      (input)="searchResidentProperties($event)"
-                      (keydown.enter)="$event.preventDefault()"
-                      autocomplete="off"
-                    />
-                    @if (residentStructure(); as data) {
-                      @if (data.items.length) {
-                        <ul
-                          class="resident-property-results"
-                          aria-label="Matching properties"
-                          (scroll)="onResidentPropertyScroll($event)"
-                        >
-                          @for (flat of data.items; track flat.id) {
-                            <li>
-                              <button
-                                type="button"
-                                (click)="selectResidentProperty(flat, propertyPicker)"
-                              >
-                                {{
-                                  residentRowHouses()
-                                    ? flat.flatNumber
-                                    : flat.buildingCode + ' / ' + flat.flatNumber
-                                }}
-                              </button>
-                            </li>
+                    <label
+                      class="resident-property-type-option"
+                      [class.is-selected]="residentRowHouses()"
+                      ><input
+                        type="radio"
+                        name="resident-property-type"
+                        [checked]="residentRowHouses()"
+                        (change)="setResidentPropertyType(true)"
+                        [disabled]="busy()"
+                      />
+                      Row houses</label
+                    >
+                  </div>
+                </fieldset>
+                <fieldset class="resident-property-picker">
+                  <legend>
+                    Resident {{ residentRowHouses() ? 'row house' : 'flat' }}
+                    <span aria-hidden="true">*</span>
+                  </legend>
+                  <input type="hidden" formControlName="flatId" />
+                  <details #propertyPicker>
+                    <summary>
+                      @if (residentSelectedProperty(); as selected) {
+                        {{
+                          residentRowHouses()
+                            ? selected.flatNumber
+                            : selected.buildingCode + ' / ' + selected.flatNumber
+                        }}
+                      } @else {
+                        Choose a {{ residentRowHouses() ? 'row house' : 'flat' }}
+                      }
+                    </summary>
+                    <div class="resident-property-options">
+                      <label for="resident-property-search"
+                        >Search by
+                        {{
+                          residentRowHouses() ? 'row house number' : 'flat number or building'
+                        }}</label
+                      >
+                      <input
+                        id="resident-property-search"
+                        type="search"
+                        maxlength="80"
+                        [placeholder]="
+                          residentRowHouses()
+                            ? 'Search by row house number'
+                            : 'Search by flat number or building'
+                        "
+                        [value]="residentPropertySearch()"
+                        (input)="searchResidentProperties($event)"
+                        (keydown.enter)="$event.preventDefault()"
+                        autocomplete="off"
+                      />
+                      @if (residentStructure(); as data) {
+                        @if (data.items.length) {
+                          <ul
+                            class="resident-property-results"
+                            aria-label="Matching properties"
+                            (scroll)="onResidentPropertyScroll($event)"
+                          >
+                            @for (flat of data.items; track flat.id) {
+                              <li>
+                                <button
+                                  type="button"
+                                  (click)="selectResidentProperty(flat, propertyPicker)"
+                                >
+                                  {{
+                                    residentRowHouses()
+                                      ? flat.flatNumber
+                                      : flat.buildingCode + ' / ' + flat.flatNumber
+                                  }}
+                                </button>
+                              </li>
+                            }
+                          </ul>
+                          @if (residentPropertiesLoading()) {
+                            <p class="resident-property-hint" role="status">
+                              Loading more properties…
+                            </p>
+                          } @else if (data.total > data.items.length) {
+                            <p class="resident-property-hint">
+                              Scroll to load more. {{ data.items.length }} of
+                              {{ data.total }} loaded.
+                            </p>
+                          } @else {
+                            <p class="resident-property-hint">
+                              {{ data.total }}
+                              {{ data.total === 1 ? 'match' : 'matches' }} found.
+                            </p>
                           }
-                        </ul>
-                        @if (residentPropertiesLoading()) {
-                          <p class="resident-property-hint" role="status">
-                            Loading more properties…
-                          </p>
-                        } @else if (data.total > data.items.length) {
-                          <p class="resident-property-hint">
-                            Scroll to load more. {{ data.items.length }} of {{ data.total }} loaded.
-                          </p>
                         } @else {
-                          <p class="resident-property-hint">
-                            {{ data.total }} {{ data.total === 1 ? 'match' : 'matches' }} found.
+                          <p>
+                            No matching {{ residentRowHouses() ? 'row houses' : 'flats' }} found.
                           </p>
                         }
-                      } @else {
-                        <p>No matching {{ residentRowHouses() ? 'row houses' : 'flats' }} found.</p>
+                      } @else if (residentPropertiesLoading()) {
+                        <p role="status">Loading properties…</p>
                       }
-                    } @else if (residentPropertiesLoading()) {
-                      <p role="status">Loading properties…</p>
-                    }
+                    </div>
+                  </details>
+                </fieldset>
+              </section>
+              <section class="resident-form-section" aria-labelledby="resident-occupancy-title">
+                <div class="resident-form-heading">
+                  <span aria-hidden="true">2</span>
+                  <div>
+                    <h3 id="resident-occupancy-title">Occupancy details</h3>
+                    <p>Record their relationship to the home and occupancy period.</p>
                   </div>
-                </details>
-              </fieldset>
-              <se-field controlId="resident-type" label="Occupancy type" [required]="true"
-                ><select seSelect formControlName="occupancyType">
-                  @for (
-                    type of ['OWNER', 'TENANT', 'FAMILY_MEMBER', 'AUTHORIZED_OCCUPANT'];
-                    track type
-                  ) {
-                    <option [value]="type">{{ type | label }}</option>
-                  }
-                </select></se-field
-              >
-              <se-field controlId="resident-start" label="Occupancy start" [required]="true"
-                ><input seInput type="date" formControlName="startsOn" required
-              /></se-field>
-              <se-field
-                controlId="resident-end"
-                label="Occupancy end"
-                hint="Leave empty for current occupancy."
-                ><input seInput type="date" formControlName="endsOn"
-              /></se-field>
-              <button seButton type="submit" [disabled]="busy()">Add initial resident</button>
+                </div>
+                <se-field controlId="resident-type" label="Occupancy type" [required]="true"
+                  ><select seSelect formControlName="occupancyType">
+                    @for (
+                      type of ['OWNER', 'TENANT', 'FAMILY_MEMBER', 'AUTHORIZED_OCCUPANT'];
+                      track type
+                    ) {
+                      <option [value]="type">{{ type | label }}</option>
+                    }
+                  </select></se-field
+                >
+                <div class="resident-date-fields">
+                  <se-field controlId="resident-start" label="Occupancy start" [required]="true"
+                    ><input seInput type="date" formControlName="startsOn" required
+                  /></se-field>
+                  <se-field
+                    controlId="resident-end"
+                    label="Occupancy end"
+                    hint="Leave empty for current occupancy."
+                    ><input seInput type="date" formControlName="endsOn"
+                  /></se-field>
+                </div>
+                <div class="resident-form-submit">
+                  <p>After adding, the resident will appear in the review list below.</p>
+                  <button seButton type="submit" [disabled]="busy()">Add initial resident</button>
+                </div>
+              </section>
             </form>
           }
           @if (residents(); as data) {
             @if (data.items.length) {
-              <div class="table-scroll" tabindex="0" role="region" aria-label="Initial residents">
-                <table seTable>
-                  <caption class="sr-only">
-                    Initial residents
-                  </caption>
-                  <thead>
-                    <tr>
-                      <th scope="col">Person</th>
-                      <th scope="col">Flat</th>
-                      <th scope="col">Occupancy</th>
-                      <th scope="col">Period</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (resident of data.items; track resident.id) {
+              <div class="resident-list">
+                <div class="table-scroll" tabindex="0" role="region" aria-label="Initial residents">
+                  <table seTable>
+                    <caption class="sr-only">
+                      Initial residents
+                    </caption>
+                    <thead>
                       <tr>
-                        <th scope="row">{{ resident.displayName }}</th>
-                        <td>{{ resident.flatNumber }}</td>
-                        <td>{{ resident.occupancyType | label }}</td>
-                        <td>{{ resident.startsOn }} – {{ resident.endsOn || 'Current' }}</td>
+                        <th scope="col">Person</th>
+                        <th scope="col">Flat</th>
+                        <th scope="col">Occupancy</th>
+                        <th scope="col">Period</th>
                       </tr>
-                    }
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      @for (resident of data.items; track resident.id) {
+                        <tr>
+                          <th scope="row">{{ resident.displayName }}</th>
+                          <td>{{ resident.flatNumber }}</td>
+                          <td>{{ resident.occupancyType | label }}</td>
+                          <td>{{ resident.startsOn }} – {{ resident.endsOn || 'Current' }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+                <se-pagination
+                  [total]="data.total"
+                  [page]="data.page"
+                  [pageSize]="data.pageSize"
+                  (pageSelected)="residentPage($event)"
+                />
               </div>
-              <se-pagination
-                [total]="data.total"
-                [page]="data.page"
-                [pageSize]="data.pageSize"
-                (pageSelected)="residentPage($event)"
-              />
-            } @else {
-              <p>
-                No initial residents have been entered. Vacant flats can be confirmed explicitly.
-              </p>
+              @if (editable()) {
+                <div class="resident-add-toolbar">
+                  <p>The resident list is shown first. Open the form only when you need it.</p>
+                  <button
+                    seButton
+                    variant="secondary"
+                    type="button"
+                    [attr.aria-expanded]="residentFormOpen()"
+                    (click)="residentFormOpen.set(!residentFormOpen())"
+                  >
+                    {{ residentFormOpen() ? 'Close add resident form' : 'Add another resident' }}
+                  </button>
+                </div>
+              }
             }
           }
-          @if (editable()) {
-            <label class="setup-attestation"
-              ><input
-                type="checkbox"
-                #residentCheck
-                [checked]="residentsAttested()"
-                (change)="residentsAttested.set(residentCheck.checked)"
-              />I reviewed the initial resident list, including empty flats.</label
-            ><button
-              seButton
-              type="button"
-              [disabled]="busy() || !residentsAttested()"
-              (click)="confirm('residents')"
-            >
-              Confirm residents review
-            </button>
+          @if (editable() && (residents()?.items?.length ?? 0) > 0) {
+            <div class="resident-review-actions" [class.is-saved]="society.requirements.residents">
+              <label class="setup-attestation"
+                ><input
+                  type="checkbox"
+                  #residentCheck
+                  [checked]="society.requirements.residents || residentsAttested()"
+                  [disabled]="society.requirements.residents || busy()"
+                  (change)="residentsAttested.set(residentCheck.checked)"
+                />
+                <span>
+                  @if (society.requirements.residents) {
+                    <strong>Previously confirmed:</strong> The initial resident list, including
+                    empty flats, was reviewed.
+                    @if (residentConfirmation(society); as confirmation) {
+                      <small>
+                        Saved
+                        {{ displayTime(confirmation.createdAt, society.timezone) }}
+                        @if (confirmation.actorName || confirmation.actorEmail) {
+                          by {{ confirmation.actorName || confirmation.actorEmail }}
+                        }
+                      </small>
+                    }
+                  } @else {
+                    I reviewed the initial resident list, including empty flats.
+                  }
+                </span></label
+              ><button
+                seButton
+                type="button"
+                [disabled]="society.requirements.residents || busy() || !residentsAttested()"
+                (click)="confirm('residents')"
+              >
+                {{ society.requirements.residents ? 'Review saved' : 'Confirm residents review' }}
+              </button>
+            </div>
           }
         }
       </se-card>

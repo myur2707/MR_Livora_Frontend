@@ -2,14 +2,14 @@
   color-scheme: light;
   --canvas: #f5f5f7;
   --surface: #ffffff;
-  --surface-soft: #f1f1f4;
+  --surface-soft: rgb(241 241 244 / 72%);
   --surface-raised: #ffffff;
   --text: #111113;
   --muted: #5d5d66;
   --brand: #c8102e;
   --brand-solid: #c8102e;
   --brand-strong: #9e0b22;
-  --brand-soft: #fdecee;
+  --brand-soft: rgb(253 236 238 / 72%);
   --on-brand: #ffffff;
   --ink: #0e0e10;
   --ink-soft: #1b1b1f;
@@ -26,11 +26,11 @@
   --scrollbar-thumb-hover: rgb(200 16 46 / 55%);
   --focus: #c8102e;
   --danger: #b42318;
-  --danger-soft: #fff1f2;
+  --danger-soft: rgb(255 241 242 / 76%);
   --warning: #7a5212;
-  --warning-soft: #fbf0d8;
+  --warning-soft: rgb(251 240 216 / 76%);
   --success: #166534;
-  --success-soft: #e9f7ee;
+  --success-soft: rgb(233 247 238 / 76%);
   --hero: #fff4f5;
   --hero-text: #1d1214;
   --accent: #e3122d;
@@ -62,6 +62,10 @@
   /* Content glass stays see-through so the brand watermark reads behind cards and tables. */
   --glass-bg: rgb(255 255 255 / 40%);
   --glass-bg-strong: rgb(255 255 255 / 84%);
+  --panel-bg: rgb(255 255 255 / 62%);
+  --panel-bg-soft: rgb(241 241 244 / 58%);
+  --control-bg: rgb(255 255 255 / 68%);
+  --control-bg-disabled: rgb(241 241 244 / 56%);
   --glass-border: rgb(255 255 255 / 78%);
   --glass-blur: blur(1.5px) saturate(115%);
   /* Floating headers keep heavy frosting so text stays legible over scrolling content. */
@@ -89,14 +93,14 @@
   color-scheme: dark;
   --canvas: #09090b;
   --surface: #141417;
-  --surface-soft: #1e1e23;
+  --surface-soft: rgb(30 30 35 / 72%);
   --surface-raised: #1a1a1e;
   --text: #f5f5f6;
   --muted: #b3b3bb;
   --brand: #ff5c61;
   --brand-solid: #c8102e;
   --brand-strong: #ff8084;
-  --brand-soft: #34151a;
+  --brand-soft: rgb(52 21 26 / 72%);
   --on-brand: #ffffff;
   --ink: #050506;
   --ink-soft: #141417;
@@ -112,11 +116,11 @@
   --scrollbar-thumb-hover: rgb(255 92 97 / 60%);
   --focus: #ff5c61;
   --danger: #ff7474;
-  --danger-soft: #3a1518;
+  --danger-soft: rgb(58 21 24 / 76%);
   --warning: #f1d49a;
-  --warning-soft: #3b3323;
+  --warning-soft: rgb(59 51 35 / 76%);
   --success: #7ddc9c;
-  --success-soft: #15291d;
+  --success-soft: rgb(21 41 29 / 76%);
   --hero: #1d1013;
   --hero-text: #fff4f4;
   --accent: #ef4444;
@@ -125,6 +129,10 @@
   --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 10px 30px rgb(0 0 0 / 38%);
   --glass-bg: rgb(26 26 30 / 42%);
   --glass-bg-strong: rgb(26 26 30 / 82%);
+  --panel-bg: rgb(26 26 30 / 62%);
+  --panel-bg-soft: rgb(30 30 35 / 58%);
+  --control-bg: rgb(20 20 23 / 68%);
+  --control-bg-disabled: rgb(30 30 35 / 56%);
   --glass-border: rgb(255 255 255 / 8%);
   --glass-shadow: 0 1px 0 rgb(255 255 255 / 5%) inset, 0 18px 40px rgb(0 0 0 / 45%);
   --hero-bg: rgb(24 24 28 / 78%);

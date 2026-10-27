@@ -36,7 +36,8 @@
   box-shadow: var(--shadow-brand);
 }
 .button[data-variant='secondary'] {
-  background: var(--glass-bg-strong);
+  background: var(--control-bg);
+  backdrop-filter: var(--glass-blur);
   color: var(--text);
   border-color: var(--control-border);
   box-shadow: var(--shadow-sm);
@@ -208,7 +209,7 @@ select.form-control {
 }
 .form-control[aria-invalid='true'] {
   border-color: var(--danger);
-  background: color-mix(in srgb, var(--danger-soft) 45%, var(--surface));
+  background: color-mix(in srgb, var(--danger-soft) 58%, transparent);
 }
 .form-control[aria-invalid='true']:focus-visible {
   border-color: var(--danger);
@@ -217,11 +218,11 @@ select.form-control {
 .form-control:focus-visible {
   outline: none;
   border-color: var(--brand);
-  background: var(--surface);
+  background: var(--control-bg);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand) 16%, transparent);
 }
 .form-control:disabled {
-  background: var(--surface-soft);
+  background: var(--control-bg-disabled);
   cursor: not-allowed;
 }
 @supports (appearance: base-select) {
@@ -410,18 +411,33 @@ select.form-control {
 .pagination > div > span {
   white-space: nowrap;
 }
-/* On phones the page label takes its own row so four full-size buttons fit at 320px. */
+/* Phones use a compact two-row layout: the record range sits above one balanced control row. */
 @media (max-width: 480px) {
-  .pagination > div {
-    flex-wrap: wrap;
+  .pagination {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-2);
     width: 100%;
-    justify-content: space-between;
-    row-gap: var(--space-2);
+    padding-top: var(--space-3);
+  }
+  .pagination > span {
+    justify-self: center;
+  }
+  .pagination > div {
+    display: grid;
+    grid-template-columns: 44px 44px minmax(0, 1fr) 44px 44px;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
   }
   .pagination > div > span {
-    order: -1;
-    flex-basis: 100%;
     text-align: center;
+  }
+  .pagination .button {
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: var(--space-2);
   }
 }
 dialog {

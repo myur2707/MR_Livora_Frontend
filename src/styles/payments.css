@@ -30,7 +30,8 @@
   border-top: 4px solid var(--brand-solid);
   box-shadow: var(--shadow);
   border-radius: var(--radius-lg);
-  background: var(--surface);
+  background: var(--panel-bg);
+  backdrop-filter: var(--glass-blur);
   overflow-wrap: anywhere;
 }
 @media print {
