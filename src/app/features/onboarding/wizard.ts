@@ -40,6 +40,7 @@ import { IconComponent } from '../../shared/icon';
 import { describeStructure, structureTitle } from '../../core/setup-details';
 import type { StructureDetails } from '../../core/setup-details';
 import { firstCommitteeStep, setupProgress, stepStateLabel } from './setup-progress';
+import { paymentMinor, paymentMoney } from '../../core/payments';
 /** Rows per page in the setup structure table; the backend caps this at 50. */
 const flatPageSize = 10;
 /** Code of the reserved building that holds row houses; it is not a wing people chose. */
@@ -81,6 +82,7 @@ export class OnboardingWizardComponent implements OnInit {
   /** The add form lives in a dialog so the structure list stays the focus of this step. */
   protected readonly buildingDialog = signal(false);
   protected readonly flatSearch = signal('');
+  protected readonly structureTypeFilter = signal('');
   private flatRequest = 0;
   private flatSearchTimer: ReturnType<typeof setTimeout> | null = null;
   protected readonly residentStructure = signal<Page<Flat> | null>(null);
@@ -94,6 +96,19 @@ export class OnboardingWizardComponent implements OnInit {
   protected readonly residents = signal<Page<Resident> | null>(null);
   protected readonly residentFormOpen = signal(false);
   protected readonly configurations = signal<Configuration[]>([]);
+  protected readonly maintenanceFormOpen = signal(false);
+  protected readonly residentListSearch = signal('');
+  protected readonly residentListType = signal('');
+  protected readonly maintenanceListSearch = signal('');
+  protected readonly maintenanceListMethod = signal('');
+  protected readonly editingResidentId = signal<string | null>(null);
+  protected readonly editingMaintenanceId = signal<string | null>(null);
+  protected readonly editingStructure = signal<Flat | null>(null);
+  protected readonly pendingArchive = signal<{
+    kind: 'structure' | 'resident' | 'maintenance';
+    id: string;
+    name: string;
+  } | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
   private readonly toast = inject(ToastService);
@@ -111,6 +126,11 @@ export class OnboardingWizardComponent implements OnInit {
     detail: SocietyDetail,
   ): SocietyDetail['events'][number] | undefined {
     return detail.events.find((event) => event.action === 'residents.confirmed');
+  }
+  protected maintenanceConfirmation(
+    detail: SocietyDetail,
+  ): SocietyDetail['events'][number] | undefined {
+    return detail.events.find((event) => event.action === 'maintenance.confirmed');
   }
   protected readonly eventTitle = eventLabel;
   protected readonly wingOptions = ['A', 'B', 'C', 'D'];
@@ -220,13 +240,19 @@ export class OnboardingWizardComponent implements OnInit {
       '',
       [
         (control: AbstractControl) => Validators.required(control),
-        Validators.pattern(/^(?:0|[1-9]\d{0,9})\.\d{2}$/),
+        Validators.pattern(/^(?:0|[1-9]\d{0,9})(?:\.\d{1,2})?$/),
       ],
     ],
     effectiveFrom: [
       new Date().toISOString().slice(0, 10),
       (control: AbstractControl) => Validators.required(control),
     ],
+  });
+  protected readonly structureEditForm = this.fb.nonNullable.group({
+    buildingCode: ['', [Validators.maxLength(64)]],
+    buildingName: ['', [Validators.maxLength(100)]],
+    flatNumber: ['', [(control: AbstractControl) => Validators.required(control)]],
+    areaSqFt: ['', [Validators.pattern(/^[1-9]\d{0,7}\.\d{2}$/)]],
   });
   ngOnInit(): void {
     this.destroyRef.onDestroy(() => {
@@ -274,7 +300,10 @@ export class OnboardingWizardComponent implements OnInit {
           '&pageSize=' +
           flatPageSize +
           '&search=' +
-          encodeURIComponent(this.flatSearch().trim()),
+          encodeURIComponent(this.flatSearch().trim()) +
+          (this.structureTypeFilter()
+            ? '&propertyType=' + encodeURIComponent(this.structureTypeFilter())
+            : ''),
       );
       // A slower earlier search must not overwrite the results of the latest one.
       if (request !== this.flatRequest) return;
@@ -293,6 +322,12 @@ export class OnboardingWizardComponent implements OnInit {
       this.flatSearchTimer = null;
       void this.flatPage(1);
     }, 300);
+  }
+  protected filterStructure(event: Event): void {
+    const select = event.target;
+    if (!(select instanceof HTMLSelectElement)) return;
+    this.structureTypeFilter.set(select.value);
+    void this.flatPage(1);
   }
   protected openBuildingDialog(): void {
     this.error.set(null);
@@ -371,8 +406,11 @@ export class OnboardingWizardComponent implements OnInit {
   }
   protected async chargePage(page: number): Promise<void> {
     try {
+      const filters = new URLSearchParams({ page: String(page) });
+      if (this.maintenanceListSearch()) filters.set('search', this.maintenanceListSearch());
+      if (this.maintenanceListMethod()) filters.set('method', this.maintenanceListMethod());
       const data = await this.api.get<Page<Configuration>>(
-        this.prefix + '/maintenance?page=' + page,
+        this.prefix + '/maintenance?' + filters.toString(),
       );
       this.chargesPage.set(data);
       this.configurations.set(data.items);
@@ -382,8 +420,11 @@ export class OnboardingWizardComponent implements OnInit {
   }
   protected async residentPage(page: number): Promise<void> {
     try {
+      const filters = new URLSearchParams({ page: String(page) });
+      if (this.residentListSearch()) filters.set('search', this.residentListSearch());
+      if (this.residentListType()) filters.set('occupancyType', this.residentListType());
       this.residents.set(
-        await this.api.get<Page<Resident>>(this.prefix + '/residents?page=' + page),
+        await this.api.get<Page<Resident>>(this.prefix + '/residents?' + filters.toString()),
       );
     } catch (error) {
       this.error.set(onboardingError(error));
@@ -535,30 +576,130 @@ export class OnboardingWizardComponent implements OnInit {
     this.residentForm.markAllAsTouched();
     if (this.residentForm.invalid) return;
     const value = this.residentForm.getRawValue();
-    await this.run(async (detail) => {
-      await this.api.post(this.prefix + '/residents', {
-        revision: detail.revision,
-        ...value,
-        propertyType: this.residentRowHouses() ? 'ROW_HOUSE' : 'FLAT',
-        endsOn: value.endsOn || null,
-      });
-      this.residentsAttested.set(false);
-      this.residentForm.controls.displayName.reset();
-      this.residentForm.controls.flatId.reset();
-      this.residentSelectedProperty.set(null);
-      this.residentFormOpen.set(false);
-    }, 'Resident added without a login account. Review the list again before confirming.');
+    await this.run(
+      async (detail) => {
+        const payload = {
+          revision: detail.revision,
+          ...value,
+          propertyType: this.residentRowHouses() ? 'ROW_HOUSE' : 'FLAT',
+          endsOn: value.endsOn || null,
+        };
+        const editing = this.editingResidentId();
+        if (editing) await this.api.put(this.prefix + '/residents/' + editing, payload);
+        else await this.api.post(this.prefix + '/residents', payload);
+        this.residentsAttested.set(false);
+        this.residentForm.controls.displayName.reset();
+        this.residentForm.controls.flatId.reset();
+        this.residentSelectedProperty.set(null);
+        this.residentFormOpen.set(false);
+        this.editingResidentId.set(null);
+      },
+      this.editingResidentId()
+        ? 'Resident updated. Review the list again before confirming.'
+        : 'Resident added without a login account. Review the list again before confirming.',
+    );
+  }
+  protected editResident(item: Resident): void {
+    this.editingResidentId.set(item.id);
+    this.residentForm.patchValue({
+      flatId: item.flatId,
+      displayName: item.displayName,
+      occupancyType: item.occupancyType,
+      startsOn: item.startsOn,
+      endsOn: item.endsOn ?? '',
+    });
+    this.residentRowHouses.set(item.buildingCode === rowHouseBuildingCode);
+    this.residentSelectedProperty.set({
+      id: item.flatId,
+      buildingCode: item.buildingCode,
+      buildingName: item.buildingName,
+      flatNumber: item.flatNumber,
+      areaSqFt: null,
+    });
+    this.residentFormOpen.set(true);
   }
   protected async maintenance(): Promise<void> {
+    this.normalizeMaintenanceRate();
     this.maintenanceForm.markAllAsTouched();
     if (this.maintenanceForm.invalid) return;
+    await this.run(
+      async (detail) => {
+        const payload = {
+          revision: detail.revision,
+          ...this.maintenanceForm.getRawValue(),
+        };
+        const editing = this.editingMaintenanceId();
+        if (editing) await this.api.put(this.prefix + '/maintenance/' + editing, payload);
+        else await this.api.post(this.prefix + '/maintenance', payload);
+        this.maintenanceAttested.set(false);
+        this.maintenanceFormOpen.set(false);
+        this.editingMaintenanceId.set(null);
+      },
+      this.editingMaintenanceId()
+        ? 'Maintenance configuration updated.'
+        : 'Maintenance configuration added.',
+    );
+  }
+  protected editMaintenance(item: Configuration): void {
+    this.editingMaintenanceId.set(item.id);
+    this.maintenanceForm.setValue({
+      code: item.code,
+      name: item.name,
+      method: item.method,
+      rate: item.rate,
+      effectiveFrom: item.effectiveFrom,
+    });
+    this.maintenanceFormOpen.set(true);
+  }
+  protected editStructure(item: Flat): void {
+    this.editingStructure.set(item);
+    this.structureEditForm.setValue({
+      buildingCode: item.buildingCode,
+      buildingName: item.buildingName,
+      flatNumber: item.flatNumber,
+      areaSqFt: item.areaSqFt ?? '',
+    });
+  }
+  protected async saveStructureEdit(): Promise<void> {
+    const item = this.editingStructure();
+    this.structureEditForm.markAllAsTouched();
+    if (!item || this.structureEditForm.invalid) return;
     await this.run(async (detail) => {
-      await this.api.post(this.prefix + '/maintenance', {
+      const value = this.structureEditForm.getRawValue();
+      await this.api.put(this.prefix + '/structure/' + item.id, {
         revision: detail.revision,
-        ...this.maintenanceForm.getRawValue(),
+        flatNumber: value.flatNumber,
+        areaSqFt: value.areaSqFt || null,
+        buildingCode: this.isRowHouse(item) ? undefined : value.buildingCode,
+        buildingName: this.isRowHouse(item) ? undefined : value.buildingName,
       });
-      this.maintenanceAttested.set(false);
-    }, 'Maintenance configuration added.');
+      this.editingStructure.set(null);
+    }, 'Home updated.');
+  }
+  protected async archivePending(): Promise<void> {
+    const pending = this.pendingArchive();
+    if (!pending) return;
+    this.pendingArchive.set(null);
+    await this.run(
+      (detail) =>
+        this.api.post(
+          this.prefix +
+            '/' +
+            (pending.kind === 'resident' ? 'residents' : pending.kind) +
+            '/' +
+            pending.id +
+            '/archive',
+          {
+            revision: detail.revision,
+          },
+        ),
+      pending.name + ' archived.',
+    );
+  }
+  protected normalizeMaintenanceRate(): void {
+    const control = this.maintenanceForm.controls.rate;
+    const minor = paymentMinor(control.value.trim());
+    if (minor !== null) control.setValue(paymentMoney(minor));
   }
   protected async confirm(section: 'residents' | 'maintenance' | 'review'): Promise<void> {
     await this.run(

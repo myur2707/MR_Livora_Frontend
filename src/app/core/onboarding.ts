@@ -37,7 +37,11 @@ export interface Flat {
 }
 export interface Resident {
   id: string;
+  personId: string;
+  flatId: string;
   displayName: string;
+  buildingCode: string;
+  buildingName: string;
   flatNumber: string;
   occupancyType: string;
   startsOn: string;
@@ -45,6 +49,8 @@ export interface Resident {
 }
 export interface Configuration {
   id: string;
+  chargeTypeId: string;
+  code: string;
   name: string;
   method: string;
   rate: string;
@@ -124,6 +130,8 @@ const onboardingErrorMessages: Readonly<Record<string, string>> = {
   COMMITTEE_VERIFICATION_REQUIRED: 'The committee must verify and activate this society.',
   NOT_FOUND: 'This society is unavailable to your account.',
   ACCESS_DENIED: 'This society is unavailable to your account.',
+  RECORD_HAS_DEPENDENCIES:
+    'This record has later resident, access, billing, payment, or invitation activity, so it cannot be edited or archived.',
 };
 /** These conflicts name the caller's own wing code or the numbers that already exist. */
 const detailedConflicts: ReadonlySet<string> = new Set(['NOTHING_TO_ADD', 'WING_ARCHIVED']);
@@ -153,6 +161,10 @@ export class OnboardingApi {
   async post<T = void>(path: string, body: unknown): Promise<T> {
     await this.auth.prepare();
     return firstValueFrom(this.http.post<T>('/api/v1' + path, body));
+  }
+  async put<T = void>(path: string, body: unknown): Promise<T> {
+    await this.auth.prepare();
+    return firstValueFrom(this.http.put<T>('/api/v1' + path, body));
   }
   async societies(page = 1, status = '', search = '', type = ''): Promise<Page<SocietySummary>> {
     let params = new HttpParams().set('page', page).set('pageSize', 5);

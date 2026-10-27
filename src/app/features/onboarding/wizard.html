@@ -260,6 +260,14 @@
                 (keydown.enter)="$event.preventDefault()"
               />
             </label>
+            <label>
+              <span class="sr-only">Filter homes by type</span>
+              <select seSelect [value]="structureTypeFilter()" (change)="filterStructure($event)">
+                <option value="">All homes</option>
+                <option value="FLAT">Flats</option>
+                <option value="ROW_HOUSE">Row houses</option>
+              </select>
+            </label>
           </div>
         }
         @if (flats().length) {
@@ -278,6 +286,9 @@
                   <th scope="col">Wing</th>
                   <th scope="col">Flat / Row house no.</th>
                   <th scope="col">Area (sq ft)</th>
+                  @if (editable() && !platform) {
+                    <th scope="col">Actions</th>
+                  }
                 </tr>
               </thead>
               <tbody>
@@ -290,6 +301,32 @@
                         {{ flat.buildingName }}
                       }
                     </td>
+                    @if (editable() && !platform) {
+                      <td class="row-actions">
+                        <button
+                          seButton
+                          variant="secondary"
+                          type="button"
+                          (click)="editStructure(flat)"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          seButton
+                          variant="danger"
+                          type="button"
+                          (click)="
+                            pendingArchive.set({
+                              kind: 'structure',
+                              id: flat.id,
+                              name: flat.flatNumber,
+                            })
+                          "
+                        >
+                          Archive
+                        </button>
+                      </td>
+                    }
                     <th scope="row">{{ flat.flatNumber }}</th>
                     <td>
                       @if (flat.areaSqFt) {
@@ -834,7 +871,9 @@
                 </div>
                 <div class="resident-form-submit">
                   <p>After adding, the resident will appear in the review list below.</p>
-                  <button seButton type="submit" [disabled]="busy()">Add initial resident</button>
+                  <button seButton type="submit" [disabled]="busy()">
+                    {{ editingResidentId() ? 'Save resident changes' : 'Add initial resident' }}
+                  </button>
                 </div>
               </section>
             </form>
@@ -842,6 +881,33 @@
           @if (residents(); as data) {
             @if (data.items.length) {
               <div class="resident-list">
+                <form class="onboarding-list-filters" (ngSubmit)="residentPage(1)">
+                  <label>
+                    <span class="sr-only">Search residents</span>
+                    <input
+                      seInput
+                      type="search"
+                      placeholder="Search by resident or home"
+                      [value]="residentListSearch()"
+                      (input)="residentListSearch.set($any($event.target).value)"
+                    />
+                  </label>
+                  <label>
+                    <span class="sr-only">Filter by occupancy</span>
+                    <select
+                      seSelect
+                      [value]="residentListType()"
+                      (change)="residentListType.set($any($event.target).value)"
+                    >
+                      <option value="">All occupancy types</option>
+                      <option value="OWNER">Owners</option>
+                      <option value="TENANT">Tenants</option>
+                      <option value="FAMILY_MEMBER">Family members</option>
+                      <option value="AUTHORIZED_OCCUPANT">Authorized occupants</option>
+                    </select>
+                  </label>
+                  <button seButton variant="secondary" type="submit">Apply filters</button>
+                </form>
                 <div class="table-scroll" tabindex="0" role="region" aria-label="Initial residents">
                   <table seTable>
                     <caption class="sr-only">
@@ -853,6 +919,9 @@
                         <th scope="col">Flat</th>
                         <th scope="col">Occupancy</th>
                         <th scope="col">Period</th>
+                        @if (editable()) {
+                          <th scope="col">Actions</th>
+                        }
                       </tr>
                     </thead>
                     <tbody>
@@ -862,6 +931,32 @@
                           <td>{{ resident.flatNumber }}</td>
                           <td>{{ resident.occupancyType | label }}</td>
                           <td>{{ resident.startsOn }} – {{ resident.endsOn || 'Current' }}</td>
+                          @if (editable()) {
+                            <td class="row-actions">
+                              <button
+                                seButton
+                                variant="secondary"
+                                type="button"
+                                (click)="editResident(resident)"
+                              >
+                                Edit
+                              </button>
+                              <button
+                                seButton
+                                variant="danger"
+                                type="button"
+                                (click)="
+                                  pendingArchive.set({
+                                    kind: 'resident',
+                                    id: resident.id,
+                                    name: resident.displayName,
+                                  })
+                                "
+                              >
+                                Archive
+                              </button>
+                            </td>
+                          }
                         </tr>
                       }
                     </tbody>
@@ -931,112 +1026,272 @@
       </se-card>
     }
     @if (step() === 4) {
-      <se-card title="Maintenance">
+      <se-card
+        class="maintenance-card"
+        title="Maintenance"
+        description="Configure the society's initial maintenance charge, review it, and confirm this step."
+      >
         @if (platform) {
           <p>
             The committee configures and confirms maintenance.
             {{ society.counts.maintenance }} configurations recorded.
           </p>
         } @else {
-          @if (editable()) {
-            <form [formGroup]="maintenanceForm" (ngSubmit)="maintenance()" class="onboarding-form">
-              <se-field
-                controlId="charge-code"
-                label="Charge code"
-                [required]="true"
-                hint="Examples: MONTHLY_MAINTENANCE, WATER_CHARGE or PARKING-01. Use uppercase letters, numbers, underscores or hyphens."
-                ><input
-                  seInput
-                  formControlName="code"
-                  placeholder="e.g. MONTHLY_MAINTENANCE"
-                  maxlength="64"
-                  required
-              /></se-field>
-              <se-field controlId="charge-name" label="Charge name" [required]="true"
-                ><input seInput formControlName="name" required maxlength="100"
-              /></se-field>
-              <se-field controlId="charge-method" label="Charge Type" [required]="true"
-                ><select seSelect formControlName="method">
-                  <option value="FLAT_RATE">Fixed Amount</option>
-                  <option value="PER_SQ_FT">Per square foot</option>
-                </select></se-field
-              >
-              <se-field
-                controlId="charge-rate"
-                label="Amount"
-                [required]="true"
-                hint="Use two decimals, such as 1000.00."
-                [error]="
-                  maintenanceForm.controls.rate.touched && maintenanceForm.controls.rate.invalid
-                    ? 'Enter a nonnegative amount with two decimal places.'
-                    : null
-                "
-                ><input seInput formControlName="rate" inputmode="decimal" required
-              /></se-field>
-              <se-field controlId="charge-from" label="Effective from" [required]="true"
-                ><input seInput formControlName="effectiveFrom" type="date" required
-              /></se-field>
-              <button seButton type="submit" [disabled]="busy()">
-                Add initial maintenance charge
-              </button>
+          @if (
+            editable() &&
+            ((!configurations().length && !maintenanceListSearch() && !maintenanceListMethod()) ||
+              maintenanceFormOpen())
+          ) {
+            <form
+              [formGroup]="maintenanceForm"
+              (ngSubmit)="maintenance()"
+              class="onboarding-form maintenance-form"
+            >
+              <section class="maintenance-form-section" aria-labelledby="maintenance-charge-title">
+                <div class="resident-form-heading">
+                  <span aria-hidden="true">1</span>
+                  <div>
+                    <h3 id="maintenance-charge-title">Charge details</h3>
+                    <p>Give the maintenance charge a clear internal code and display name.</p>
+                  </div>
+                </div>
+                <se-field
+                  controlId="charge-code"
+                  label="Charge code"
+                  [required]="true"
+                  hint="Use uppercase letters, numbers, underscores or hyphens."
+                  ><input
+                    seInput
+                    formControlName="code"
+                    placeholder="e.g. MONTHLY_MAINTENANCE"
+                    maxlength="64"
+                    required
+                /></se-field>
+                <se-field controlId="charge-name" label="Charge name" [required]="true"
+                  ><input
+                    seInput
+                    formControlName="name"
+                    placeholder="e.g. Monthly maintenance"
+                    required
+                    maxlength="100"
+                /></se-field>
+                <se-field controlId="charge-method" label="Charge type" [required]="true"
+                  ><select seSelect formControlName="method">
+                    <option value="FLAT_RATE">Fixed amount</option>
+                    <option value="PER_SQ_FT">Per square foot</option>
+                  </select></se-field
+                >
+              </section>
+              <section class="maintenance-form-section" aria-labelledby="maintenance-rate-title">
+                <div class="resident-form-heading">
+                  <span aria-hidden="true">2</span>
+                  <div>
+                    <h3 id="maintenance-rate-title">Pricing and start date</h3>
+                    <p>Set the amount and the date from which this charge applies.</p>
+                  </div>
+                </div>
+                <se-field
+                  controlId="charge-rate"
+                  label="Amount"
+                  [required]="true"
+                  hint="Whole numbers are saved with .00 automatically."
+                  [error]="
+                    maintenanceForm.controls.rate.touched && maintenanceForm.controls.rate.invalid
+                      ? 'Enter a nonnegative amount with no more than two decimal places.'
+                      : null
+                  "
+                  ><input
+                    seInput
+                    formControlName="rate"
+                    inputmode="decimal"
+                    required
+                    (blur)="normalizeMaintenanceRate()"
+                /></se-field>
+                <se-field controlId="charge-from" label="Effective from" [required]="true"
+                  ><input seInput formControlName="effectiveFrom" type="date" required
+                /></se-field>
+                <div class="maintenance-form-submit">
+                  <p>After adding, the charge will appear in the review list.</p>
+                  <button seButton type="submit" [disabled]="busy()">
+                    {{ editingMaintenanceId() ? 'Save charge changes' : 'Add maintenance charge' }}
+                  </button>
+                </div>
+              </section>
             </form>
           }
           @if (configurations().length) {
-            <div
-              class="table-scroll"
-              tabindex="0"
-              role="region"
-              aria-label="Initial maintenance charges"
-            >
-              <table seTable>
-                <caption class="sr-only">
-                  Initial maintenance charges
-                </caption>
-                <thead>
-                  <tr>
-                    <th scope="col">Charge</th>
-                    <th scope="col">Charge Type</th>
-                    <th scope="col">Amount</th>
-                    <th scope="col">Effective from</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @for (charge of configurations(); track charge.id) {
+            <div class="maintenance-list">
+              <form class="onboarding-list-filters" (ngSubmit)="chargePage(1)">
+                <label
+                  ><span class="sr-only">Search charges</span
+                  ><input
+                    seInput
+                    type="search"
+                    placeholder="Search by charge code or name"
+                    [value]="maintenanceListSearch()"
+                    (input)="maintenanceListSearch.set($any($event.target).value)"
+                /></label>
+                <label
+                  ><span class="sr-only">Filter by charge type</span
+                  ><select
+                    seSelect
+                    [value]="maintenanceListMethod()"
+                    (change)="maintenanceListMethod.set($any($event.target).value)"
+                  >
+                    <option value="">All charge types</option>
+                    <option value="FLAT_RATE">Fixed amount</option>
+                    <option value="PER_SQ_FT">Per square foot</option>
+                  </select></label
+                >
+                <button seButton variant="secondary" type="submit">Apply filters</button>
+              </form>
+              <div
+                class="table-scroll"
+                tabindex="0"
+                role="region"
+                aria-label="Initial maintenance charges"
+              >
+                <table seTable>
+                  <caption class="sr-only">
+                    Initial maintenance charges
+                  </caption>
+                  <thead>
                     <tr>
-                      <th scope="row">{{ charge.name }}</th>
-                      <td>{{ charge.method | label }}</td>
-                      <td>{{ charge.rate }}</td>
-                      <td>{{ charge.effectiveFrom }}</td>
+                      <th scope="col">Charge</th>
+                      <th scope="col">Charge type</th>
+                      <th scope="col">Amount</th>
+                      <th scope="col">Effective from</th>
+                      @if (editable()) {
+                        <th scope="col">Actions</th>
+                      }
                     </tr>
-                  }
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    @for (charge of configurations(); track charge.id) {
+                      <tr>
+                        <th scope="row">{{ charge.name }}</th>
+                        <td>{{ charge.method | label }}</td>
+                        <td>{{ charge.rate }}</td>
+                        <td>{{ charge.effectiveFrom }}</td>
+                        @if (editable()) {
+                          <td class="row-actions">
+                            <button
+                              seButton
+                              variant="secondary"
+                              type="button"
+                              (click)="editMaintenance(charge)"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              seButton
+                              variant="danger"
+                              type="button"
+                              (click)="
+                                pendingArchive.set({
+                                  kind: 'maintenance',
+                                  id: charge.id,
+                                  name: charge.name,
+                                })
+                              "
+                            >
+                              Archive
+                            </button>
+                          </td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+              @if (chargesPage(); as data) {
+                <se-pagination
+                  [total]="data.total"
+                  [page]="data.page"
+                  [pageSize]="data.pageSize"
+                  (pageSelected)="chargePage($event)"
+                />
+              }
+            </div>
+            @if (editable()) {
+              <div class="maintenance-add-toolbar">
+                <p>The saved maintenance charges are shown first for review.</p>
+                <button
+                  seButton
+                  variant="secondary"
+                  type="button"
+                  [attr.aria-expanded]="maintenanceFormOpen()"
+                  (click)="maintenanceFormOpen.set(!maintenanceFormOpen())"
+                >
+                  {{
+                    maintenanceFormOpen()
+                      ? 'Close maintenance form'
+                      : 'Add another maintenance charge'
+                  }}
+                </button>
+              </div>
+            }
+          } @else if (maintenanceListSearch() || maintenanceListMethod()) {
+            <div class="onboarding-filter-empty">
+              <p>No maintenance charges match the current filters.</p>
+              <button
+                seButton
+                variant="secondary"
+                type="button"
+                (click)="
+                  maintenanceListSearch.set(''); maintenanceListMethod.set(''); chargePage(1)
+                "
+              >
+                Clear filters
+              </button>
             </div>
           }
-          @if (chargesPage(); as data) {
-            <se-pagination
-              [total]="data.total"
-              [page]="data.page"
-              [pageSize]="data.pageSize"
-              (pageSelected)="chargePage($event)"
-            />
-          }
           @if (editable()) {
-            <label class="setup-attestation"
-              ><input
-                type="checkbox"
-                #chargeCheck
-                [checked]="maintenanceAttested()"
-                (change)="maintenanceAttested.set(chargeCheck.checked)"
-              />I reviewed the initial maintenance configuration.</label
-            ><button
-              seButton
-              type="button"
-              [disabled]="busy() || !maintenanceAttested() || !configurations().length"
-              (click)="confirm('maintenance')"
+            <div
+              class="maintenance-review-actions"
+              [class.is-saved]="society.requirements.maintenance"
             >
-              Confirm maintenance review
-            </button>
+              <label class="setup-attestation"
+                ><input
+                  type="checkbox"
+                  #chargeCheck
+                  [checked]="society.requirements.maintenance || maintenanceAttested()"
+                  [disabled]="society.requirements.maintenance || busy()"
+                  (change)="maintenanceAttested.set(chargeCheck.checked)"
+                />
+                <span>
+                  @if (society.requirements.maintenance) {
+                    <strong>Previously confirmed:</strong> The initial maintenance configuration was
+                    reviewed.
+                    @if (maintenanceConfirmation(society); as confirmation) {
+                      <small>
+                        Saved
+                        {{ displayTime(confirmation.createdAt, society.timezone) }}
+                        @if (confirmation.actorName || confirmation.actorEmail) {
+                          by {{ confirmation.actorName || confirmation.actorEmail }}
+                        }
+                      </small>
+                    }
+                  } @else {
+                    I reviewed the initial maintenance configuration.
+                  }
+                </span></label
+              ><button
+                seButton
+                type="button"
+                [disabled]="
+                  society.requirements.maintenance ||
+                  busy() ||
+                  !maintenanceAttested() ||
+                  !configurations().length
+                "
+                (click)="confirm('maintenance')"
+              >
+                {{
+                  society.requirements.maintenance ? 'Review saved' : 'Confirm maintenance review'
+                }}
+              </button>
+            </div>
           }
         }
       </se-card>
@@ -1271,6 +1526,52 @@
     </se-card>
   }
 }
+<se-dialog
+  title="Edit home"
+  [open]="editingStructure() !== null"
+  (closed)="editingStructure.set(null)"
+>
+  @if (editingStructure(); as home) {
+    <form [formGroup]="structureEditForm" (ngSubmit)="saveStructureEdit()" class="onboarding-form">
+      @if (!isRowHouse(home)) {
+        <se-field controlId="edit-wing-code" label="Wing code" [required]="true"
+          ><input seInput formControlName="buildingCode" required
+        /></se-field>
+        <se-field controlId="edit-wing-name" label="Wing name" [required]="true"
+          ><input seInput formControlName="buildingName" required
+        /></se-field>
+      }
+      <se-field controlId="edit-home-number" label="Flat / Row house no." [required]="true"
+        ><input seInput formControlName="flatNumber" required
+      /></se-field>
+      <se-field controlId="edit-home-area" label="Area (sq ft)"
+        ><input seInput formControlName="areaSqFt" placeholder="e.g. 950.00"
+      /></se-field>
+      <div class="onboarding-actions">
+        <button seButton variant="secondary" type="button" (click)="editingStructure.set(null)">
+          Cancel</button
+        ><button seButton type="submit" [disabled]="busy()">Save changes</button>
+      </div>
+    </form>
+  }
+</se-dialog>
+<se-dialog
+  title="Archive this setup record?"
+  [open]="pendingArchive() !== null"
+  (closed)="pendingArchive.set(null)"
+>
+  <p>
+    This hides the record from active setup lists without erasing its audit history. Archiving is
+    blocked when later resident, membership, invitation, billing, or payment activity depends on it.
+  </p>
+  <div class="onboarding-actions">
+    <button seButton variant="secondary" type="button" (click)="pendingArchive.set(null)">
+      Cancel</button
+    ><button seButton variant="danger" type="button" [disabled]="busy()" (click)="archivePending()">
+      Archive record
+    </button>
+  </div>
+</se-dialog>
 <se-dialog
   title="Verify and activate this Society/Flat/Township?"
   [open]="activationDialog()"

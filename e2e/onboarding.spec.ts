@@ -315,6 +315,16 @@ test('committee wizard requires review and explicit activation; stale server con
   await expect(audit).toHaveCount(0);
   await page.getByRole('button', { name: /Hide setup history/ }).click();
   await expect(page.getByText('Society created', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: /^5\s*Maintenance/ }).click();
+  await expect(page.getByRole('row', { name: /Base/ })).toBeVisible();
+  await expect(page.getByLabel('Charge code')).toBeHidden();
+  await expect(page.getByRole('checkbox', { name: /Previously confirmed/ })).toBeChecked();
+  await expect(page.getByRole('checkbox', { name: /Previously confirmed/ })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Review saved' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Add another maintenance charge' }).click();
+  await expect(page.getByLabel('Charge code')).toBeVisible();
+  await page.getByRole('button', { name: 'Close maintenance form' }).click();
+  await expect(page.getByLabel('Charge code')).toBeHidden();
   for (const button of await page.locator('.wizard-steps button').all()) {
     await button.click();
     expect(
