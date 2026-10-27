@@ -1,0 +1,112 @@
+<header class="page-heading">
+  <div>
+    <p class="eyebrow">PLATFORM WORKSPACE</p>
+    <h1 tabindex="-1">Audit trail</h1>
+    <p>Who changed what, and when, across every Society/Flat/Township and module.</p>
+  </div>
+</header>
+<se-form-notice [message]="error()" />
+<form class="payment-filters" (ngSubmit)="load()">
+  <se-field controlId="audit-search" label="Search"
+    ><input
+      seInput
+      name="search"
+      [(ngModel)]="search"
+      maxlength="80"
+      placeholder="Action, user email, name or code"
+  /></se-field>
+  <se-field controlId="audit-society" label="Society/Flat/Township"
+    ><select seSelect name="societyId" [(ngModel)]="societyId" class="select-truncate">
+      <!-- Lets a long community name end in an ellipsis while the arrow stays visible. -->
+      <button type="button"><selectedcontent></selectedcontent></button>
+      <option value="">All communities</option>
+      @for (community of communities(); track community.id) {
+        <option [value]="community.id">{{ community.name }} ({{ community.code }})</option>
+      }
+    </select></se-field
+  >
+  <se-field controlId="audit-module" label="Module"
+    ><select seSelect name="module" [(ngModel)]="module">
+      <option value="">All modules</option>
+      @for (option of modules; track option.value) {
+        <option [value]="option.value">{{ option.label }}</option>
+      }
+    </select></se-field
+  >
+  <se-field controlId="audit-from" label="From"
+    ><input seInput type="date" name="from" [(ngModel)]="from"
+  /></se-field>
+  <se-field controlId="audit-to" label="To"
+    ><input seInput type="date" name="to" [(ngModel)]="to"
+  /></se-field>
+  <button seButton type="submit" [disabled]="loading()">Apply filters</button>
+  <button seButton variant="secondary" type="button" [disabled]="loading()" (click)="reset()">
+    Clear
+  </button>
+</form>
+@if (loading() && !result()) {
+  <p role="status">Loading audit trail…</p>
+}
+@if (result(); as data) {
+  <se-card class="platform-directory-card">
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Audit trail entries">
+      <table seTable>
+        <caption class="sr-only">
+          Audit trail entries, newest first
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">When</th>
+            <th scope="col">Society/Flat/Township</th>
+            <th scope="col">Module</th>
+            <th scope="col">What happened</th>
+            <th scope="col">Details</th>
+            <th scope="col">Record</th>
+            <th scope="col">Done by</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (entry of data.items; track entry.id) {
+            <tr>
+              <td>{{ entry.createdAt | date: 'd MMM y, h:mm a' }}</td>
+              <td>
+                {{ entry.societyName }}<span class="audit-sub">{{ entry.societyCode }}</span>
+              </td>
+              <td>{{ moduleLabel(entry.module) }}</td>
+              <th scope="row">{{ actionLabel(entry) }}</th>
+              <td class="audit-details">
+                @for (line of detailLines(entry); track $index) {
+                  <span>{{ line }}</span>
+                } @empty {
+                  <span class="audit-sub">No further details recorded</span>
+                }
+              </td>
+              <td>{{ recordLabel(entry) }}</td>
+              <td>
+                {{ entry.actorEmail ?? 'System' }}
+                @if (entry.actorPlatform) {
+                  <se-badge tone="warning">Platform</se-badge>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7">No audit entries match these filters.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <se-pagination
+      [total]="data.total"
+      [page]="data.page"
+      [pageSize]="data.pageSize"
+      (pageSelected)="load($event)"
+    />
+  </se-card>
+  <p class="audit-note">
+    Shows who did what and when, with the record it touched. Setup entries also show the wings,
+    flats and row houses that were added or skipped. Private details such as resident contact
+    information and amounts are never shown here.
+  </p>
+}

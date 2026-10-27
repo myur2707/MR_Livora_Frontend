@@ -26,6 +26,17 @@ describe('onboarding client boundary', () => {
       onboardingError(new HttpErrorResponse({ error: { error: { message: 'SELECT secret' } } })),
     ).not.toContain('SELECT');
   });
+  it('shows the server detail only for allowlisted duplicate conflicts', () => {
+    const conflict = (code: string, message: string) =>
+      onboardingError(new HttpErrorResponse({ error: { error: { code, message } } }));
+    expect(conflict('NOTHING_TO_ADD', 'All of these flats already exist in wing A (101).')).toBe(
+      'All of these flats already exist in wing A (101).',
+    );
+    expect(conflict('WING_ARCHIVED', 'Wing C was archived.')).toBe('Wing C was archived.');
+    expect(conflict('CONFLICT', 'SELECT secret')).not.toContain('SELECT');
+    expect(conflict('WING_EXISTS', 'SELECT secret')).not.toContain('SELECT');
+    expect(conflict('NOTHING_TO_ADD', 'x'.repeat(601))).not.toContain('xxx');
+  });
   it('loads five societies per page by default', async () => {
     TestBed.configureTestingModule({
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],

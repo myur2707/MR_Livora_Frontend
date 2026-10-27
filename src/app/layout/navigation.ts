@@ -22,14 +22,15 @@ export const NAVIGATION: readonly { label: string; path: string; icon: IconName;
       group: 'My living',
     })),
     { label: 'Workspace', path: '/workspace', icon: 'home', group: 'Workspace' },
-    { label: 'Overview', path: '/platform/dashboard', icon: 'home', group: 'Workspace' },
+    { label: 'Dashboard', path: '/platform/dashboard', icon: 'home', group: 'Workspace' },
     {
       label: 'Societies/Flats/Townships',
       path: '/platform/societies',
       icon: 'building',
       group: 'Workspace',
     },
-    { label: 'Community space', path: '/society/dashboard', icon: 'home', group: 'Workspace' },
+    { label: 'Audit trail', path: '/platform/audit-trail', icon: 'shield', group: 'Workspace' },
+    { label: 'Dashboard', path: '/society/dashboard', icon: 'home', group: 'Workspace' },
     {
       label: 'Financial reports',
       path: '/society/reports/outstanding',

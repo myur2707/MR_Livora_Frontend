@@ -14,6 +14,19 @@
         autocomplete="off"
         placeholder="Name or code"
     /></se-field>
+    <se-field class="page-heading-filter" controlId="societies-type" label="Society/Flat/Township"
+      ><select
+        class="lifecycle-select"
+        seSelect
+        #typeSelect
+        (change)="filterType(typeSelect.value)"
+      >
+        <option value="">All types</option>
+        @for (option of communityTypes; track option.value) {
+          <option [value]="option.value">{{ option.label }}</option>
+        }
+      </select></se-field
+    >
     <se-field class="page-heading-filter" controlId="societies-filter" label="Lifecycle status"
       ><select
         class="lifecycle-select"

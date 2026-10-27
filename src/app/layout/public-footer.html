@@ -1,0 +1,60 @@
+<footer class="public-footer">
+  <div class="public-footer-inner">
+    <div class="public-footer-brand">
+      <img src="/assets/brand/logo.png" width="64" height="64" alt="" />
+      <div>
+        <p class="public-footer-name">Mr. Livora</p>
+        <p>Smart society management for committees, staff, owners and tenants.</p>
+      </div>
+    </div>
+    <nav class="public-footer-links" aria-label="Footer">
+      <div>
+        <h2>Explore</h2>
+        <a routerLink="/">Home</a>
+        <a routerLink="/" fragment="features">Features</a>
+        <a routerLink="/about">About Us</a>
+        <a routerLink="/contact">Contact Us</a>
+      </div>
+      <div>
+        <h2>Account</h2>
+        <a routerLink="/login">Sign in</a>
+        <a routerLink="/register">Create account</a>
+      </div>
+      <div>
+        <h2>Contact</h2>
+        <a [href]="contact.phoneHref"><se-icon name="phone" />{{ contact.phone }}</a>
+        <a [href]="'mailto:' + contact.email"><se-icon name="mail" />{{ contact.email }}</a>
+        <a [href]="contact.instagram" target="_blank" rel="noopener noreferrer"
+          ><se-icon name="camera" />Instagram</a
+        >
+        <a [href]="contact.facebook" target="_blank" rel="noopener noreferrer"
+          ><se-icon name="social" />Facebook</a
+        >
+      </div>
+      <div>
+        <h2>Founders</h2>
+        @for (person of founders; track person.name) {
+          <p class="public-footer-person">
+            <span class="public-footer-role">{{ person.role }}</span
+            >{{ person.name }}
+          </p>
+          <a
+            [href]="person.phoneHref"
+            [attr.aria-label]="'Call ' + person.name + ', ' + person.role"
+            ><se-icon name="phone" />{{ person.phone }}</a
+          >
+        }
+      </div>
+    </nav>
+  </div>
+  <div class="public-footer-base">
+    <span>© {{ year }} Mr. Livora. All rights reserved.</span>
+    <span class="public-footer-motto">Better communities begin with better connections.</span>
+    <span class="public-footer-end">
+      <span class="public-footer-tagline">Live in a Better Aura</span>
+      <button type="button" class="public-footer-top" (click)="backToTop()">
+        Back to top <span aria-hidden="true">↑</span>
+      </button>
+    </span>
+  </div>
+</footer>

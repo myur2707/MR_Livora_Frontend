@@ -1,4 +1,5 @@
-import { apiErrorMessage } from './api-error';
+import { apiErrorDetail, apiErrorMessage } from './api-error';
+import type { StructureDetails } from './setup-details';
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -50,7 +51,14 @@ export interface Configuration {
   effectiveFrom: string;
 }
 export interface SocietyDetail extends SocietySummary {
-  counts: { buildings: number; flats: number; residents: number; maintenance: number };
+  /** Display counts: buildings are real wings and flats exclude row houses. */
+  counts: {
+    buildings: number;
+    flats: number;
+    rowHouses: number;
+    residents: number;
+    maintenance: number;
+  };
   requirements: {
     committee: boolean;
     buildings: boolean;
@@ -76,6 +84,14 @@ export interface SocietyDetail extends SocietySummary {
     fromStatus: string | null;
     toStatus: string;
     createdAt: string;
+    /** Audit trail: who acted and, for committee invitations, whom they invited. */
+    actorName?: string | null;
+    actorEmail?: string | null;
+    invitedName?: string | null;
+    invitedEmail?: string | null;
+    invitationStatus?: string | null;
+    /** Structure facts for wing, flat and row house saves; null for other events. */
+    details?: StructureDetails | null;
   }[];
 }
 export interface InvitationPreview {
@@ -109,8 +125,20 @@ const onboardingErrorMessages: Readonly<Record<string, string>> = {
   NOT_FOUND: 'This society is unavailable to your account.',
   ACCESS_DENIED: 'This society is unavailable to your account.',
 };
+/** These conflicts name the caller's own wing code or the numbers that already exist. */
+const detailedConflicts: ReadonlySet<string> = new Set(['NOTHING_TO_ADD', 'WING_ARCHIVED']);
+/** What a save added, and which entered numbers were skipped because they already exist. */
+export interface AddedNumbers {
+  added: string[];
+  skipped: string[];
+}
+export interface WingResult extends AddedNumbers {
+  code: string;
+  existing: boolean;
+}
 export function onboardingError(error: unknown): string {
   return (
+    apiErrorDetail(error, detailedConflicts) ??
     apiErrorMessage(error, onboardingErrorMessages) ??
     'Unable to complete your request. Please try again.'
   );
@@ -126,9 +154,10 @@ export class OnboardingApi {
     await this.auth.prepare();
     return firstValueFrom(this.http.post<T>('/api/v1' + path, body));
   }
-  async societies(page = 1, status = '', search = ''): Promise<Page<SocietySummary>> {
+  async societies(page = 1, status = '', search = '', type = ''): Promise<Page<SocietySummary>> {
     let params = new HttpParams().set('page', page).set('pageSize', 5);
     if (status) params = params.set('status', status);
+    if (type) params = params.set('type', type);
     if (search) params = params.set('search', search);
     return firstValueFrom(
       this.http.get<Page<SocietySummary>>('/api/v1/platform/societies', { params }),

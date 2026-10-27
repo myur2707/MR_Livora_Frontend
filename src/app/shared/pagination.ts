@@ -36,6 +36,16 @@ export function pageRange(
         seButton
         variant="secondary"
         type="button"
+        aria-label="First page"
+        [disabled]="range().page <= 1"
+        (click)="pageSelected.emit(1)"
+      >
+        <se-icon name="first" />
+      </button>
+      <button
+        seButton
+        variant="secondary"
+        type="button"
         aria-label="Previous page"
         [disabled]="range().page <= 1"
         (click)="pageSelected.emit(range().page - 1)"
@@ -52,6 +62,16 @@ export function pageRange(
         (click)="pageSelected.emit(range().page + 1)"
       >
         <se-icon name="right" />
+      </button>
+      <button
+        seButton
+        variant="secondary"
+        type="button"
+        aria-label="Last page"
+        [disabled]="range().page >= range().pages"
+        (click)="pageSelected.emit(range().pages)"
+      >
+        <se-icon name="last" />
       </button>
     </div>
   </nav>`,

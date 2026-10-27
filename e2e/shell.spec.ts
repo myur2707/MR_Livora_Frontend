@@ -56,6 +56,49 @@ test.beforeEach(async ({ context }) => {
   await context.route('**/api/v1/platform/societies?**', (route) =>
     route.fulfill({ json: { items: [], total: 0, page: 1, pageSize: 20 } }),
   );
+  await context.route('**/api/v1/platform/audit-trail?**', (route) => {
+    const params = new URL(route.request().url()).searchParams;
+    const entry = {
+      id: '9',
+      societyId: '4',
+      societyName: 'Indraprasth Society',
+      societyCode: 'SOC-00001',
+      module: 'society_setup',
+      action: 'committee.invited',
+      entityType: 'society',
+      entityId: '4',
+      actorEmail: 'platform@example.invalid',
+      actorPlatform: true,
+      createdAt: '2026-10-26T20:36:55Z',
+    };
+    const structure = {
+      ...entry,
+      id: '10',
+      action: 'building.created',
+      fromStatus: 'SETUP_IN_PROGRESS',
+      toStatus: 'SETUP_IN_PROGRESS',
+      details: {
+        kind: 'wings',
+        wings: [
+          {
+            code: 'A',
+            existing: true,
+            added: ['106', '107', '108', '109', '110', '111'],
+            skipped: ['101', '102', '103', '104', '105'],
+          },
+        ],
+      },
+    };
+    const status = {
+      ...entry,
+      id: '11',
+      action: 'society.status_changed',
+      fromStatus: 'DRAFT',
+      toStatus: 'SETUP_IN_PROGRESS',
+    };
+    const items = params.get('module') === 'payments' ? [] : [structure, status, entry];
+    return route.fulfill({ json: { items, total: items.length, page: 1, pageSize: 25 } });
+  });
   await context.route('**/api/v1/platform/societies/next-code?**', (route) =>
     route.fulfill({
       json: { code: new URL(route.request().url()).searchParams.get('type') + '-00003' },
@@ -299,6 +342,30 @@ test('society records become readable cards on narrow screens', async ({ page, c
   ).toEqual([]);
 });
 
+test('the community directory filters by Society, Flat or Township', async ({ page, context }) => {
+  const types: (string | null)[] = [];
+  await context.route('**/api/v1/platform/societies?**', (route) => {
+    const type = new URL(route.request().url()).searchParams.get('type');
+    types.push(type);
+    const all = [
+      { id: '1', code: 'SOC-00001', name: 'Green Meadows', status: 'ACTIVE', revision: 1 },
+      { id: '2', code: 'TWP-00001', name: 'River Township', status: 'ACTIVE', revision: 1 },
+    ];
+    const items = type ? all.filter((item) => item.code.startsWith(type + '-')) : all;
+    return route.fulfill({ json: { items, total: items.length, page: 1, pageSize: 5 } });
+  });
+  await page.goto('/platform/societies');
+  const table = page.getByRole('table', { name: 'Society/Flat/Township directory' });
+  await expect(table).toContainText('Green Meadows');
+  await page.getByLabel('Society/Flat/Township', { exact: true }).selectOption('TWP');
+  await expect(table).not.toContainText('Green Meadows');
+  await expect(table).toContainText('River Township');
+  expect(types.at(-1)).toBe('TWP');
+  await page.getByLabel('Society/Flat/Township', { exact: true }).selectOption('');
+  await expect(table).toContainText('Green Meadows');
+  expect(types.at(-1)).toBeNull();
+});
+
 test('static shell works offline while authenticated/private responses never enter caches', async ({
   page,
   context,
@@ -405,4 +472,51 @@ test('manifest satisfies Chromium installability checks', async ({ page, context
   const result: unknown = await session.send('Page.getInstallabilityErrors');
   expect(result).toMatchObject({ installabilityErrors: [] });
   await session.detach();
+});
+
+test('platform audit trail lists who did what and when, filters by module and stays accessible', async ({
+  page,
+}) => {
+  const pageSizes: (string | null)[] = [];
+  page.on('request', (request) => {
+    if (request.url().includes('/platform/audit-trail?'))
+      pageSizes.push(new URL(request.url()).searchParams.get('pageSize'));
+  });
+  await page.goto('/platform/dashboard');
+  // Platform and committee homes are called Dashboard; the signed-in footer matches the site.
+  await expect(
+    page.locator('.desktop-sidebar a[href="/platform/dashboard"]', { hasText: 'Dashboard' }),
+  ).toBeVisible();
+  await expect(page).toHaveTitle('Dashboard · Mr. Livora');
+  const footer = page.locator('.app-footer');
+  await expect(footer).toContainText(
+    new Date().getFullYear() + ' Mr. Livora. All rights reserved.',
+  );
+  await expect(footer).toContainText('Better communities begin with better connections.');
+  await expect(footer).toContainText('Live in a Better Aura');
+  await page.locator('.desktop-sidebar').getByRole('link', { name: 'Audit trail' }).click();
+  await expect(page.getByRole('heading', { name: 'Audit trail', level: 1 })).toBeVisible();
+  await expect.poll(() => pageSizes.at(-1)).toBe('5');
+  const table = page.getByRole('table');
+  await expect(table.getByRole('rowheader', { name: 'Committee invited' })).toBeVisible();
+  await expect(table).toContainText('Indraprasth Society');
+  await expect(table).toContainText('Society setup');
+  await expect(table).toContainText('platform@example.invalid');
+  // Setup rows say what changed: which flats were added and which were skipped as existing.
+  const structureRow = table.getByRole('row', { name: /Wings and flats added/ });
+  await expect(structureRow).toContainText(
+    'Wing A (existing): 6 flats added (106–111); 5 flats skipped as already added (101–105)',
+  );
+  await expect(table.getByRole('row', { name: /Society status changed/ })).toContainText(
+    'Status: Draft → Setup in progress',
+  );
+  await expect(
+    table.getByRole('row', { name: /Committee invited/ }).getByText('No further details recorded'),
+  ).toBeVisible();
+  await page.getByLabel('Module').selectOption('payments');
+  await page.getByRole('button', { name: 'Apply filters' }).click();
+  await expect(table.getByText('No audit entries match these filters.')).toBeVisible();
+  expect(
+    (await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa']).analyze()).violations,
+  ).toEqual([]);
 });

@@ -1,6 +1,11 @@
 /* Public marketing site: header, home, about and contact. Built on the shared glass tokens. */
 :root {
   --public-width: 1200px;
+  /* Home, About and Contact hero cards: deep black with brand-red glows, the same in both themes. */
+  --public-hero-background:
+    radial-gradient(circle at 100% 0%, rgb(227 18 45 / 62%), transparent 30rem),
+    radial-gradient(circle at 0% 100%, rgb(200 16 46 / 40%), transparent 24rem),
+    linear-gradient(150deg, #1b1b1f 0%, #0b0b0d 58%, #2a0910 100%);
 }
 .public-frame {
   display: flex;
@@ -221,8 +226,8 @@ se-public-header.is-scrolled .public-header {
   padding: clamp(36px, 5vw, 64px);
   border: 1px solid rgb(255 255 255 / 8%);
   border-radius: 36px;
-  background: var(--hero-gradient);
-  background-color: var(--hero-bg);
+  /* Solid, not translucent, so the page watermark never shows through. */
+  background: var(--public-hero-background);
   color: var(--on-hero);
   box-shadow: 0 40px 80px rgb(14 14 16 / 28%);
 }
@@ -677,8 +682,7 @@ se-public-header.is-scrolled .public-header {
   padding: clamp(40px, 6vw, 72px);
   border: 1px solid rgb(255 255 255 / 8%);
   border-radius: 36px;
-  background: var(--hero-gradient);
-  background-color: var(--hero-bg);
+  background: var(--public-hero-background);
   color: var(--on-hero);
   text-align: center;
   box-shadow: 0 40px 80px rgb(14 14 16 / 24%);
@@ -1181,6 +1185,32 @@ se-public-header.is-scrolled .public-header {
 .app-frame.is-public {
   grid-template-columns: minmax(0, 1fr);
 }
+/* Signed-out app pages scroll as a whole page, like the public site, so the browser's own
+   scrollbar is used and the full footer follows the content instead of a pinned inner pane. */
+.app-frame.is-public .workspace {
+  height: auto;
+  min-height: 100dvh;
+  overflow: visible;
+}
+.app-frame.is-public .workspace main {
+  flex: 1 0 auto;
+  width: 100%;
+  overflow: visible;
+}
+/* Signed-out page headings (invitation, sign-in flows) use a deeper black with a stronger red
+   glow than the in-app ink panel, matching the public site's hero. */
+.app-frame.is-public .page-heading {
+  border-color: rgb(227 18 45 / 28%);
+  background:
+    radial-gradient(circle at 100% 0%, rgb(227 18 45 / 85%), transparent 26rem),
+    radial-gradient(circle at 0% 100%, rgb(200 16 46 / 55%), transparent 20rem),
+    linear-gradient(150deg, #0d0d0f 0%, #050506 60%, #3a0712 100%);
+  box-shadow: 0 30px 70px rgb(5 5 6 / 38%);
+}
+se-public-footer {
+  display: block;
+  margin-top: auto;
+}
 body:has(.app-frame.is-public) {
   --watermark-left: 0px;
 }
@@ -1215,5 +1245,76 @@ html:has(.public-frame) {
 @media (max-width: 480px) {
   .public-footer-links {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Floating WhatsApp enquiry button ----------------------------------------- */
+/* Footer base row: one line on wide screens; where the floating button could reach it
+   (below ~1440px wide), the row ends early so "Back to top" keeps clear space. */
+@media (min-width: 1100px) {
+  .public-footer-base {
+    flex-wrap: nowrap;
+  }
+}
+@media (max-width: 1440px) {
+  .public-footer-base {
+    padding-right: 64px;
+  }
+}
+.whatsapp-float {
+  position: fixed;
+  right: max(20px, env(safe-area-inset-right));
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: 40;
+  /* Compact icon-only circle on every screen size, so it never covers page content. */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  border-radius: 50%;
+  background: #25d366;
+  /* Deep green ink on WhatsApp green: about 7.4:1 contrast (white would be 1.98:1). */
+  color: #0a2e1f;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 12px 28px rgb(18 140 70 / 35%);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease;
+}
+.whatsapp-float svg {
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+}
+.whatsapp-float:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgb(18 140 70 / 45%);
+}
+.whatsapp-float:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 3px;
+}
+/* The label stays for screen readers only; sighted users see the WhatsApp icon. */
+.whatsapp-float-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .whatsapp-float {
+    transition: none;
+  }
+  .whatsapp-float:hover {
+    transform: none;
+  }
+}
+@media print {
+  .whatsapp-float {
+    display: none;
   }
 }

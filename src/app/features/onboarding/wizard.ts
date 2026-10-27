@@ -7,6 +7,8 @@ import { displaySocietyTime } from '../../core/onboarding';
 import { AuthService } from '../../core/auth';
 import { OnboardingApi, onboardingError } from '../../core/onboarding';
 import type {
+  AddedNumbers,
+  WingResult,
   SocietyDetail,
   Flat,
   Resident,
@@ -24,12 +26,28 @@ import { PaginationComponent } from '../../shared/pagination';
 import { DialogComponent } from '../../shared/dialog';
 import { parseFlatNumbers, propertyNumberLimits, type FlatNumberPlan } from './flat-numbers';
 import { parseWingCodes, type WingPlan } from './wing-codes';
+import {
+  residentSummary,
+  rowHousesSavedMessage,
+  structureSummary,
+  wingSavedMessage,
+  wingsSavedMessage,
+} from './structure-summary';
 import { ToastService } from '../../shared/toast';
 import { LabelPipe, eventLabel } from '../../shared/label';
 import { communityTypeFromCode } from '../platform/community-type';
+import { IconComponent } from '../../shared/icon';
+import { describeStructure, structureTitle } from '../../core/setup-details';
+import type { StructureDetails } from '../../core/setup-details';
+import { firstCommitteeStep, setupProgress, stepStateLabel } from './setup-progress';
+/** Rows per page in the setup structure table; the backend caps this at 50. */
+const flatPageSize = 10;
+/** Code of the reserved building that holds row houses; it is not a wing people chose. */
+const rowHouseBuildingCode = 'ROW_HOUSES';
 @Component({
   selector: 'se-onboarding-wizard',
   imports: [
+    IconComponent,
     LabelPipe,
     RouterLink,
     ReactiveFormsModule,
@@ -60,6 +78,11 @@ export class OnboardingWizardComponent implements OnInit {
   protected readonly detail = signal<SocietyDetail | null>(null);
   protected readonly flats = signal<Flat[]>([]);
   protected readonly structure = signal<Page<Flat> | null>(null);
+  /** The add form lives in a dialog so the structure list stays the focus of this step. */
+  protected readonly buildingDialog = signal(false);
+  protected readonly flatSearch = signal('');
+  private flatRequest = 0;
+  private flatSearchTimer: ReturnType<typeof setTimeout> | null = null;
   protected readonly residentStructure = signal<Page<Flat> | null>(null);
   protected readonly residentRowHouses = signal(false);
   protected readonly residentPropertySearch = signal('');
@@ -76,7 +99,13 @@ export class OnboardingWizardComponent implements OnInit {
   protected readonly busy = signal(false);
   /** Setup history stays collapsed until asked for, so the current step stays in focus. */
   protected readonly showHistory = signal(false);
+  /** The history entry whose audit details are expanded (one at a time keeps the list scannable). */
+  protected readonly openEvent = signal<string | null>(null);
   protected readonly typeOf = communityTypeFromCode;
+  protected readonly summary = structureSummary;
+  protected readonly isRowHouse = (flat: Flat): boolean =>
+    flat.buildingCode === rowHouseBuildingCode;
+  protected readonly residentSummary = residentSummary;
   protected readonly eventTitle = eventLabel;
   protected readonly wingOptions = ['A', 'B', 'C', 'D'];
   protected readonly multipleWings = signal(false);
@@ -100,6 +129,18 @@ export class OnboardingWizardComponent implements OnInit {
   }
   protected readonly loading = signal(true);
   protected readonly step = signal(0);
+  /** The wizard opens on the first unfinished step once, then leaves navigation to the user. */
+  private stepChosen = false;
+  protected readonly progress = computed(() => {
+    const detail = this.detail();
+    return detail?.revision ? setupProgress(detail, this.platform) : null;
+  });
+  protected readonly stepLabel = stepStateLabel;
+  protected readonly firstCommitteeStep = firstCommitteeStep;
+  protected readonly describe = (details: StructureDetails): string[] => describeStructure(details);
+  protected historyTitle(event: SocietyDetail['events'][number]): string {
+    return structureTitle(event.details) ?? this.eventTitle(event.action);
+  }
   protected readonly steps = [
     'Society/Flat/Township',
     'Committee Admin',
@@ -184,6 +225,7 @@ export class OnboardingWizardComponent implements OnInit {
   ngOnInit(): void {
     this.destroyRef.onDestroy(() => {
       if (this.residentSearchTimer) clearTimeout(this.residentSearchTimer);
+      if (this.flatSearchTimer) clearTimeout(this.flatSearchTimer);
     });
     void this.load();
   }
@@ -194,6 +236,7 @@ export class OnboardingWizardComponent implements OnInit {
       const detail = await this.api.get<SocietyDetail>(this.prefix);
       this.detail.set(detail);
       if (!detail.revision) return;
+      this.openFirstUnfinishedStep();
       await this.flatPage(1);
       if (!this.platform) {
         await this.residentFlatPage(1);
@@ -207,14 +250,53 @@ export class OnboardingWizardComponent implements OnInit {
       this.loading.set(false);
     }
   }
+  private openFirstUnfinishedStep(): void {
+    const next = this.progress()?.next ?? -1;
+    if (this.stepChosen) return;
+    this.stepChosen = true;
+    // The platform's own work ends at the structure step; later steps belong to the committee.
+    const limit = this.platform ? firstCommitteeStep - 1 : this.steps.length - 1;
+    if (next > 0) this.step.set(Math.min(next, limit));
+  }
   protected async flatPage(page: number): Promise<void> {
+    const request = ++this.flatRequest;
     try {
-      const data = await this.api.get<Page<Flat>>(this.prefix + '/structure?page=' + page);
+      const data = await this.api.get<Page<Flat>>(
+        this.prefix +
+          '/structure?page=' +
+          page +
+          '&pageSize=' +
+          flatPageSize +
+          '&search=' +
+          encodeURIComponent(this.flatSearch().trim()),
+      );
+      // A slower earlier search must not overwrite the results of the latest one.
+      if (request !== this.flatRequest) return;
       this.structure.set(data);
       this.flats.set(data.items);
     } catch (error) {
-      this.error.set(onboardingError(error));
+      if (request === this.flatRequest) this.error.set(onboardingError(error));
     }
+  }
+  protected searchFlats(event: Event): void {
+    const input = event.target;
+    if (!(input instanceof HTMLInputElement)) return;
+    this.flatSearch.set(input.value);
+    if (this.flatSearchTimer) clearTimeout(this.flatSearchTimer);
+    this.flatSearchTimer = setTimeout(() => {
+      this.flatSearchTimer = null;
+      void this.flatPage(1);
+    }, 300);
+  }
+  protected openBuildingDialog(): void {
+    this.error.set(null);
+    // Keep any draft, but don't greet the person with errors from an earlier attempt.
+    this.buildingForm.markAsUntouched();
+    this.buildingDialog.set(true);
+  }
+  protected closeBuildingDialog(): void {
+    this.buildingDialog.set(false);
+    this.error.set(null);
   }
   protected async setResidentPropertyType(rowHouses: boolean): Promise<void> {
     if (this.residentSearchTimer) clearTimeout(this.residentSearchTimer);
@@ -301,8 +383,9 @@ export class OnboardingWizardComponent implements OnInit {
       this.error.set(onboardingError(error));
     }
   }
+  /** Work may return its own success message, e.g. one that names skipped numbers. */
   private async run(
-    work: (detail: SocietyDetail) => Promise<void>,
+    work: (detail: SocietyDetail) => Promise<string | void>,
     success: string,
   ): Promise<void> {
     const detail = this.detail();
@@ -311,8 +394,8 @@ export class OnboardingWizardComponent implements OnInit {
     this.error.set(null);
     this.message.set(null);
     try {
-      await work(detail);
-      this.message.set(success);
+      const result = await work(detail);
+      this.message.set(result ?? success);
       await this.load();
     } catch (error) {
       this.error.set(onboardingError(error));
@@ -364,6 +447,7 @@ export class OnboardingWizardComponent implements OnInit {
   }
   protected toggleWing(code: string, event: Event): void {
     const checked = event.target instanceof HTMLInputElement && event.target.checked;
+    this.error.set(null);
     this.selectedWings.update((codes) =>
       checked ? [...codes, code] : codes.filter((v) => v !== code),
     );
@@ -398,37 +482,47 @@ export class OnboardingWizardComponent implements OnInit {
       return;
     }
     const flats = numbers.map((number) => ({ number, areaSqFt: value.areaSqFt || null }));
-    const count = this.wingPlan().codes.length;
-    await this.run(
-      async (detail) => {
-        if (rowHouses) {
-          await this.api.post(this.prefix + '/row-houses', {
-            revision: detail.revision,
-            houses: flats,
-          });
-        } else if (multiple) {
-          await this.api.post(this.prefix + '/buildings/batch', {
-            revision: detail.revision,
-            buildings: this.wingPlan().codes.map((code) => ({ code, name: 'Wing ' + code, flats })),
-          });
-        } else {
-          await this.api.post(this.prefix + '/buildings', {
-            revision: detail.revision,
-            code: value.code,
-            name: value.name.trim() || 'Wing ' + value.code.trim(),
-            flats,
-          });
-        }
-        this.buildingForm.reset();
-        this.selectedWings.set([]);
-        this.wingPlan.set({ codes: [], error: null });
-        this.flatPlan.set({ numbers: [], error: null });
-      },
-      rowHouses
-        ? numbers.length + ' row houses added.'
-        : multiple
-          ? count + ' wings and ' + count * numbers.length + ' flats added.'
-          : 'Wing and flats added.',
+    await this.run(async (detail) => {
+      const saved = await this.saveStructure(detail.revision ?? '', rowHouses, multiple, flats);
+      this.buildingDialog.set(false);
+      this.buildingForm.reset();
+      this.selectedWings.set([]);
+      this.wingPlan.set({ codes: [], error: null });
+      this.flatPlan.set({ numbers: [], error: null });
+      return saved;
+    }, 'Saved.');
+  }
+  /** Posts the add request and describes what was added and what was skipped as existing. */
+  private async saveStructure(
+    revision: string,
+    rowHouses: boolean,
+    multiple: boolean,
+    flats: { number: string; areaSqFt: string | null }[],
+  ): Promise<string> {
+    if (rowHouses)
+      return rowHousesSavedMessage(
+        await this.api.post<AddedNumbers>(this.prefix + '/row-houses', { revision, houses: flats }),
+      );
+    if (multiple) {
+      const buildings = this.wingPlan().codes.map((code) => ({
+        code,
+        name: 'Wing ' + code,
+        flats,
+      }));
+      const result = await this.api.post<{ wings: WingResult[] }>(
+        this.prefix + '/buildings/batch',
+        { revision, buildings },
+      );
+      return wingsSavedMessage(result.wings);
+    }
+    const value = this.buildingForm.getRawValue();
+    return wingSavedMessage(
+      await this.api.post<WingResult>(this.prefix + '/buildings', {
+        revision,
+        code: value.code,
+        name: value.name.trim() || 'Wing ' + value.code.trim(),
+        flats,
+      }),
     );
   }
   protected async resident(): Promise<void> {

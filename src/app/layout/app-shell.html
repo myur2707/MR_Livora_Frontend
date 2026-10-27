@@ -95,10 +95,16 @@
       <se-public-header />
     }
     <main id="main-content" tabindex="-1"><router-outlet (activate)="focusPage()" /></main>
-    <footer class="app-footer">
-      <span class="footer-tagline">Live in a Better Aura</span>
-      <span class="copyright-label">© 2026 Mr. Livora</span>
-    </footer>
+    @if (signedIn()) {
+      <footer class="app-footer">
+        <span class="copyright-label">© {{ year }} Mr. Livora. All rights reserved.</span>
+        <span class="footer-motto">Better communities begin with better connections.</span>
+        <span class="footer-tagline">Live in a Better Aura</span>
+      </footer>
+    } @else {
+      <!-- Signed-out pages (invitations, email links) get the same full footer as the public site. -->
+      <se-public-footer />
+    }
     @if (signedIn()) {
       <se-bottom-nav />
     }

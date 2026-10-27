@@ -7,11 +7,45 @@
 </header>
 <se-form-notice [message]="error()" />
 @if (done()) {
-  <se-card title="Invitation accepted"
-    ><p>Your committee setup access is ready.</p>
-    <a seButton routerLink="/login">Sign in to continue</a
-    ><a seButton variant="secondary" routerLink="/workspace">Open workspace chooser</a></se-card
-  >
+  <section class="invite-result is-success" aria-labelledby="invite-result-title">
+    <span class="invite-result-icon"><se-icon name="check" /></span>
+    <div class="invite-result-body">
+      <p class="invite-result-eyebrow">All set</p>
+      <h2 id="invite-result-title">Invitation accepted</h2>
+      <p>Your committee setup access is ready. Sign in to continue setting up your community.</p>
+      <div class="invite-result-actions">
+        <a seButton routerLink="/login">Sign in to continue</a>
+        <a seButton variant="secondary" routerLink="/workspace">Open workspace chooser</a>
+      </div>
+    </div>
+  </section>
+} @else if (linkProblem(); as problem) {
+  <section class="invite-result" aria-labelledby="invite-result-title">
+    <span class="invite-result-icon"><se-icon name="alert" /></span>
+    <div class="invite-result-body">
+      <p class="invite-result-eyebrow">Link not active</p>
+      <h2 id="invite-result-title">This invitation link can't be used</h2>
+      <p>{{ problem }}</p>
+      <ul class="invite-result-steps">
+        <li>
+          <strong>Already accepted it?</strong> Each link works once. Sign in with the invited email
+          to continue.
+        </li>
+        <li>
+          <strong>Link expired or replaced?</strong> Ask the Mr. Livora team to send a new
+          invitation.
+        </li>
+      </ul>
+      <div class="invite-result-actions">
+        <a seButton routerLink="/login">Sign in</a>
+        <a seButton variant="secondary" routerLink="/contact">Contact us</a>
+      </div>
+      <p class="invite-result-help">
+        Need help? Call or WhatsApp <a href="tel:+919157379787">+91 9157379787</a> or email
+        <a href="mailto:mrlivora.official@gmail.com">mrlivora.official&#64;gmail.com</a>.
+      </p>
+    </div>
+  </section>
 } @else if (preview(); as invitation) {
   <se-card [title]="invitation.societyName"
     ><p>{{ invitation.displayName }}, this invitation is for {{ invitation.email }}.</p>
@@ -21,12 +55,6 @@
         are preserved.
       </p>
       <a class="text-link" routerLink="/login">Sign in with your existing account</a>
-    }
-    @if (auth.state.identity() && auth.state.identity()?.email !== invitation.email) {
-      <p>Another account is signed in. Sign out before accepting this invitation.</p>
-      <button seButton variant="secondary" type="button" [disabled]="busy()" (click)="signOut()">
-        Sign out current account
-      </button>
     }
     <form [formGroup]="form" (ngSubmit)="accept()" class="onboarding-form">
       @if (!invitation.requiresLogin) {
@@ -68,6 +96,6 @@
       </button>
     </form></se-card
   >
-} @else if (!error()) {
+} @else {
   <se-state kind="loading" title="Checking invitation" message="Validating the single-use link." />
 }

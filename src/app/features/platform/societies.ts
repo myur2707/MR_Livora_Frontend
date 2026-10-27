@@ -54,6 +54,8 @@ export class SocietiesComponent implements OnInit {
   protected readonly loading = signal(false);
   protected readonly showCreate = signal(false);
   protected status = '';
+  /** Community type filter by code prefix (SOC, FLT, TWP); empty shows every type. */
+  protected type = '';
   protected readonly searchControl = this.fb.nonNullable.control('', Validators.maxLength(80));
   protected readonly communityTypes = COMMUNITY_TYPES;
   protected readonly suggesting = signal(false);
@@ -94,7 +96,12 @@ export class SocietiesComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     try {
-      const result = await this.api.societies(page, this.status, this.searchControl.value.trim());
+      const result = await this.api.societies(
+        page,
+        this.status,
+        this.searchControl.value.trim(),
+        this.type,
+      );
       if (sequence === this.loadSequence) this.result.set(result);
     } catch (error) {
       if (sequence === this.loadSequence) this.error.set(onboardingError(error));
@@ -104,6 +111,10 @@ export class SocietiesComponent implements OnInit {
   }
   protected filter(value: string): void {
     this.status = value;
+    void this.load();
+  }
+  protected filterType(value: string): void {
+    this.type = value;
     void this.load();
   }
   protected openCreate(): void {

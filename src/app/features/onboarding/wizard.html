@@ -8,7 +8,8 @@
     Refresh setup
   </button>
 </header>
-<se-form-notice [message]="error()" />
+<!-- While the add dialog is open its own notice shows the error; the page behind it is inert. -->
+<se-form-notice [message]="buildingDialog() ? null : error()" />
 @if (loading()) {
   <se-state kind="loading" title="Loading setup" message="Fetching current onboarding progress." />
 } @else if (detail(); as society) {
@@ -36,11 +37,35 @@
       <se-badge [tone]="society.status === 'ACTIVE' ? 'success' : 'neutral'">{{
         society.status | label
       }}</se-badge
-      ><span
-        >{{ society.counts.buildings }} buildings · {{ society.counts.flats }} flats ·
-        {{ society.counts.residents }} occupancy records</span
-      >
+      ><span>{{ summary(society.counts) }} · {{ residentSummary(society.counts.residents) }}</span>
     </div>
+    @if (progress(); as p) {
+      <div class="setup-next" [attr.data-state]="p.next < 0 ? 'done' : 'open'">
+        <div>
+          <p class="setup-next-count">
+            {{ p.states.filter((s) => s === 'done').length }} of {{ steps.length }} steps done
+          </p>
+          @if (p.next < 0) {
+            <p><strong>Setup is complete.</strong> Every step has been finished.</p>
+          } @else if (platform && p.next >= firstCommitteeStep) {
+            <p>
+              <strong>Waiting for the committee:</strong> Step {{ p.next + 1 }} ·
+              {{ steps[p.next] }}. The Committee Admin completes the remaining steps.
+            </p>
+          } @else {
+            <p>
+              <strong>Continue from Step {{ p.next + 1 }} · {{ steps[p.next] }}.</strong>
+              This is where setup was left off.
+            </p>
+          }
+        </div>
+        @if (p.next >= 0 && step() !== p.next && !(platform && p.next >= firstCommitteeStep)) {
+          <button seButton variant="secondary" type="button" (click)="step.set(p.next)">
+            Go to step {{ p.next + 1 }}
+          </button>
+        }
+      </div>
+    }
     <nav aria-label="Onboarding steps">
       <ol class="wizard-steps">
         @for (label of steps; track label; let i = $index) {
@@ -48,10 +73,18 @@
             <button
               type="button"
               [attr.aria-current]="step() === i ? 'step' : null"
+              [attr.data-state]="progress()?.states?.[i]"
               (click)="step.set(i)"
             >
-              <span class="step-number">{{ i + 1 }}</span
+              <span class="step-number">
+                @if (progress()?.states?.[i] === 'done') {
+                  <se-icon name="check" />
+                }
+                {{ i + 1 }}</span
               >{{ label }}
+              @if (progress()?.states?.[i]; as state) {
+                <span class="step-state">{{ stepLabel[state] }}</span>
+              }
             </button>
           </li>
         }
@@ -128,14 +161,38 @@
         description="The recipient must accept the invitation before setup can be verified."
       >
         @if (society.invitation; as invitation) {
-          <div class="setup-facts">
-            <p>{{ invitation.displayName }} · {{ invitation.email }}</p>
-            <p>
-              <se-badge>{{ invitation.status | label }}</se-badge> Delivery:
-              {{ invitation.deliveryStatus | label }}
-            </p>
-            <p>Expires {{ displayTime(invitation.expiresAt, society.timezone) }}</p>
-          </div>
+          <dl class="setup-facts invitation-facts">
+            <div>
+              <dt>Invited admin</dt>
+              <dd>
+                {{ invitation.displayName }}
+                <span class="invitation-email">{{ invitation.email }}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>Status</dt>
+              <dd>
+                <se-badge
+                  [tone]="
+                    invitation.status === 'ACCEPTED'
+                      ? 'success'
+                      : invitation.status === 'PENDING'
+                        ? 'warning'
+                        : 'neutral'
+                  "
+                  >{{ invitation.status | label }}</se-badge
+                >
+              </dd>
+            </div>
+            <div>
+              <dt>Email delivery</dt>
+              <dd>{{ invitation.deliveryStatus | label }}</dd>
+            </div>
+            <div>
+              <dt>{{ invitation.status === 'PENDING' ? 'Expires' : 'Link expiry' }}</dt>
+              <dd>{{ displayTime(invitation.expiresAt, society.timezone) }}</dd>
+            </div>
+          </dl>
         }
         @if (platform && editable() && !society.requirements.committee) {
           <form [formGroup]="inviteForm" (ngSubmit)="invite()" class="onboarding-form">
@@ -171,11 +228,123 @@
       </se-card>
     }
     @if (step() === 2) {
-      <se-card [title]="rowHouses() ? 'Row houses' : 'Buildings / Wings and flats'">
-        @if (editable()) {
+      <se-card class="structure-card">
+        <header class="structure-heading">
+          <div>
+            <h2>Wings, flats and row houses</h2>
+            <p>
+              List every home in this society. Add flats under their wing (for example Wing A, flat
+              101), or add row houses that have no wing.
+            </p>
+            <p class="structure-count">{{ summary(society.counts) }}</p>
+          </div>
+          @if (editable()) {
+            <button seButton type="button" [disabled]="busy()" (click)="openBuildingDialog()">
+              <se-icon name="plus" />Add wing or row houses
+            </button>
+          }
+        </header>
+        @if (structure()?.total || flatSearch()) {
+          <div class="structure-toolbar">
+            <label class="structure-search">
+              <se-icon name="search" />
+              <span class="sr-only">Search by wing, flat or row house number</span>
+              <input
+                seInput
+                type="search"
+                maxlength="80"
+                placeholder="Search by wing, flat or row house number"
+                autocomplete="off"
+                [value]="flatSearch()"
+                (input)="searchFlats($event)"
+                (keydown.enter)="$event.preventDefault()"
+              />
+            </label>
+          </div>
+        }
+        @if (flats().length) {
+          <div
+            class="table-scroll structure-table"
+            tabindex="0"
+            role="region"
+            aria-label="Setup flats"
+          >
+            <table seTable>
+              <caption class="sr-only">
+                Wings, flats and row houses added during setup
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Wing</th>
+                  <th scope="col">Flat / Row house no.</th>
+                  <th scope="col">Area (sq ft)</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (flat of flats(); track flat.id) {
+                  <tr>
+                    <td>
+                      @if (isRowHouse(flat)) {
+                        <span class="structure-muted">Row house (no wing)</span>
+                      } @else {
+                        {{ flat.buildingName }}
+                      }
+                    </td>
+                    <th scope="row">{{ flat.flatNumber }}</th>
+                    <td>
+                      @if (flat.areaSqFt) {
+                        {{ flat.areaSqFt }}
+                      } @else {
+                        <span class="structure-muted">Not added</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else if (flatSearch()) {
+          <se-state
+            kind="empty"
+            title="No matches"
+            message="Nothing matches this search. Check the wing code or number and try again."
+          />
+        } @else {
+          <se-state
+            kind="empty"
+            title="No homes added yet"
+            [message]="
+              editable()
+                ? 'Select Add wing or row houses to add your first wing of flats or your row houses.'
+                : 'No flats or row houses were added during setup.'
+            "
+          />
+        }
+        @if (structure(); as data) {
+          @if (data.total) {
+            <se-pagination
+              [total]="data.total"
+              [page]="data.page"
+              [pageSize]="data.pageSize"
+              (pageSelected)="flatPage($event)"
+            />
+          }
+        }
+      </se-card>
+      @if (editable()) {
+        <se-dialog
+          class="structure-dialog"
+          title="Add a wing or row houses"
+          [open]="buildingDialog()"
+          (closed)="closeBuildingDialog()"
+        >
+          <p class="dialog-description">
+            Choose what you are adding, type the numbers, check the preview, then save. You can come
+            back and add more at any time during setup.
+          </p>
           <form [formGroup]="buildingForm" (ngSubmit)="building()" class="onboarding-form">
             <fieldset class="wing-mode">
-              <legend>What would you like to add?</legend>
+              <legend>What are you adding?</legend>
               <label
                 ><input
                   type="radio"
@@ -184,7 +353,7 @@
                   (change)="setPropertyType(false)"
                   [disabled]="busy()"
                 />
-                Flats</label
+                Flats in a wing</label
               >
               <label
                 ><input
@@ -199,7 +368,7 @@
             </fieldset>
             @if (!rowHouses()) {
               <fieldset class="wing-mode">
-                <legend>How would you like to add wings?</legend>
+                <legend>How many wings?</legend>
                 <label
                   ><input
                     type="radio"
@@ -208,7 +377,7 @@
                     (change)="setWingMode(false)"
                     [disabled]="busy()"
                   />
-                  Single wing</label
+                  One wing</label
                 >
                 <label
                   ><input
@@ -218,7 +387,7 @@
                     (change)="setWingMode(true)"
                     [disabled]="busy()"
                   />
-                  Add multiple wings</label
+                  Several wings at once</label
                 >
               </fieldset>
               @if (multipleWings()) {
@@ -227,8 +396,11 @@
                   [disabled]="busy()"
                   aria-describedby="wing-help wing-error"
                 >
-                  <legend>Select wings</legend>
-                  <p id="wing-help">Use the same flat numbers and area for every selected wing.</p>
+                  <legend>Which wings?</legend>
+                  <p id="wing-help">
+                    Every wing you pick gets the same flat numbers and area. Use this when wings are
+                    identical.
+                  </p>
                   <div class="wing-checkboxes">
                     @for (wing of wingOptions; track wing) {
                       <label
@@ -242,7 +414,7 @@
                     }
                   </div>
                   <button seButton type="button" variant="secondary" (click)="selectAllWings()">
-                    Select all A-D
+                    Select A to D
                   </button>
                   <p id="wing-error" class="wing-error" aria-live="polite">
                     {{ wingPlan().error }}
@@ -250,13 +422,14 @@
                 </fieldset>
                 <se-field
                   controlId="custom-wing-codes"
-                  label="Other wing codes"
-                  hint="Optional. Separate custom codes with commas, for example E, F, EAST. Maximum 10 wings and 500 flats per batch."
+                  label="Other wing codes (optional)"
+                  hint="Type any codes not listed above, separated by commas, for example E, F, EAST. Up to 10 wings and 500 flats in one save."
                 >
                   <input
                     seInput
                     formControlName="customCodes"
                     maxlength="1000"
+                    placeholder="e.g. E, F"
                     (input)="previewWings()"
                     [readonly]="busy()"
                   />
@@ -265,11 +438,11 @@
                 <se-field
                   controlId="building-code"
                   label="Wing code"
-                  hint="Choose A, B, C or D, or type your own wing code."
+                  hint="A short code shown with each flat, such as A or B. To add more flats to a wing you already added, enter its code again."
                   [required]="true"
                   [error]="
                     buildingForm.controls.code.touched && buildingForm.controls.code.invalid
-                      ? 'Enter a wing code.'
+                      ? 'Enter a wing code, such as A.'
                       : null
                   "
                   ><input
@@ -278,6 +451,7 @@
                     list="wing-options"
                     required
                     maxlength="64"
+                    placeholder="e.g. A"
                 /></se-field>
                 <datalist id="wing-options">
                   @for (wing of wingOptions; track wing) {
@@ -286,8 +460,8 @@
                 </datalist>
                 <se-field
                   controlId="building-name"
-                  label="Wing name"
-                  hint="Optional. Defaults to Wing followed by your wing code."
+                  label="Wing name (optional)"
+                  hint="The name residents see, such as Tulip Tower. Leave blank to use Wing and the code, for example Wing A."
                   ><input seInput formControlName="name" maxlength="100"
                 /></se-field>
               }
@@ -298,17 +472,17 @@
               [required]="true"
               [hint]="
                 rowHouses()
-                  ? 'Enter a range such as 1-5, or individual numbers separated by commas or new lines. Maximum ' +
+                  ? 'Use a dash for a range, such as 1-50, or list numbers separated by commas or new lines. Up to ' +
                     numberLimits().count +
-                    ' row houses per batch.'
-                  : 'Enter ranges such as 101-110, 201-210, or individual numbers separated by commas or new lines. Maximum 100 flats per wing.'
+                    ' row houses in one save.'
+                  : 'Use a dash for a range, such as 101-110. Separate more ranges or single numbers with commas or new lines, for example 101-110, 201-210, 305. Up to 100 flats per wing.'
               "
               [error]="
                 flatPlan().error ||
                 (buildingForm.controls.numbers.touched && buildingForm.controls.numbers.invalid
                   ? rowHouses()
-                    ? 'Enter row house numbers or a range.'
-                    : 'Enter flat numbers or a range.'
+                    ? 'Enter row house numbers, such as 1-50.'
+                    : 'Enter flat numbers, such as 101-110.'
                   : null)
               "
             >
@@ -317,6 +491,7 @@
                 formControlName="numbers"
                 required
                 rows="3"
+                [placeholder]="rowHouses() ? 'e.g. 1-50' : 'e.g. 101-110, 201-210'"
                 [maxlength]="numberLimits().characters"
                 (input)="previewFlats()"
               ></textarea>
@@ -327,9 +502,14 @@
                 [attr.aria-label]="rowHouses() ? 'Row house preview' : 'Flat preview'"
               >
                 @if (rowHouses()) {
-                  <p role="status">{{ flatPlan().numbers.length }} row houses will be added.</p>
+                  <p role="status">
+                    {{ flatPlan().numbers.length }} row house numbers ready to save.
+                  </p>
                   <p class="flat-number-preview">{{ flatPlan().numbers.join(', ') }}</p>
-                  <p>Review the numbers, then select Add row houses to save.</p>
+                  <p>
+                    Numbers that already exist are skipped, so only new row houses are added.
+                    Nothing is saved until you select Save row houses.
+                  </p>
                 } @else if (multipleWings()) {
                   <p role="status">
                     {{ wingPlan().codes.length }} wings / {{ flatPlan().numbers.length }} flats per
@@ -349,18 +529,18 @@
                     }
                   </ul>
                   <p>
-                    Review every wing before saving. All selected wings are saved together; a
-                    conflict leaves the whole batch unchanged.
+                    Check every wing before saving. For a wing that already exists, only its missing
+                    flat numbers are added; numbers it already has are skipped.
                   </p>
                 } @else {
                   <p role="status">
-                    {{ flatPlan().numbers.length }} flats will be added to wing
+                    {{ flatPlan().numbers.length }} flat numbers ready for wing
                     {{ buildingForm.controls.code.value || 'you select' }}.
                   </p>
                   <p class="flat-number-preview">{{ flatPlan().numbers.join(', ') }}</p>
                   <p>
-                    No flats are saved until you select Add wing and flats. The same numbers can be
-                    used in another wing.
+                    If this wing already exists, only the flat numbers it does not have yet are
+                    added; the rest are skipped. Nothing is saved until you select Save wing.
                   </p>
                 }
               </section>
@@ -368,77 +548,53 @@
             <se-field
               controlId="flat-area"
               [label]="rowHouses() ? 'Area per row house (sq ft)' : 'Area per flat (sq ft)'"
-              hint="Optional for flat-rate charges. Use two decimals, such as 900.00."
+              [hint]="
+                'Optional. Needed only if maintenance is charged per sq ft. The same area is used for every ' +
+                (rowHouses() ? 'row house' : 'flat') +
+                ' in this save. Use two decimals, such as 900.00.'
+              "
               [error]="
                 buildingForm.controls.areaSqFt.touched && buildingForm.controls.areaSqFt.invalid
-                  ? 'Enter a positive area with two decimal places.'
+                  ? 'Enter the area with two decimals, such as 900.00.'
                   : null
               "
-              ><input seInput formControlName="areaSqFt" inputmode="decimal"
+              ><input
+                seInput
+                formControlName="areaSqFt"
+                inputmode="decimal"
+                placeholder="e.g. 900.00"
             /></se-field>
-            <button
-              seButton
-              type="submit"
-              [disabled]="
-                busy() ||
-                !!flatPlan().error ||
-                (!rowHouses() && multipleWings() && (!!wingPlan().error || !!batchError()))
-              "
-            >
-              {{
-                rowHouses()
-                  ? 'Add row houses'
-                  : multipleWings()
-                    ? 'Add selected wings and flats'
-                    : 'Add wing and flats'
-              }}
-            </button>
+            <!-- Toasts render beneath a modal dialog, so save errors are shown here, by the buttons. -->
+            @if (error(); as message) {
+              <p class="structure-dialog-error" role="alert">
+                <se-icon name="alert" /><span>{{ message }}</span>
+              </p>
+            }
+            <div class="dialog-actions structure-dialog-actions">
+              <button seButton variant="secondary" type="button" (click)="closeBuildingDialog()">
+                Cancel
+              </button>
+              <button
+                seButton
+                type="submit"
+                [disabled]="
+                  busy() ||
+                  !!flatPlan().error ||
+                  (!rowHouses() && multipleWings() && (!!wingPlan().error || !!batchError()))
+                "
+              >
+                {{
+                  rowHouses()
+                    ? 'Save row houses'
+                    : multipleWings()
+                      ? 'Save selected wings'
+                      : 'Save wing'
+                }}
+              </button>
+            </div>
           </form>
-        }
-        @if (flats().length) {
-          <div class="table-scroll" tabindex="0" role="region" aria-label="Setup flats">
-            <table seTable>
-              <caption class="sr-only">
-                Setup flats
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col">Building / Wing</th>
-                  <th scope="col">Flat / Row house</th>
-                  <th scope="col">Area (sq ft)</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (flat of flats(); track flat.id) {
-                  <tr>
-                    <td>{{ flat.buildingName }}</td>
-                    <th scope="row">{{ flat.flatNumber }}</th>
-                    <td>{{ flat.areaSqFt || 'Not provided' }}</td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        } @else {
-          <se-state
-            kind="empty"
-            [title]="rowHouses() ? 'No row houses added' : 'No flats added'"
-            [message]="
-              rowHouses()
-                ? 'Enter row house numbers or a range to get started.'
-                : 'Add a wing with at least one flat.'
-            "
-          />
-        }
-        @if (structure(); as data) {
-          <se-pagination
-            [total]="data.total"
-            [page]="data.page"
-            [pageSize]="data.pageSize"
-            (pageSelected)="flatPage($event)"
-          />
-        }
-      </se-card>
+        </se-dialog>
+      }
     }
     @if (step() === 3) {
       <se-card
@@ -901,11 +1057,87 @@
         <ol id="setup-history-list" class="setup-history">
           @for (event of society.events; track event.id) {
             <li>
-              <strong>{{ eventTitle(event.action) }}</strong
-              ><span
-                >{{ event.toStatus | label }} ·
-                {{ displayTime(event.createdAt, society.timezone) }}</span
-              >
+              <div class="setup-history-row">
+                <div>
+                  <strong>{{ historyTitle(event) }}</strong
+                  ><span
+                    >{{ event.toStatus | label }} ·
+                    {{ displayTime(event.createdAt, society.timezone) }}</span
+                  >
+                  @if (event.details) {
+                    <span class="setup-history-summary">{{
+                      describe(event.details).join(' · ')
+                    }}</span>
+                  }
+                </div>
+                <button
+                  type="button"
+                  class="setup-history-info"
+                  [attr.aria-expanded]="openEvent() === event.id"
+                  [attr.aria-controls]="'setup-event-' + event.id"
+                  [attr.aria-label]="
+                    'Audit details: ' +
+                    historyTitle(event) +
+                    ', ' +
+                    displayTime(event.createdAt, society.timezone)
+                  "
+                  [title]="openEvent() === event.id ? 'Hide audit details' : 'Show audit details'"
+                  (click)="openEvent.set(openEvent() === event.id ? null : event.id)"
+                >
+                  <se-icon name="info" />
+                </button>
+              </div>
+              @if (openEvent() === event.id) {
+                <dl class="setup-history-detail" [id]="'setup-event-' + event.id">
+                  @if (event.details) {
+                    <div>
+                      <dt>What changed</dt>
+                      <dd>
+                        <ul class="setup-history-changes">
+                          @for (line of describe(event.details); track $index) {
+                            <li>{{ line }}</li>
+                          }
+                        </ul>
+                      </dd>
+                    </div>
+                  }
+                  <div>
+                    <dt>Done by</dt>
+                    <dd>
+                      {{ event.actorName ?? 'Unknown user' }}
+                      @if (event.actorEmail && event.actorEmail !== event.actorName) {
+                        <span>{{ event.actorEmail }}</span>
+                      }
+                    </dd>
+                  </div>
+                  @if (event.invitedEmail) {
+                    <div>
+                      <dt>Invited</dt>
+                      <dd>
+                        {{ event.invitedName }}<span>{{ event.invitedEmail }}</span>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Invitation now</dt>
+                      <dd>{{ event.invitationStatus | label }}</dd>
+                    </div>
+                  }
+                  <div>
+                    <dt>Status</dt>
+                    <dd>
+                      @if (event.fromStatus && event.fromStatus !== event.toStatus) {
+                        {{ event.fromStatus | label }} → {{ event.toStatus | label }}
+                      } @else {
+                        {{ event.toStatus | label }}
+                      }
+                    </dd>
+                  </div>
+                  <div>
+                    <dt>When</dt>
+                    <dd>{{ displayTime(event.createdAt, society.timezone) }}</dd>
+                  </div>
+                </dl>
+              }
             </li>
           }
         </ol>

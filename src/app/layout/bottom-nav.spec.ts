@@ -42,8 +42,9 @@ describe('bottom tab bar', () => {
   it('lists every permitted destination except the UI library, with compact labels', async () => {
     const element = await render(identity(true, null));
     expect(tabsOf(element)).toEqual([
-      ['Overview', '/platform/dashboard'],
+      ['Dashboard', '/platform/dashboard'],
       ['Societies', '/platform/societies'],
+      ['Audit trail', '/platform/audit-trail'],
       ['Requests', '/join-society'],
       ['Profile', '/profile'],
     ]);
@@ -62,7 +63,7 @@ describe('bottom tab bar', () => {
       ['Notices', '/society/resident/notices'],
       ['Complaints', '/society/resident/complaints'],
       ['Workspace', '/workspace'],
-      ['Community', '/society/dashboard'],
+      ['Dashboard', '/society/dashboard'],
       ['Requests', '/join-society'],
       ['Profile', '/profile'],
     ]);

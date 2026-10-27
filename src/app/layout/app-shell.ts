@@ -24,6 +24,7 @@ import { SocietySwitcher } from './society-switcher';
 import { BottomNavComponent } from './bottom-nav';
 import { PublicHeaderComponent } from './public-header';
 import { VisibleNavigation } from './visible-navigation';
+import { PublicFooterComponent } from './public-footer';
 
 @Component({
   selector: 'se-app-shell',
@@ -40,6 +41,7 @@ import { VisibleNavigation } from './visible-navigation';
     SocietySwitcher,
     BottomNavComponent,
     PublicHeaderComponent,
+    PublicFooterComponent,
   ],
   templateUrl: './app-shell.html',
 })
@@ -47,6 +49,8 @@ export class AppShellComponent {
   protected readonly auth = inject(AuthService);
   /* Signed-out visitors get the public site header instead of the workspace chrome. */
   protected readonly signedIn = computed(() => this.auth.state.identity() !== null);
+  /** Same copyright year as the public footer. */
+  protected readonly year = new Date().getFullYear();
   private readonly navigation = inject(VisibleNavigation).items;
   /** Phone header brand goes to the first page this account can open. */
   protected readonly homePath = computed(() => this.navigation()[0]?.path ?? '/workspace');

@@ -1009,6 +1009,25 @@
 .platform-directory-heading .form-control {
   font-size: 12px;
 }
+/* Compact controls leave room for the page title on one line on desktop widths; when the
+   controls still do not fit beside it they move to a second row instead of being clipped. */
+.platform-directory-heading {
+  flex-wrap: wrap;
+}
+.platform-directory-heading .page-heading-actions {
+  margin-left: auto;
+}
+.platform-directory-heading .page-heading-search {
+  width: min(200px, 16vw);
+}
+.platform-directory-heading .lifecycle-select {
+  min-width: 150px;
+}
+@media (min-width: 1280px) {
+  .platform-directory-heading h1 {
+    white-space: nowrap;
+  }
+}
 .request-directory-heading {
   margin-bottom: var(--space-5);
 }
@@ -1018,6 +1037,22 @@
 }
 .platform-directory-card .pagination {
   padding-top: var(--space-3);
+}
+/* Slightly shorter rows so a full page of five records and its pager fit without scrolling.
+   Phones use the card layout instead, so this applies above that breakpoint only. */
+@media (min-width: 681px) {
+  .platform-directory-card .data-table th,
+  .platform-directory-card .data-table td {
+    padding-block: 11px;
+  }
+  .platform-directory-card .data-table thead th {
+    padding-block: 10px;
+  }
+  /* Audit rows carry a second line of details, so they get a little less padding. */
+  .platform-directory-card:has(.audit-details) .data-table tbody th,
+  .platform-directory-card:has(.audit-details) .data-table tbody td {
+    padding-block: 8px;
+  }
 }
 .request-directory-card {
   padding: var(--space-4);
@@ -1777,4 +1812,29 @@
   .auth-float-c {
     display: none;
   }
+}
+/* Platform audit trail */
+.audit-sub {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+}
+.data-table td.audit-details {
+  min-width: 260px;
+  max-width: 420px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.audit-details > span:not(.audit-sub) {
+  display: block;
+}
+.audit-details > span + span {
+  margin-top: var(--space-1);
+}
+.audit-note {
+  margin-top: var(--space-3);
+  color: var(--muted);
+  font-size: 12px;
 }

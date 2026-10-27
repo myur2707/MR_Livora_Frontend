@@ -103,7 +103,7 @@ export const SOCIETY_ROUTES: Routes = [
   },
   {
     path: 'dashboard',
-    title: 'Community space · Mr. Livora',
+    title: 'Dashboard · Mr. Livora',
     data: {
       breadcrumb: 'Dashboard',
       heading: 'Your community space',

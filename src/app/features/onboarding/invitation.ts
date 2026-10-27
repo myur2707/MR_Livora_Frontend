@@ -1,16 +1,26 @@
 import { Component, inject, signal } from '@angular/core';
 import type { OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import type { AbstractControl } from '@angular/forms';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { OnboardingApi, onboardingError } from '../../core/onboarding';
+import { apiErrorMessage } from '../../core/api-error';
 import type { InvitationPreview } from '../../core/onboarding';
 import { AuthService } from '../../core/auth';
 import { ButtonDirective } from '../../shared/button';
 import { CardComponent } from '../../shared/card';
 import { FieldComponent, ControlDirective, FormNoticeComponent } from '../../shared/field';
 import { StateComponent } from '../../shared/state';
+import { IconComponent } from '../../shared/icon';
+import { ToastService } from '../../shared/toast';
 import { PasswordToggleDirective } from '../../shared/password-toggle';
+const LINK_UNAVAILABLE = 'This invitation is unavailable or expired. Ask for a new invitation.';
+/** A malformed or truncated link fails validation; describe it as a link problem, not a form one. */
+const linkProblems: Readonly<Record<string, string>> = {
+  INVITATION_INVALID: LINK_UNAVAILABLE,
+  INVALID_REQUEST:
+    'This invitation link is incomplete or invalid. Open the full link from your email.',
+};
 @Component({
   selector: 'se-committee-invitation',
   imports: [
@@ -23,16 +33,21 @@ import { PasswordToggleDirective } from '../../shared/password-toggle';
     ControlDirective,
     FormNoticeComponent,
     StateComponent,
+    IconComponent,
   ],
   templateUrl: './invitation.html',
 })
 export class CommitteeInvitationComponent implements OnInit {
   private readonly api = inject(OnboardingApi);
   protected readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
+  private readonly toast = inject(ToastService);
   private readonly fb = inject(FormBuilder);
   private token = '';
   protected readonly preview = signal<InvitationPreview | null>(null);
   protected readonly error = signal<string | null>(null);
+  /** Why the link itself can't be used; shown as a page panel rather than a toast. */
+  protected readonly linkProblem = signal<string | null>(null);
   protected readonly busy = signal(false);
   protected readonly done = signal(false);
   protected readonly form = this.fb.nonNullable.group({
@@ -53,23 +68,30 @@ export class CommitteeInvitationComponent implements OnInit {
     void this.inspect();
   }
   private async inspect(): Promise<void> {
+    let signedInEmail: string | null = null;
     try {
-      await this.auth.refresh();
-      this.preview.set(
-        await this.api.post<InvitationPreview>('/onboarding/invitations/inspect', {
-          token: this.token,
-        }),
-      );
+      signedInEmail = (await this.auth.refresh())?.email ?? null;
+      const invitation = await this.api.post<InvitationPreview>('/onboarding/invitations/inspect', {
+        token: this.token,
+      });
+      // A signed-in session may only open its own invitation; anything else leaves this page.
+      if (signedInEmail !== null && signedInEmail !== invitation.email) {
+        this.leave('This invitation is for another account. Sign out first to accept it.');
+        return;
+      }
+      this.preview.set(invitation);
     } catch (error) {
-      this.error.set(onboardingError(error));
+      if (signedInEmail !== null) {
+        this.leave('This invitation link is no longer active.');
+        return;
+      }
+      this.linkProblem.set(apiErrorMessage(error, linkProblems) ?? onboardingError(error));
     }
   }
-  protected async signOut(): Promise<void> {
-    try {
-      await this.auth.logout();
-    } catch (error) {
-      this.error.set(onboardingError(error));
-    }
+  private leave(message: string): void {
+    this.token = '';
+    this.toast.show(message, 'info');
+    void this.router.navigateByUrl('/workspace', { replaceUrl: true });
   }
   protected async accept(): Promise<void> {
     const invitation = this.preview();

@@ -141,6 +141,25 @@ export const CONTACT = {
   facebook: 'https://www.facebook.com/mrlivora.official',
 } as const;
 
+/** Pre-filled WhatsApp enquiry: short, professional, with the details the team needs first. */
+export const WHATSAPP_ENQUIRY = [
+  'Hello Mr. Livora team,',
+  '',
+  'I would like to know more about Mr. Livora for our community.',
+  '',
+  'Name:',
+  'Society/Flat/Township name:',
+  'City:',
+  'Number of flats or units:',
+  '',
+  'Please share the details and a convenient time to connect. Thank you.',
+].join('\n');
+
+/** wa.me link to the founder's WhatsApp number with the enquiry pre-filled. */
+export function whatsappLink(number = '919157379787', message = WHATSAPP_ENQUIRY): string {
+  return 'https://wa.me/' + number + '?text=' + encodeURIComponent(message);
+}
+
 export const FOUNDERS = [
   {
     role: 'Founder',

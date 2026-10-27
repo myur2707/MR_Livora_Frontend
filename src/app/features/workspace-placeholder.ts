@@ -21,7 +21,7 @@ import { StateComponent } from '../shared/state';
         title="A fresh start for your community"
         message="This space is taking shape. Your community information will appear here once setup is ready."
         ><a seButton variant="secondary" routerLink="/platform/dashboard"
-          >Back to overview</a
+          >Back to dashboard</a
         ></se-state
       ></se-card
     >`,

@@ -198,6 +198,10 @@
 input.form-control,
 select.form-control {
   height: var(--control-height);
+  /* A long choice must not wrap inside the fixed-height control; it is clipped instead. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .form-control:hover:not(:disabled, :focus-visible) {
   border-color: var(--text);
@@ -224,6 +228,41 @@ select.form-control {
   select.form-control,
   select.form-control::picker(select) {
     appearance: base-select;
+  }
+  /* Options in the open list may wrap; only the closed control stays on one line. */
+  select.form-control option {
+    white-space: normal;
+  }
+  /* Opt-in for long choices: the chosen text shrinks with an ellipsis; the arrow never moves. */
+  select.form-control.select-truncate > button {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+  }
+  select.form-control.select-truncate selectedcontent {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  select.form-control.select-truncate > button::after {
+    content: '';
+    flex: 0 0 auto;
+    width: 0;
+    height: 0;
+    margin-inline-start: var(--space-3);
+    border-inline: 5px solid transparent;
+    border-block-start: 6px solid currentColor;
+  }
+  select.form-control.select-truncate::picker-icon {
+    display: none;
   }
   select.form-control::picker(select) {
     max-height: min(320px, 50dvh);
@@ -367,6 +406,23 @@ select.form-control {
 .pagination .button {
   padding: var(--space-2);
   width: 44px;
+}
+.pagination > div > span {
+  white-space: nowrap;
+}
+/* On phones the page label takes its own row so four full-size buttons fit at 320px. */
+@media (max-width: 480px) {
+  .pagination > div {
+    flex-wrap: wrap;
+    width: 100%;
+    justify-content: space-between;
+    row-gap: var(--space-2);
+  }
+  .pagination > div > span {
+    order: -1;
+    flex-basis: 100%;
+    text-align: center;
+  }
 }
 dialog {
   --dialog-max-height: calc(100dvh - 32px);

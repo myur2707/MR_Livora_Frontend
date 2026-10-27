@@ -259,3 +259,38 @@ test('footer lists the founders, full copyright and returns to the top', async (
   await footer.getByRole('button', { name: /Back to top/ }).click();
   await expect.poll(() => page.evaluate(() => scrollY)).toBe(0);
 });
+
+test('floating WhatsApp button opens a pre-filled enquiry and never hides the footer', async ({
+  page,
+}) => {
+  await page.goto('/');
+  const whatsapp = page.getByRole('link', { name: /Chat with Mr\. Livora on WhatsApp/ });
+  await expect(whatsapp).toBeVisible();
+  await expect(whatsapp).toHaveAttribute('target', '_blank');
+  const href = new URL((await whatsapp.getAttribute('href')) ?? '');
+  expect(href.origin + href.pathname).toBe('https://wa.me/919157379787');
+  expect(href.searchParams.get('text')).toContain('Hello Mr. Livora team,');
+  for (const width of [1366, 390]) {
+    await page.setViewportSize({ width, height: 800 });
+    await page.getByRole('button', { name: /Back to top/ }).scrollIntoViewIfNeeded();
+    const top = await page.getByRole('button', { name: /Back to top/ }).boundingBox();
+    const button = await whatsapp.boundingBox();
+    // At the very bottom of the page the floating button never covers "Back to top".
+    const overlaps =
+      !!top &&
+      !!button &&
+      button.x < top.x + top.width &&
+      top.x < button.x + button.width &&
+      button.y < top.y + top.height &&
+      top.y < button.y + button.height;
+    expect(overlaps).toBe(false);
+  }
+  // Wide screens keep the footer's last row on one line.
+  await page.setViewportSize({ width: 1366, height: 800 });
+  const row = page.locator('.public-footer-base');
+  const [copyright, back] = [
+    await row.getByText(/All rights reserved/).boundingBox(),
+    await page.getByRole('button', { name: /Back to top/ }).boundingBox(),
+  ];
+  expect(Math.abs((copyright?.y ?? 0) - (back?.y ?? 0))).toBeLessThan(8);
+});

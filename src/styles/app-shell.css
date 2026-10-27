@@ -422,6 +422,7 @@ main {
   background: transparent;
 }
 .workspace .app-footer .footer-tagline,
+.workspace .app-footer .footer-motto,
 .workspace .app-footer .copyright-label {
   color: var(--muted);
   font-size: 12px;

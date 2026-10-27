@@ -3,8 +3,8 @@ export const PLATFORM_ROUTES: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   {
     path: 'dashboard',
-    title: 'Overview · Mr. Livora',
-    data: { breadcrumb: 'Overview' },
+    title: 'Dashboard · Mr. Livora',
+    data: { breadcrumb: 'Dashboard' },
     loadComponent: () => import('./overview').then((m) => m.OverviewComponent),
   },
   {
@@ -12,6 +12,12 @@ export const PLATFORM_ROUTES: Routes = [
     title: 'Societies/Flats/Townships · Mr. Livora',
     data: { breadcrumb: 'Societies/Flats/Townships' },
     loadComponent: () => import('./societies').then((m) => m.SocietiesComponent),
+  },
+  {
+    path: 'audit-trail',
+    title: 'Audit trail · Mr. Livora',
+    data: { breadcrumb: 'Audit trail' },
+    loadComponent: () => import('./audit-trail').then((m) => m.AuditTrailComponent),
   },
   {
     path: 'societies/:id',
