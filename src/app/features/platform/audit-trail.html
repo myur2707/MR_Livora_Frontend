@@ -1,4 +1,4 @@
-<header class="page-heading">
+<header class="page-heading platform-directory-heading">
   <div>
     <p class="eyebrow">PLATFORM WORKSPACE</p>
     <h1 tabindex="-1">Audit trail</h1>
@@ -6,7 +6,7 @@
   </div>
 </header>
 <se-form-notice [message]="error()" />
-<form class="payment-filters" (ngSubmit)="load()">
+<form class="payment-filters audit-filters" (ngSubmit)="load()">
   <se-field controlId="audit-search" label="Search"
     ><input
       seInput
