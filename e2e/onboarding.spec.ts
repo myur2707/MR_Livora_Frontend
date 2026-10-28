@@ -35,6 +35,12 @@ const setup: SocietyDetail = {
   verifierMembershipId: null,
   reviewed: false,
   reviewedAt: null,
+  structureAccess: { allowed: true, grantedAt: '2026-10-05T00:00:00Z', revokedAt: null },
+  supportContact: {
+    phone: '+91 9157379787',
+    phoneHref: 'tel:+919157379787',
+    email: 'mrlivora.official@gmail.com',
+  },
   counts: { buildings: 1, flats: 1, rowHouses: 0, residents: 0, maintenance: 1 },
   requirements: {
     committee: true,

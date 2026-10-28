@@ -81,6 +81,7 @@ export class OnboardingWizardComponent implements OnInit {
   protected readonly structure = signal<Page<Flat> | null>(null);
   /** The add form lives in a dialog so the structure list stays the focus of this step. */
   protected readonly buildingDialog = signal(false);
+  protected readonly structureAccessDialog = signal(false);
   protected readonly flatSearch = signal('');
   protected readonly structureTypeFilter = signal('');
   private flatRequest = 0;
@@ -104,11 +105,6 @@ export class OnboardingWizardComponent implements OnInit {
   protected readonly editingResidentId = signal<string | null>(null);
   protected readonly editingMaintenanceId = signal<string | null>(null);
   protected readonly editingStructure = signal<Flat | null>(null);
-  protected readonly pendingArchive = signal<{
-    kind: 'structure' | 'resident' | 'maintenance';
-    id: string;
-    name: string;
-  } | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly message = signal<string | null>(null);
   private readonly toast = inject(ToastService);
@@ -330,10 +326,27 @@ export class OnboardingWizardComponent implements OnInit {
     void this.flatPage(1);
   }
   protected openBuildingDialog(): void {
+    const detail = this.detail();
+    if (!this.platform && !detail?.structureAccess.allowed) {
+      this.structureAccessDialog.set(true);
+      return;
+    }
     this.error.set(null);
     // Keep any draft, but don't greet the person with errors from an earlier attempt.
     this.buildingForm.markAsUntouched();
     this.buildingDialog.set(true);
+  }
+  protected async setStructureAccess(allowed: boolean): Promise<void> {
+    await this.run(
+      (detail) =>
+        this.api.put(this.prefix + '/structure-access', {
+          revision: detail.revision,
+          allowed,
+        }),
+      allowed
+        ? 'Committee structure additions are now enabled.'
+        : 'Committee structure additions are now disabled.',
+    );
   }
   protected closeBuildingDialog(): void {
     this.buildingDialog.set(false);
@@ -675,26 +688,6 @@ export class OnboardingWizardComponent implements OnInit {
       });
       this.editingStructure.set(null);
     }, 'Home updated.');
-  }
-  protected async archivePending(): Promise<void> {
-    const pending = this.pendingArchive();
-    if (!pending) return;
-    this.pendingArchive.set(null);
-    await this.run(
-      (detail) =>
-        this.api.post(
-          this.prefix +
-            '/' +
-            (pending.kind === 'resident' ? 'residents' : pending.kind) +
-            '/' +
-            pending.id +
-            '/archive',
-          {
-            revision: detail.revision,
-          },
-        ),
-      pending.name + ' archived.',
-    );
   }
   protected normalizeMaintenanceRate(): void {
     const control = this.maintenanceForm.controls.rate;

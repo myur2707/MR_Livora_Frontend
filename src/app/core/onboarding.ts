@@ -57,6 +57,16 @@ export interface Configuration {
   effectiveFrom: string;
 }
 export interface SocietyDetail extends SocietySummary {
+  structureAccess: {
+    allowed: boolean;
+    grantedAt: string | null;
+    revokedAt: string | null;
+  };
+  supportContact: {
+    phone: string;
+    phoneHref: string;
+    email: string;
+  };
   /** Display counts: buildings are real wings and flats exclude row houses. */
   counts: {
     buildings: number;
@@ -132,6 +142,8 @@ const onboardingErrorMessages: Readonly<Record<string, string>> = {
   ACCESS_DENIED: 'This society is unavailable to your account.',
   RECORD_HAS_DEPENDENCIES:
     'This record has later resident, access, billing, payment, or invitation activity, so it cannot be edited or archived.',
+  STRUCTURE_ACCESS_REQUIRED:
+    'A Mr. Livora platform administrator must enable structure additions first.',
 };
 /** These conflicts name the caller's own wing code or the numbers that already exist. */
 const detailedConflicts: ReadonlySet<string> = new Set(['NOTHING_TO_ADD', 'WING_ARCHIVED']);

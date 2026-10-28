@@ -23,6 +23,12 @@ const base: SocietyDetail = {
   },
   invitation: null,
   events: [],
+  structureAccess: { allowed: false, grantedAt: null, revokedAt: null },
+  supportContact: {
+    phone: '+91 0000000000',
+    phoneHref: 'tel:+910000000000',
+    email: 'support@example.test',
+  },
 };
 
 describe('setup progress', () => {

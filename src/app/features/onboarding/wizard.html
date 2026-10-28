@@ -239,9 +239,36 @@
             <p class="structure-count">{{ summary(society.counts) }}</p>
           </div>
           @if (editable()) {
-            <button seButton type="button" [disabled]="busy()" (click)="openBuildingDialog()">
-              <se-icon name="plus" />Add wing or row houses
-            </button>
+            <div class="structure-heading-actions">
+              @if (platform) {
+                <div
+                  class="structure-access-control"
+                  [class.is-allowed]="society.structureAccess.allowed"
+                >
+                  <span>{{
+                    society.structureAccess.allowed
+                      ? 'Committee additions enabled'
+                      : 'Committee additions blocked'
+                  }}</span>
+                  <button
+                    seButton
+                    variant="secondary"
+                    type="button"
+                    [disabled]="busy()"
+                    (click)="setStructureAccess(!society.structureAccess.allowed)"
+                  >
+                    {{
+                      society.structureAccess.allowed
+                        ? 'Revoke committee access'
+                        : 'Allow committee additions'
+                    }}
+                  </button>
+                </div>
+              }
+              <button seButton type="button" [disabled]="busy()" (click)="openBuildingDialog()">
+                <se-icon name="plus" />Add wing or row houses
+              </button>
+            </div>
           }
         </header>
         @if (structure()?.total || flatSearch()) {
@@ -301,6 +328,14 @@
                         {{ flat.buildingName }}
                       }
                     </td>
+                    <th scope="row">{{ flat.flatNumber }}</th>
+                    <td>
+                      @if (flat.areaSqFt) {
+                        {{ flat.areaSqFt }}
+                      } @else {
+                        <span class="structure-muted">Not added</span>
+                      }
+                    </td>
                     @if (editable() && !platform) {
                       <td class="row-actions">
                         <button
@@ -311,30 +346,8 @@
                         >
                           Edit
                         </button>
-                        <button
-                          seButton
-                          variant="danger"
-                          type="button"
-                          (click)="
-                            pendingArchive.set({
-                              kind: 'structure',
-                              id: flat.id,
-                              name: flat.flatNumber,
-                            })
-                          "
-                        >
-                          Archive
-                        </button>
                       </td>
                     }
-                    <th scope="row">{{ flat.flatNumber }}</th>
-                    <td>
-                      @if (flat.areaSqFt) {
-                        {{ flat.areaSqFt }}
-                      } @else {
-                        <span class="structure-muted">Not added</span>
-                      }
-                    </td>
                   </tr>
                 }
               </tbody>
@@ -941,20 +954,6 @@
                               >
                                 Edit
                               </button>
-                              <button
-                                seButton
-                                variant="danger"
-                                type="button"
-                                (click)="
-                                  pendingArchive.set({
-                                    kind: 'resident',
-                                    id: resident.id,
-                                    name: resident.displayName,
-                                  })
-                                "
-                              >
-                                Archive
-                              </button>
                             </td>
                           }
                         </tr>
@@ -1182,20 +1181,6 @@
                               (click)="editMaintenance(charge)"
                             >
                               Edit
-                            </button>
-                            <button
-                              seButton
-                              variant="danger"
-                              type="button"
-                              (click)="
-                                pendingArchive.set({
-                                  kind: 'maintenance',
-                                  id: charge.id,
-                                  name: charge.name,
-                                })
-                              "
-                            >
-                              Archive
                             </button>
                           </td>
                         }
@@ -1527,6 +1512,36 @@
   }
 }
 <se-dialog
+  title="Platform approval required"
+  [open]="structureAccessDialog()"
+  (closed)="structureAccessDialog.set(false)"
+>
+  @if (detail(); as society) {
+    <div class="structure-access-help">
+      <p><strong>You cannot add wings, flats, or row houses yet.</strong></p>
+      <p>
+        Contact the Mr. Livora platform administrator and ask them to enable structure additions for
+        <strong>{{ society.name }}</strong
+        >. Return here after they confirm access.
+      </p>
+      <div class="structure-support-contacts">
+        <a [href]="society.supportContact.phoneHref"
+          >Call or WhatsApp: {{ society.supportContact.phone }}</a
+        >
+        <a [href]="'mailto:' + society.supportContact.email"
+          >Email: {{ society.supportContact.email }}</a
+        >
+      </div>
+      <p class="structure-access-note">
+        This restriction is enforced by the server. Closing this message does not provide access.
+      </p>
+    </div>
+  }
+  <div class="onboarding-actions">
+    <button seButton type="button" (click)="structureAccessDialog.set(false)">Understood</button>
+  </div>
+</se-dialog>
+<se-dialog
   title="Edit home"
   [open]="editingStructure() !== null"
   (closed)="editingStructure.set(null)"
@@ -1554,23 +1569,6 @@
       </div>
     </form>
   }
-</se-dialog>
-<se-dialog
-  title="Archive this setup record?"
-  [open]="pendingArchive() !== null"
-  (closed)="pendingArchive.set(null)"
->
-  <p>
-    This hides the record from active setup lists without erasing its audit history. Archiving is
-    blocked when later resident, membership, invitation, billing, or payment activity depends on it.
-  </p>
-  <div class="onboarding-actions">
-    <button seButton variant="secondary" type="button" (click)="pendingArchive.set(null)">
-      Cancel</button
-    ><button seButton variant="danger" type="button" [disabled]="busy()" (click)="archivePending()">
-      Archive record
-    </button>
-  </div>
 </se-dialog>
 <se-dialog
   title="Verify and activate this Society/Flat/Township?"
